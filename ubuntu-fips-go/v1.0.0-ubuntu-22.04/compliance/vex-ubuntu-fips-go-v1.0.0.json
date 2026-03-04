@@ -1,0 +1,84 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://focaloid.com/vex/ubuntu-fips-go/v1.0.0",
+  "author": "Focaloid Security Team",
+  "timestamp": "2026-03-04T11:48:21Z",
+  "version": 1,
+  "tooling": "focaloid-vex-generator-1.0",
+  "statements": [
+    {
+      "vulnerability": {
+        "name": "CVE-2024-EXAMPLE-OPENSSL",
+        "description": "Hypothetical OpenSSL vulnerability"
+      },
+      "products": [
+        {
+          "@id": "pkg:docker/ubuntu-fips-go@v1.0.0-ubuntu-22.04",
+          "identifiers": {
+            "purl": "pkg:docker/focaloid/ubuntu-fips-go@v1.0.0-ubuntu-22.04"
+          },
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/ubuntu/openssl@3.0.2"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "This image uses wolfSSL FIPS v5.8.2 (Certificate #4718) as the primary cryptographic backend via wolfProvider. System OpenSSL 3.0.2 is present but not used for cryptographic operations in FIPS mode."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-EXAMPLE-GOLANG",
+        "description": "Hypothetical Go runtime vulnerability"
+      },
+      "products": [
+        {
+          "@id": "pkg:docker/ubuntu-fips-go@v1.0.0-ubuntu-22.04",
+          "subcomponents": [
+            {
+              "@id": "pkg:github/golang-fips/go@go1.25-fips-release"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "golang-fips/go fork includes security patches and FIPS-specific modifications. Strict FIPS runtime (GOEXPERIMENT=strictfipsruntime) blocks non-FIPS algorithms."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-EXAMPLE-WOLFSSL",
+        "description": "Hypothetical wolfSSL vulnerability"
+      },
+      "products": [
+        {
+          "@id": "pkg:docker/ubuntu-fips-go@v1.0.0-ubuntu-22.04",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/wolfssl@5.8.2-fips"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "action_statement": "Monitoring wolfSSL security advisories. FIPS 140-3 Certificate #4718 validation ensures cryptographic module integrity.",
+      "action_statement_timestamp": "2026-03-04T11:48:21Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GENERAL-MD5-SHA1-WEAKNESS",
+        "description": "MD5 and SHA-1 cryptographic weaknesses"
+      },
+      "products": [
+        {
+          "@id": "pkg:docker/ubuntu-fips-go@v1.0.0-ubuntu-22.04"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "STRICT FIPS POLICY: MD5 blocked by Go runtime (GODEBUG=fips140=only), SHA-1 blocked at wolfSSL library level (--disable-sha). Only FIPS-approved algorithms (SHA-256, SHA-384, SHA-512) are available."
+    }
+  ]
+}

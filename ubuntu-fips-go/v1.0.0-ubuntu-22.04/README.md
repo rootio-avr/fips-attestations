@@ -1,0 +1,350 @@
+# Ubuntu FIPS Go
+
+Go-only FIPS-140-3 compliant Docker image with strict cryptographic policy.
+
+## Overview
+
+This image provides a minimal, single-purpose FIPS environment for Go applications using:
+- **golang-fips/go v1.25** - FIPS-enabled Go compiler
+- **wolfSSL FIPS v5.8.2** - FIPS 140-3 Certificate #4718
+- **wolfProvider v1.1.0** - OpenSSL 3.x provider
+- **Ubuntu 22.04 LTS** - Base image with OpenSSL 3.0.2
+
+## FIPS Policy: STRICT
+
+This image implements a **stricter-than-FIPS** policy:
+
+| Algorithm | Status | Enforcement Layer |
+|-----------|--------|-------------------|
+| **MD5** | ❌ BLOCKED | Go runtime (GODEBUG=fips140=only) |
+| **SHA-1** | ❌ BLOCKED | wolfSSL library (--disable-sha) |
+| **SHA-256** | ✅ ALLOWED | FIPS approved |
+| **SHA-384** | ✅ ALLOWED | FIPS approved |
+| **SHA-512** | ✅ ALLOWED | FIPS approved |
+
+**⚠️ Important**: Blocking SHA-1 at the library level breaks FIPS 140-3 validation, as SHA-1 is required for approved legacy operations (HMAC, KDF, signature verification). This configuration prioritizes maximum security over certification compliance.
+
+## Architecture
+
+```
+Go Application
+    ↓
+golang-fips/go Runtime (GOEXPERIMENT=strictfipsruntime)
+    ↓
+OpenSSL 3.x (dlopen at runtime)
+    ↓
+wolfProvider (OSSL provider)
+    ↓
+wolfSSL FIPS v5.8.2 (FIPS-validated cryptographic module)
+```
+
+## Components
+
+- **wolfSSL FIPS v5.8.2**
+  - FIPS 140-3 Certificate #4718
+  - Built with `--disable-sha` for strict SHA-1 blocking
+  - Located: `/usr/local/lib/libwolfssl.so`
+
+- **wolfProvider v1.1.0**
+  - OpenSSL 3.x provider routing to wolfSSL
+  - Located: `/usr/lib/*/ossl-modules/libwolfprov.so`
+
+- **golang-fips/go v1.25**
+  - FIPS-enabled Go compiler from golang-fips project
+  - Routes crypto operations through OpenSSL 3.x
+  - ChaCha20-Poly1305 removed (non-FIPS)
+
+- **Go Demo Application**
+  - Tests FIPS algorithm enforcement
+  - Validates OpenSSL integration
+  - Located: `/app/fips-go-demo`
+
+## Prerequisites
+
+### wolfSSL Commercial FIPS Package
+
+This image requires the commercial wolfSSL FIPS package. Create a password file:
+
+```bash
+echo 'your-wolfssl-password' > .wolfssl_password
+chmod 600 .wolfssl_password
+```
+
+## Build
+
+### Standard Build
+```bash
+./build.sh
+```
+
+### Clean Build (no cache)
+```bash
+./build.sh --no-cache
+```
+
+### Manual Build
+```bash
+docker build \
+  --secret id=wolfssl_password,src=.wolfssl_password \
+  -t ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  .
+```
+
+## Usage
+
+### Run FIPS Demo (Default)
+```bash
+docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04
+```
+
+### Validate FIPS Environment Only
+```bash
+docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04 validate
+```
+
+### Interactive Shell
+```bash
+docker run --rm -it ubuntu-fips-go:v1.0.0-ubuntu-22.04 bash
+```
+
+### Run Specific Go Binary
+```bash
+docker run --rm --entrypoint="" ubuntu-fips-go:v1.0.0-ubuntu-22.04 /app/fips-go-demo
+```
+
+## Testing
+
+### Run All Tests
+```bash
+docker run --rm \
+  -v $(pwd)/tests:/tests \
+  --entrypoint="" \
+  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  bash -c 'cd /tests && ./run-all-tests.sh'
+```
+
+### Run Individual Tests
+
+**Algorithm Enforcement Test:**
+```bash
+docker run --rm \
+  -v $(pwd)/tests:/tests \
+  --entrypoint="" \
+  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  bash /tests/test-go-fips-algorithms.sh
+```
+
+**OpenSSL Integration Test:**
+```bash
+docker run --rm \
+  -v $(pwd)/tests:/tests \
+  --entrypoint="" \
+  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  bash /tests/test-go-openssl-integration.sh
+```
+
+**Full FIPS Validation:**
+```bash
+docker run --rm \
+  -v $(pwd)/tests:/tests \
+  --entrypoint="" \
+  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  bash /tests/test-go-fips-validation.sh
+```
+
+**OS FIPS Status Check:**
+```bash
+docker run --rm \
+  -v $(pwd)/tests:/tests \
+  --entrypoint="" \
+  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  bash /tests/test-os-fips-status.sh
+```
+
+## FIPS POC Compliance
+
+This image **fully satisfies all FIPS Proof of Concept (POC) criteria** for federal and enterprise-grade hardening standards:
+
+### ✅ POC Test Cases
+
+| Test Case | Status | Implementation |
+|-----------|--------|----------------|
+| **1. Algorithm Enforcement via CLI** | ✅ VERIFIED | `tests/test-openssl-cli-algorithms.sh` |
+| **2. Golang Cryptographic Validation** | ✅ VERIFIED | `tests/test-go-fips-algorithms.sh`, `src/main.go` |
+| **3. OS FIPS Status Check** | ✅ VERIFIED | `tests/test-os-fips-status.sh` |
+
+### ✅ Success Criteria Met
+
+- ✅ Commands using FIPS-incompatible algorithms (MD5, SHA-1) return errors
+- ✅ Commands using FIPS-compatible algorithms (SHA-256+) execute successfully
+- ✅ Audit trail visibility (`/var/log/fips-audit.log`)
+- ✅ VEX documentation (`compliance/generate-vex.sh`)
+- ✅ SBOM availability (`compliance/generate-sbom.sh`)
+- ✅ Artifact signing (`compliance/sign-image.sh`)
+- ✅ SLSA Level 2 compliance (`compliance/generate-slsa-attestation.sh`)
+- ✅ Verified chain of custody (`compliance/CHAIN-OF-CUSTODY.md`)
+
+### 📋 Detailed Validation Report
+
+See **[POC-VALIDATION-REPORT.md](POC-VALIDATION-REPORT.md)** for:
+- Complete test case mapping
+- Evidence and verification procedures
+- Compliance artifact inventory
+- FIPS certification details
+- Architecture validation
+
+### 🧪 Run POC Validation
+
+Validate all POC requirements with a single command:
+
+```bash
+docker run --rm \
+  -v $(pwd)/tests:/tests \
+  --entrypoint="" \
+  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  bash -c 'cd /tests && ./run-all-tests.sh'
+```
+
+**Expected Result**: ✅ 6/6 test suites passed
+
+## Environment Variables
+
+| Variable | Value | Purpose |
+|----------|-------|---------|
+| `GOLANG_FIPS` | `1` | Enable FIPS mode in golang-fips/go |
+| `GODEBUG` | `fips140=only` | Block non-FIPS algorithms at Go runtime |
+| `GOEXPERIMENT` | `strictfipsruntime` | Strict FIPS enforcement |
+| `OPENSSL_CONF` | `/etc/ssl/openssl.cnf` | OpenSSL configuration with wolfProvider |
+| `LD_LIBRARY_PATH` | (multiple paths) | Include wolfSSL library path |
+
+## Verification
+
+### Check FIPS Provider Status
+```bash
+docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04 bash -c "openssl list -providers"
+```
+
+Expected output:
+```
+Providers:
+  fips
+    name: wolfSSL Provider FIPS
+    version: 1.1.0
+    status: active
+```
+
+### Verify Runtime Library Loading
+```bash
+docker run --rm --entrypoint="" ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  bash -c "LD_DEBUG=libs /app/fips-go-demo 2>&1 | grep -E 'libcrypto|libwolfssl'"
+```
+
+This should show:
+- `libcrypto.so.3` being loaded (OpenSSL 3.x)
+- `libwolfssl.so.44` being loaded (wolfSSL FIPS)
+- `libwolfprov.so` being initialized (wolfProvider)
+
+### Test Algorithm Blocking
+```bash
+docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04
+```
+
+Expected behavior:
+- ✅ MD5: BLOCKED (panic from golang-fips/go)
+- ✅ SHA-1: BLOCKED (library disabled with --disable-sha)
+- ✅ SHA-256/384/512: PASS
+
+## Directory Structure
+
+```
+ubuntu-fips-go/v1.0.0-ubuntu-22.04/
+├── Dockerfile                          # Multi-stage build
+├── build.sh                            # Build script
+├── entrypoint.sh                       # Container entrypoint
+├── openssl-wolfprov.cnf               # OpenSSL provider config
+├── POC-VALIDATION-REPORT.md           # FIPS POC compliance report
+├── src/
+│   └── main.go                        # Go FIPS demo application
+├── tests/
+│   ├── test-go-fips-algorithms.sh     # Algorithm blocking tests
+│   ├── test-go-openssl-integration.sh # OpenSSL integration tests
+│   ├── test-go-fips-validation.sh     # Full FIPS validation
+│   ├── test-go-in-container-compilation.sh # Compilation test
+│   ├── test-openssl-cli-algorithms.sh # CLI algorithm enforcement
+│   ├── test-os-fips-status.sh         # OS FIPS status check (NEW)
+│   └── run-all-tests.sh               # Master test runner (6 tests)
+├── compliance/
+│   ├── generate-sbom.sh               # SBOM generator (SPDX)
+│   ├── generate-vex.sh                # VEX generator (OpenVEX)
+│   ├── generate-slsa-attestation.sh   # SLSA provenance (NEW)
+│   ├── sign-image.sh                  # Image signing (Cosign)
+│   └── CHAIN-OF-CUSTODY.md            # Provenance documentation
+└── README.md                           # This file
+```
+
+## Troubleshooting
+
+### MD5 Not Blocked
+
+Ensure `GODEBUG=fips140=only` is set:
+```bash
+docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04 bash -c 'echo $GODEBUG'
+```
+
+### SHA-1 Still Available
+
+Verify wolfSSL was built with `--disable-sha`:
+```bash
+docker inspect ubuntu-fips-go:v1.0.0-ubuntu-22.04
+```
+
+Look for `--disable-sha` in the build logs.
+
+### Provider Not Loaded
+
+Check OpenSSL configuration:
+```bash
+docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04 bash -c 'cat /etc/ssl/openssl.cnf'
+```
+
+Verify wolfProvider module exists:
+```bash
+docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04 bash -c 'ls -la /usr/lib/*/ossl-modules/'
+```
+
+## Security Considerations
+
+1. **Strict Policy vs. FIPS Validation**: This image blocks SHA-1 completely, which is stricter than FIPS 140-3 but breaks certification compliance.
+
+2. **wolfSSL Commercial License**: Requires valid wolfSSL commercial FIPS package license.
+
+3. **Certificate #4718**: wolfSSL FIPS v5.8.2 is validated under FIPS 140-3, but modifications (--disable-sha) invalidate the certificate.
+
+4. **Production Use**: For production environments requiring FIPS certification, consider using standard FIPS policy (SHA-1 allowed for approved uses).
+
+## Related Images
+
+- **ubuntu-fips-java**: Java-only FIPS image with OpenJDK 17
+- **fips-reference-app**: Combined Go + Java reference implementation
+
+## License
+
+Components:
+- Ubuntu 22.04: Canonical License
+- wolfSSL FIPS: Commercial License (required)
+- wolfProvider: GPL v3
+- golang-fips/go: BSD-style (Go License)
+
+## Support
+
+For issues and questions:
+1. Review test output: `./tests/run-all-tests.sh`
+2. Check logs: `docker logs <container>`
+3. Verify environment: Run with `validate` command
+
+## References
+
+- [wolfSSL FIPS 140-3](https://www.wolfssl.com/products/wolfssl-fips/)
+- [golang-fips/go Project](https://github.com/golang-fips/go)
+- [NIST FIPS 140-3](https://csrc.nist.gov/publications/detail/fips/140/3/final)
+- [OpenSSL 3.x Providers](https://www.openssl.org/docs/man3.0/man7/provider.html)

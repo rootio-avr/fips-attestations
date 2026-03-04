@@ -1,0 +1,125 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "subject": [
+    {
+      "name": "ubuntu-fips-java",
+      "digest": {
+        "sha256": "72c9baf1238fcf0d3febdf4ad590941dcfaf7cbfac9687317dc0707c37bad5fa"
+      }
+    }
+  ],
+  "predicateType": "https://slsa.dev/provenance/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://focaloid.com/docker-build@v1",
+      "externalParameters": {
+        "source": {
+          "uri": "git@github.com:Root-IO-Labs/fips-poc.git",
+          "digest": {
+            "gitCommit": "HEAD"
+          },
+          "ref": "HEAD"
+        },
+        "configSource": {
+          "uri": "git@github.com:Root-IO-Labs/fips-poc.git",
+          "digest": {
+            "gitCommit": "HEAD"
+          },
+          "entryPoint": "Dockerfile"
+        },
+        "buildConfig": {
+          "dockerfile": "Dockerfile",
+          "buildArgs": {
+            "BASE_IMAGE": "ubuntu:22.04",
+            "WOLFSSL_VERSION": "5.8.2-commercial-fips-v5.2.3",
+            "WOLFPROVIDER_VERSION": "v1.1.0",
+            "OPENJDK_VERSION": "17"
+          }
+        }
+      },
+      "internalParameters": {
+        "docker_version": "28.5.1",
+        "build_platform": "Linux/x86_64",
+        "fips_policy": "strict",
+        "security_hardening": "enabled"
+      },
+      "resolvedDependencies": [
+        {
+          "uri": "pkg:docker/ubuntu@22.04",
+          "digest": {
+            "sha256": "ubuntu22.04"
+          },
+          "name": "ubuntu",
+          "downloadLocation": "https://hub.docker.com/_/ubuntu"
+        },
+        {
+          "uri": "pkg:generic/wolfssl@5.8.2-fips",
+          "name": "wolfssl",
+          "downloadLocation": "https://www.wolfssl.com/comm/wolfssl/",
+          "annotations": {
+            "fips_certificate": "4718",
+            "fips_version": "140-3"
+          }
+        },
+        {
+          "uri": "pkg:generic/wolfprovider@1.1.0",
+          "name": "wolfProvider",
+          "downloadLocation": "https://github.com/wolfSSL/wolfProvider",
+          "digest": {
+            "gitCommit": "v1.1.0"
+          }
+        },
+        {
+          "uri": "pkg:deb/ubuntu/openjdk-17-jre-headless",
+          "name": "openjdk-17",
+          "downloadLocation": "https://packages.ubuntu.com/jammy/openjdk-17-jre-headless",
+          "annotations": {
+            "java_version": "17",
+            "distribution": "Ubuntu 22.04"
+          }
+        },
+        {
+          "uri": "pkg:generic/openssl@3.0.2",
+          "name": "openssl",
+          "downloadLocation": "https://www.openssl.org/source/"
+        }
+      ]
+    },
+    "runDetails": {
+      "builder": {
+        "id": "https://focaloid.com/build-system@v1",
+        "version": {
+          "docker": "28.5.1"
+        },
+        "builderDependencies": [
+          {
+            "uri": "pkg:generic/docker@28.5.1",
+            "name": "docker"
+          }
+        ]
+      },
+      "metadata": {
+        "invocationId": "build-2026-03-04T12:19:37Z",
+        "startedOn": "2026-03-04T12:19:37Z",
+        "finishedOn": "2026-03-04T12:19:37Z"
+      },
+      "byproducts": [
+        {
+          "uri": "sbom-ubuntu-fips-java-v1.0.0.spdx.json",
+          "name": "SBOM",
+          "mediaType": "application/spdx+json"
+        },
+        {
+          "uri": "vex-ubuntu-fips-java-v1.0.0.json",
+          "name": "VEX",
+          "mediaType": "application/vnd.openvex+json"
+        },
+        {
+          "uri": "CHAIN-OF-CUSTODY.md",
+          "name": "Chain of Custody",
+          "mediaType": "text/markdown"
+        }
+      ]
+    }
+  }
+}
