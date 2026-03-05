@@ -1,0 +1,658 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  STIG Template for ubuntu-fips-go:v1.0.0-ubuntu-22.04
+
+  Base: DISA STIG for Canonical Ubuntu 22.04 LTS
+  Adaptation: Container Environment (Docker/Kubernetes)
+  Date: 2026-03-04
+  Version: 1.0
+
+  This template adapts DISA STIG controls for containerized Ubuntu 22.04 LTS,
+  documenting container-appropriate exclusions and justifications.
+
+  Key Adaptations:
+  - Kernel-level controls: Host responsibility
+  - Boot loader controls: Not applicable (no direct boot)
+  - Systemd services: Limited (minimal container runtime)
+  - Physical access: Not applicable (virtual environment)
+  - Network services: Application-specific only
+
+  Reference: https://public.cyber.mil/stigs/downloads/
+-->
+
+<Benchmark xmlns="http://checklists.nist.gov/xccdf/1.2"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           id="ubuntu-fips-go-stig-baseline"
+           xml:lang="en">
+
+  <status date="2026-03-04">draft</status>
+
+  <title>STIG Baseline for ubuntu-fips-go Container Image</title>
+
+  <description>
+    This STIG baseline template applies DISA Security Technical Implementation Guide
+    controls to the ubuntu-fips-go container image (Ubuntu 22.04 LTS with Go FIPS runtime).
+
+    Container Scope:
+    - Application runtime security
+    - Cryptographic enforcement
+    - Audit logging
+    - Access controls
+    - Package management
+
+    Host Responsibilities (Out of Scope):
+    - Kernel hardening
+    - Boot process security
+    - Physical security
+    - Host network configuration
+    - Host-level services
+  </description>
+
+  <version>1.0</version>
+  <metadata>
+    <creator>Focaloid Security Team</creator>
+    <publisher>Focaloid</publisher>
+    <contributor>DISA STIG</contributor>
+    <source>DISA STIG for Canonical Ubuntu 22.04 LTS</source>
+  </metadata>
+
+  <!-- Profile: Container FIPS Baseline -->
+  <Profile id="container-fips-baseline">
+    <title>Container FIPS Baseline</title>
+    <description>
+      Baseline profile for FIPS-compliant containerized applications on Ubuntu 22.04 LTS.
+      Includes only controls applicable to container runtime environments.
+    </description>
+
+    <!-- Select applicable rules -->
+    <select idref="SV-238197" selected="true"/> <!-- FIPS mode enabled -->
+    <select idref="SV-238198" selected="true"/> <!-- Crypto algorithms -->
+    <select idref="SV-238199" selected="true"/> <!-- Audit logging -->
+    <select idref="SV-238200" selected="true"/> <!-- Package integrity -->
+    <select idref="SV-238201" selected="true"/> <!-- Least privilege -->
+    <select idref="SV-238202" selected="true"/> <!-- File permissions -->
+    <select idref="SV-238203" selected="false"/> <!-- Kernel modules (N/A) -->
+    <select idref="SV-238204" selected="false"/> <!-- Boot loader (N/A) -->
+    <select idref="SV-238205" selected="false"/> <!-- Systemd services (N/A) -->
+  </Profile>
+
+  <!-- =================================================================== -->
+  <!-- CATEGORY I: HIGH SEVERITY                                           -->
+  <!-- =================================================================== -->
+
+  <Group id="V-238197">
+    <title>SRG-OS-000033-GPOS-00014</title>
+    <description>
+      The Ubuntu operating system must implement FIPS-validated cryptographic mechanisms.
+    </description>
+
+    <Rule id="SV-238197r653787_rule" severity="high">
+      <version>UBTU-22-010001</version>
+      <title>Ubuntu must use FIPS-validated cryptographic mechanisms.</title>
+
+      <description>
+        Use of weak or untested encryption algorithms undermines the purposes of utilizing
+        encryption to protect data. The operating system must implement cryptographic modules
+        adhering to the higher standards approved by the federal government.
+
+        Container Implementation:
+        - wolfSSL FIPS v5.8.2 (Certificate #4718)
+        - golang-fips/go runtime with GODEBUG=fips140=only
+        - OpenSSL 3.x with wolfProvider
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content-ref href="ubuntu-fips-go-oval.xml" name="oval:fips:def:1"/>
+      </check-content-ref>
+      <check-content>
+        Verify FIPS mode is enabled in the container:
+
+        1. Check OpenSSL provider:
+        $ docker exec &lt;container&gt; openssl list -providers
+
+        Expected output:
+        Providers:
+          fips
+            name: wolfSSL Provider FIPS
+            version: 1.1.0
+            status: active
+
+        2. Check Go FIPS environment:
+        $ docker exec &lt;container&gt; printenv GOLANG_FIPS
+        1
+
+        $ docker exec &lt;container&gt; printenv GODEBUG
+        fips140=only
+
+        3. Run FIPS validation test:
+        $ docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04
+
+        If FIPS provider is not active or algorithms are not blocked, this is a finding.
+      </check-content>
+
+      <fix id="F-41366r653785_fix">
+        <fixtext fixref="F-41366r653785_fix">
+          Ensure container is built with FIPS-validated cryptographic modules:
+
+          1. Use wolfSSL FIPS v5.8.2 (Certificate #4718)
+          2. Configure OpenSSL to use wolfProvider
+          3. Set environment variables:
+             - GOLANG_FIPS=1
+             - GODEBUG=fips140=only
+             - GOEXPERIMENT=strictfipsruntime
+          4. Route all cryptographic operations through validated modules
+
+          Rebuild container if FIPS mode is not properly configured.
+        </fixtext>
+      </fix>
+
+      <ident system="http://cce.mitre.org">CCE-85877-2</ident>
+      <fixtext>Configure FIPS mode for the container</fixtext>
+    </Rule>
+
+    <!-- Implementation Status -->
+    <reference>
+      <dc:title>POC Validation Report</dc:title>
+      <dc:source>ubuntu-fips-go/v1.0.0-ubuntu-22.04/POC-VALIDATION-REPORT.md</dc:source>
+      <dc:subject>Test Case 3: OS FIPS Status Check</dc:subject>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238198">
+    <title>SRG-OS-000396-GPOS-00176</title>
+    <description>
+      The Ubuntu operating system must block non-FIPS approved cryptographic algorithms.
+    </description>
+
+    <Rule id="SV-238198r653790_rule" severity="high">
+      <version>UBTU-22-010002</version>
+      <title>Ubuntu must block MD5 and SHA-1 cryptographic hash functions.</title>
+
+      <description>
+        Unapproved mechanisms that are used for authentication to the cryptographic module are
+        not verified and therefore cannot be relied upon to provide confidentiality or integrity.
+
+        Container Implementation:
+        - MD5: Blocked at Go runtime (panic)
+        - SHA-1: Blocked at library level (wolfSSL --disable-sha)
+        - Enforcement layer: golang-fips/go + wolfSSL FIPS
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify non-FIPS algorithms are blocked:
+
+          1. Test MD5 blocking:
+          $ docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04
+
+          Expected: MD5 BLOCKED (golang-fips/go active)
+
+          2. Test SHA-1 blocking:
+          Expected: SHA-1 BLOCKED (library disabled)
+
+          3. Test via OpenSSL CLI:
+          $ docker exec &lt;container&gt; openssl dgst -md5 /etc/passwd
+          Expected: Error (algorithm not available)
+
+          If MD5 or SHA-1 are available, this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41367r653788_fix">
+        <fixtext>
+          Configure runtime to block non-FIPS algorithms:
+
+          1. Build wolfSSL with --disable-sha flag
+          2. Set GODEBUG=fips140=only in environment
+          3. Use golang-fips/go compiler (not standard Go)
+          4. Verify enforcement with test suite
+
+          Test: docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04
+        </fixtext>
+      </fix>
+    </Rule>
+
+    <reference>
+      <dc:title>POC Validation Report</dc:title>
+      <dc:source>ubuntu-fips-go/v1.0.0-ubuntu-22.04/POC-VALIDATION-REPORT.md</dc:source>
+      <dc:subject>Test Case 1: Algorithm Enforcement via CLI</dc:subject>
+      <dc:subject>Test Case 2: Golang Cryptographic Validation</dc:subject>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+  <!-- CATEGORY II: MEDIUM SEVERITY                                        -->
+  <!-- =================================================================== -->
+
+  <Group id="V-238199">
+    <title>SRG-OS-000057-GPOS-00027</title>
+    <description>
+      The Ubuntu operating system must generate audit records for privileged activities.
+    </description>
+
+    <Rule id="SV-238199r653793_rule" severity="medium">
+      <version>UBTU-22-010003</version>
+      <title>Ubuntu must log cryptographic operations and FIPS mode changes.</title>
+
+      <description>
+        Without generating audit records that are specific to the security and mission needs of
+        the organization, it would be difficult to establish, correlate, and investigate the events
+        relating to an incident or identify those responsible.
+
+        Container Implementation:
+        - Audit log: /var/log/fips-audit.log
+        - Format: JSON structured logging
+        - Events: Container start, FIPS validation, algorithm usage
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify audit logging is configured:
+
+          1. Check audit log exists:
+          $ docker exec &lt;container&gt; ls -la /var/log/fips-audit.log
+
+          2. View audit entries:
+          $ docker exec &lt;container&gt; cat /var/log/fips-audit.log
+
+          Expected entries:
+          - Container start event
+          - FIPS initialization
+          - Provider validation
+          - Algorithm test results
+
+          If audit log is missing or incomplete, this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41368r653791_fix">
+        <fixtext>
+          Configure audit logging in entrypoint script:
+
+          1. Create /var/log/fips-audit.log
+          2. Log all FIPS-related operations
+          3. Use structured JSON format
+          4. Include timestamps and event types
+
+          Implementation: See entrypoint.sh lines 25-64
+        </fixtext>
+      </fix>
+    </Rule>
+
+    <reference>
+      <dc:source>ubuntu-fips-go/v1.0.0-ubuntu-22.04/entrypoint.sh</dc:source>
+      <dc:subject>Lines 25-64: Audit logging implementation</dc:subject>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238200">
+    <title>SRG-OS-000366-GPOS-00153</title>
+    <description>
+      The Ubuntu operating system must use cryptographic mechanisms to protect the integrity
+      of audit information.
+    </description>
+
+    <Rule id="SV-238200r653796_rule" severity="medium">
+      <version>UBTU-22-010004</version>
+      <title>Ubuntu must verify package integrity using cryptographic signatures.</title>
+
+      <description>
+        Without cryptographic integrity protections, system packages could be replaced with
+        malicious versions that contain security vulnerabilities or backdoors.
+
+        Container Implementation:
+        - All packages from official Ubuntu repositories
+        - APT signature verification enabled
+        - SBOM provided for transparency
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify package integrity mechanisms:
+
+          1. Check APT configuration:
+          $ docker exec &lt;container&gt; cat /etc/apt/apt.conf.d/99verify
+
+          Expected: APT::Get::AllowUnauthenticated "false";
+
+          2. Verify SBOM exists:
+          $ ls compliance/sbom-ubuntu-fips-go-v1.0.0.spdx.json
+
+          3. Check image signature:
+          $ cosign verify --key cosign.pub ubuntu-fips-go:v1.0.0-ubuntu-22.04
+
+          If packages are not verified or SBOM is missing, this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41369r653794_fix">
+        <fixtext>
+          Ensure package integrity verification:
+
+          1. Enable APT signature checking (default in Ubuntu 22.04)
+          2. Generate SBOM: ./compliance/generate-sbom.sh
+          3. Sign image: ./compliance/sign-image.sh
+          4. Verify: cosign verify ubuntu-fips-go:v1.0.0-ubuntu-22.04
+        </fixtext>
+      </fix>
+    </Rule>
+
+    <reference>
+      <dc:source>supply-chain/SBOM-ubuntu-fips-go.spdx.json</dc:source>
+      <dc:source>supply-chain/Cosign-Verification-Instructions.md</dc:source>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238201">
+    <title>SRG-OS-000480-GPOS-00227</title>
+    <description>
+      The Ubuntu operating system must enforce the principle of least privilege.
+    </description>
+
+    <Rule id="SV-238201r653799_rule" severity="medium">
+      <version>UBTU-22-010005</version>
+      <title>Ubuntu container must not run as root user.</title>
+
+      <description>
+        The principle of least privilege requires that processes operate with the minimum
+        set of privileges necessary to perform their function.
+
+        Container Implementation:
+        - Non-root user: appuser (UID 1001)
+        - Minimal capabilities
+        - Read-only root filesystem (where applicable)
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify container runs as non-root:
+
+          1. Check default user:
+          $ docker inspect ubuntu-fips-go:v1.0.0-ubuntu-22.04 | grep -i user
+
+          Expected: "User": "appuser" or "User": "1001"
+
+          2. Verify at runtime:
+          $ docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04 id
+
+          Expected: uid=1001(appuser) gid=1001(appuser)
+
+          If container runs as root (UID 0), this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41370r653797_fix">
+        <fixtext>
+          Configure non-root user in Dockerfile:
+
+          RUN groupadd -g 1001 appuser &amp;&amp; \
+              useradd -u 1001 -g appuser -s /bin/bash appuser
+
+          USER appuser
+
+          Rebuild image with non-root user configuration.
+        </fixtext>
+      </fix>
+    </Rule>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238202">
+    <title>SRG-OS-000480-GPOS-00228</title>
+    <description>
+      The Ubuntu operating system must set proper file and directory permissions.
+    </description>
+
+    <Rule id="SV-238202r653802_rule" severity="medium">
+      <version>UBTU-22-010006</version>
+      <title>Ubuntu must restrict file permissions to authorized users only.</title>
+
+      <description>
+        If files are accessible to unauthorized users, those users could potentially
+        modify or delete sensitive information.
+
+        Container Implementation:
+        - Application files: owned by appuser
+        - Sensitive configs: 0600 permissions
+        - Executables: 0755 permissions
+        - No world-writable files
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify file permissions:
+
+          1. Check for world-writable files:
+          $ docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+            find / -type f -perm -002 2>/dev/null
+
+          Expected: No output (no world-writable files)
+
+          2. Check sensitive file permissions:
+          $ docker exec &lt;container&gt; ls -la /etc/ssl/openssl.cnf
+
+          Expected: -rw-r--r-- (0644 or stricter)
+
+          If unauthorized permissions exist, this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41371r653800_fix">
+        <fixtext>
+          Set proper file permissions in Dockerfile:
+
+          RUN chmod 755 /app/fips-go-demo &amp;&amp; \
+              chmod 644 /etc/ssl/openssl.cnf &amp;&amp; \
+              find /app -type f -exec chmod 644 {} \;
+
+          Rebuild image with correct permissions.
+        </fixtext>
+      </fix>
+    </Rule>
+  </Group>
+
+  <!-- =================================================================== -->
+  <!-- CONTAINER-INAPPROPRIATE CONTROLS (NOT APPLICABLE)                   -->
+  <!-- =================================================================== -->
+
+  <Group id="V-238203">
+    <title>SRG-OS-000480-GPOS-00229</title>
+    <description>
+      EXCLUDED: Kernel module loading restrictions
+    </description>
+
+    <Rule id="SV-238203r653805_rule" severity="medium">
+      <version>UBTU-22-010007</version>
+      <title>Ubuntu must restrict loading of kernel modules.</title>
+
+      <description>
+        CONTAINER EXCLUSION:
+
+        Reason: Containers do not have direct access to load kernel modules.
+        Kernel module management is the responsibility of the host operating system.
+
+        Host Responsibility: The container host must implement kernel module restrictions
+        according to DISA STIG requirements.
+
+        Container Impact: None (kernel shared with host)
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          N/A - Host responsibility
+        </check-content>
+      </check>
+
+      <fix id="F-41372r653803_fix">
+        <fixtext>
+          N/A - Configure on container host according to DISA STIG requirements.
+        </fixtext>
+      </fix>
+    </Rule>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238204">
+    <title>SRG-OS-000480-GPOS-00230</title>
+    <description>
+      EXCLUDED: Boot loader password protection
+    </description>
+
+    <Rule id="SV-238204r653808_rule" severity="high">
+      <version>UBTU-22-010008</version>
+      <title>Ubuntu boot loader must be password protected.</title>
+
+      <description>
+        CONTAINER EXCLUSION:
+
+        Reason: Containers do not have a boot loader. Containers are started by the
+        container runtime (Docker, containerd, etc.), not through a boot process.
+
+        Host Responsibility: The container host boot loader must be password protected
+        according to DISA STIG requirements.
+
+        Container Impact: None (no boot process)
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          N/A - Host responsibility
+        </check-content>
+      </check>
+
+      <fix id="F-41373r653806_fix">
+        <fixtext>
+          N/A - Configure on container host according to DISA STIG requirements.
+        </fixtext>
+      </fix>
+    </Rule>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238205">
+    <title>SRG-OS-000480-GPOS-00231</title>
+    <description>
+      EXCLUDED: Systemd service hardening
+    </description>
+
+    <Rule id="SV-238205r653811_rule" severity="medium">
+      <version>UBTU-22-010009</version>
+      <title>Ubuntu must harden systemd services.</title>
+
+      <description>
+        CONTAINER EXCLUSION:
+
+        Reason: Minimal containers typically do not run systemd. This image uses a
+        simple entrypoint script instead of systemd for service management.
+
+        Container Alternative: Process supervision is handled by the container runtime
+        (Docker, Kubernetes) which provides:
+        - Process monitoring
+        - Automatic restart on failure
+        - Health checks
+        - Resource limits
+
+        Container Impact: Limited (systemd not present)
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify systemd is not running:
+
+          $ docker exec &lt;container&gt; ps aux | grep systemd
+
+          Expected: No systemd processes
+
+          Container uses entrypoint.sh for initialization instead.
+        </check-content>
+      </check>
+
+      <fix id="F-41374r653809_fix">
+        <fixtext>
+          N/A - Container uses entrypoint script instead of systemd.
+
+          Process supervision provided by container runtime (Docker/Kubernetes).
+        </fixtext>
+      </fix>
+    </Rule>
+  </Group>
+
+  <!-- =================================================================== -->
+  <!-- REFERENCES AND METADATA                                             -->
+  <!-- =================================================================== -->
+
+  <reference href="https://public.cyber.mil/stigs/">
+    <dc:publisher>DISA</dc:publisher>
+    <dc:source>Security Technical Implementation Guides</dc:source>
+    <dc:title>Canonical Ubuntu 22.04 LTS STIG</dc:title>
+    <dc:subject>Security Technical Implementation Guide</dc:subject>
+  </reference>
+
+  <reference href="ubuntu-fips-go/v1.0.0-ubuntu-22.04/POC-VALIDATION-REPORT.md">
+    <dc:publisher>Focaloid</dc:publisher>
+    <dc:title>FIPS POC Validation Report</dc:title>
+    <dc:subject>Compliance Evidence</dc:subject>
+  </reference>
+
+  <reference href="SECTION-6-CHECKLIST.md">
+    <dc:publisher>Focaloid</dc:publisher>
+    <dc:title>Section 6 Requirements Checklist</dc:title>
+    <dc:subject>Traceability Matrix</dc:subject>
+  </reference>
+
+  <!-- Implementation Notes -->
+  <notes>
+    <note id="container-scope">
+      <title>Container Scope and Limitations</title>
+      <content>
+        This STIG template focuses on controls applicable to containerized applications.
+        Many traditional OS-level controls are:
+
+        1. Host Responsibility:
+           - Kernel hardening
+           - Boot security
+           - Physical security
+           - Host network configuration
+
+        2. Not Applicable:
+           - Boot loader configuration (containers don't boot)
+           - Kernel module management (shared with host)
+           - System services (minimal container design)
+
+        3. Container Runtime Responsibility:
+           - Process isolation (namespaces, cgroups)
+           - Resource limits
+           - Network policies
+           - Security profiles (AppArmor, SELinux)
+
+        For complete STIG compliance, this container must be deployed on a
+        STIG-compliant host operating system.
+      </content>
+    </note>
+
+    <note id="fips-enforcement">
+      <title>FIPS Enforcement Strategy</title>
+      <content>
+        This container implements FIPS enforcement at multiple layers:
+
+        1. Library Level: wolfSSL FIPS v5.8.2 (Certificate #4718)
+        2. Provider Level: OpenSSL 3.x with wolfProvider
+        3. Runtime Level: golang-fips/go with GODEBUG=fips140=only
+        4. Policy Level: Strict policy (SHA-1 disabled at library)
+
+        This multi-layer approach provides defense-in-depth and ensures
+        cryptographic operations cannot bypass FIPS validation.
+      </content>
+    </note>
+  </notes>
+
+</Benchmark>
