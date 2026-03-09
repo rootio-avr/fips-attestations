@@ -198,8 +198,7 @@ RUN apt-get update && \
         openjdk-17-jre-headless \
         openssl \
         ca-certificates \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /var/lib/dpkg /var/log/dpkg.log /usr/bin/dpkg /usr/bin/apt*
+    && rm -rf /var/lib/apt/lists/*
 
 # Set Java environment
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
@@ -273,6 +272,18 @@ COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 WORKDIR /app
+
+# Harden: remove vulnerable packages not needed at runtime, then wipe package manager
+RUN dpkg --force-all --purge \
+        tar passwd login gpgv \
+        libpam-modules libpam-modules-bin libpam-runtime libpam0g \
+        libavahi-client3 libavahi-common3 libavahi-common-data \
+        libdbus-1-3 dbus libexpat1 \
+        libncurses6 libncursesw6 ncurses-base ncurses-bin \
+        libgcrypt20 libzstd1 \
+        libsystemd0 libudev1 \
+    || true \
+    && rm -rf /var/lib/dpkg /var/log/dpkg.log /var/lib/apt /usr/bin/dpkg /usr/bin/apt*
 
 USER 1001
 
