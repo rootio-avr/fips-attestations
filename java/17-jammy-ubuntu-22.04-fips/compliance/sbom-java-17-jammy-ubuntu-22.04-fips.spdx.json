@@ -1,234 +1,131 @@
 {
-  "spdxVersion": "SPDX-2.3",
-  "dataLicense": "CC0-1.0",
-  "SPDXID": "SPDXRef-DOCUMENT",
-  "name": "java-17-jammy-ubuntu-22.04-fips-ubuntu-22.04",
-  "documentNamespace": "https://Root.com/sbom/java/17-jammy-ubuntu-22.04-fips/2026-03-04T12:19:46Z",
-  "creationInfo": {
-    "created": "2026-03-04T12:19:46Z",
-    "creators": [
-      "Tool: Root-sbom-generator-1.0",
-      "Organization: Root"
-    ],
-    "licenseListVersion": "3.21"
-  },
-  "packages": [
-    {
-      "SPDXID": "SPDXRef-Package-Container",
-      "name": "java",
-      "versionInfo": "17-jammy-ubuntu-22.04-fips",
-      "supplier": "Organization: Root",
-      "downloadLocation": "NOASSERTION",
-      "filesAnalyzed": false,
-      "licenseConcluded": "NOASSERTION",
-      "licenseDeclared": "NOASSERTION",
-      "copyrightText": "NOASSERTION",
-      "description": "Ubuntu FIPS Java Image with OpenJDK 17 and wolfSSL FIPS v5 backend",
-      "comment": "FIPS 140-3 compliant Java runtime with strict policy (MD5 and SHA-1 blocked)"
-    },
-    {
-      "SPDXID": "SPDXRef-Package-Ubuntu",
-      "name": "ubuntu",
-      "versionInfo": "22.04",
-      "supplier": "Organization: Canonical Ltd.",
-      "downloadLocation": "https://hub.docker.com/_/ubuntu",
-      "filesAnalyzed": false,
-      "licenseConcluded": "NOASSERTION",
-      "licenseDeclared": "Various",
-      "copyrightText": "Copyright (c) Canonical Ltd.",
-      "description": "Ubuntu 22.04 LTS (Jammy Jellyfish) base operating system",
-      "externalRefs": [
+  "$schema": "http://cyclonedx.org/schema/bom-1.5.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:cba629b4-1420-4566-976b-3906f8837bfd",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-03-09T12:42:01+00:00",
+    "tools": {
+      "components": [
         {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:docker/ubuntu@22.04"
+          "type": "application",
+          "group": "aquasecurity",
+          "name": "trivy",
+          "version": "0.52.2"
         }
       ]
     },
-    {
-      "SPDXID": "SPDXRef-Package-OpenSSL",
-      "name": "openssl",
-      "versionInfo": "3.0.2",
-      "supplier": "Organization: OpenSSL Project",
-      "downloadLocation": "https://www.openssl.org/source/",
-      "filesAnalyzed": false,
-      "licenseConcluded": "Apache-2.0",
-      "licenseDeclared": "Apache-2.0",
-      "copyrightText": "Copyright (c) The OpenSSL Project",
-      "description": "System OpenSSL 3.0.2 cryptographic library (Ubuntu package)",
-      "externalRefs": [
+    "component": {
+      "bom-ref": "pkg:oci/java@sha256%3Ad267afdf717c2967d69369873d46c3a1346dcd594c56268bc8af4a1ce0b4c33e?arch=amd64&repository_url=index.docker.io%2Frootioinc%2Fjava",
+      "type": "container",
+      "name": "rootioinc/java:17-jammy-ubuntu-22.04-fips",
+      "purl": "pkg:oci/java@sha256%3Ad267afdf717c2967d69369873d46c3a1346dcd594c56268bc8af4a1ce0b4c33e?arch=amd64&repository_url=index.docker.io%2Frootioinc%2Fjava",
+      "properties": [
         {
-          "referenceCategory": "SECURITY",
-          "referenceType": "cpe23Type",
-          "referenceLocator": "cpe:2.3:a:openssl:openssl:3.0.2:*:*:*:*:*:*:*"
-        }
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-Package-wolfSSL",
-      "name": "wolfssl",
-      "versionInfo": "5.8.2-fips",
-      "supplier": "Organization: wolfSSL Inc.",
-      "downloadLocation": "https://www.wolfssl.com/comm/wolfssl/",
-      "filesAnalyzed": false,
-      "licenseConcluded": "NOASSERTION",
-      "licenseDeclared": "Commercial",
-      "copyrightText": "Copyright (c) wolfSSL Inc.",
-      "description": "wolfSSL FIPS 140-3 Cryptographic Module v5.8.2 (Certificate #4718)",
-      "comment": "Built with --disable-sha to block SHA-1 at library level. FIPS 140-3 validated.",
-      "externalRefs": [
-        {
-          "referenceCategory": "SECURITY",
-          "referenceType": "url",
-          "referenceLocator": "https://csrc.nist.gov/projects/cryptographic-module-validation-program/certificate/4718"
-        }
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-Package-wolfProvider",
-      "name": "wolfProvider",
-      "versionInfo": "1.1.0",
-      "supplier": "Organization: wolfSSL Inc.",
-      "downloadLocation": "https://github.com/wolfSSL/wolfProvider/releases/tag/v1.1.0",
-      "filesAnalyzed": false,
-      "licenseConcluded": "GPL-3.0",
-      "licenseDeclared": "GPL-3.0",
-      "copyrightText": "Copyright (c) wolfSSL Inc.",
-      "description": "OpenSSL 3.x provider that routes cryptographic operations to wolfSSL",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:github/wolfSSL/wolfProvider@v1.1.0"
-        }
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-Package-OpenJDK",
-      "name": "openjdk",
-      "versionInfo": "17",
-      "supplier": "Organization: Oracle / OpenJDK Community",
-      "downloadLocation": "https://openjdk.java.net/",
-      "filesAnalyzed": false,
-      "licenseConcluded": "GPL-2.0-with-classpath-exception",
-      "licenseDeclared": "GPL-2.0-with-classpath-exception",
-      "copyrightText": "Copyright (c) Oracle and/or its affiliates",
-      "description": "OpenJDK 17 Java Runtime Environment with FIPS security policy",
-      "comment": "Configured with java.security policy to disable MD5 and SHA-1 algorithms",
-      "externalRefs": [
-        {
-          "referenceCategory": "SECURITY",
-          "referenceType": "cpe23Type",
-          "referenceLocator": "cpe:2.3:a:oracle:openjdk:17:*:*:*:*:*:*:*"
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:16df8f171c0d55e8fe4a274a748fb2fcb02d31cfebd9941dc222280f1e3d4235"
         },
         {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:deb/ubuntu/openjdk-17-jre-headless@17"
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:1843dcc657a1b7bb0bd41a1ea3599bc816c651437926b5b8162478730ff67f29"
+        },
+        {
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:1c2b8e04cffca444235033647f671de28c37425e7b01679eda43c6a64d388e54"
+        },
+        {
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:2291d5c3b74ce34593f158f6f00c230e86ce8beff9d4cd7b50fc2980ab8362f0"
+        },
+        {
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:262aff2946f0a7f9872b754aa7a0f6c31d543e410ee026fce4870230d17d7810"
+        },
+        {
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:34ff9cfc2b63839be50160c292eacf1bb06ff7ddc5ebeee5c572f113afa17bed"
+        },
+        {
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:50aac577223ab5e54262cd3483e8b55390cc20f1146217a5f37ac8e8b0f9da66"
+        },
+        {
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+        },
+        {
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:6b7908e4c7473003628ddbd1d8ad378db659f0bf29a3019f7bb7150e9bfd109d"
+        },
+        {
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:6e1ebd319f161cef89dd0550079b870364291c977af50f1d27758f5bd18b776b"
+        },
+        {
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:c1c89bca177f3b6165a0bbc0ce19f1bdbd550b5f7e58750de83d2f713c23717e"
+        },
+        {
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:dc0aa38b6ed186164ef6f65824d351770652dd1bd72958d985967a0e20abacf4"
+        },
+        {
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:f2aa90932a56701b509b4a6a5485d3a08f7b750a11c2714439dd5e1a96828063"
+        },
+        {
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:f2aa90932a56701b509b4a6a5485d3a08f7b750a11c2714439dd5e1a96828063"
+        },
+        {
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:f9bd971d4540bbc6d83d77104f8d1dfb68755cfc81f03fc4fa9342204b1b9dfe"
+        },
+        {
+          "name": "aquasecurity:trivy:ImageID",
+          "value": "sha256:ba3e78212b544b005853b6af3467df53c6dcbb257327d2faf95d8e842d21b0ac"
+        },
+        {
+          "name": "aquasecurity:trivy:RepoDigest",
+          "value": "rootioinc/java@sha256:d267afdf717c2967d69369873d46c3a1346dcd594c56268bc8af4a1ce0b4c33e"
+        },
+        {
+          "name": "aquasecurity:trivy:RepoTag",
+          "value": "rootioinc/java:17-jammy-ubuntu-22.04-fips"
+        },
+        {
+          "name": "aquasecurity:trivy:SchemaVersion",
+          "value": "2"
         }
       ]
-    },
+    }
+  },
+  "components": [
     {
-      "SPDXID": "SPDXRef-Package-JavaSecurityPolicy",
-      "name": "java-security-fips-policy",
-      "versionInfo": "1.0.0",
-      "supplier": "Organization: Root",
-      "downloadLocation": "NOASSERTION",
-      "filesAnalyzed": false,
-      "licenseConcluded": "NOASSERTION",
-      "licenseDeclared": "NOASSERTION",
-      "copyrightText": "NOASSERTION",
-      "description": "Custom Java security policy for FIPS mode enforcement",
-      "comment": "Disables MD5, SHA-1, weak ciphers. Sets fips.mode=strict and crypto.policy=unlimited"
-    },
-    {
-      "SPDXID": "SPDXRef-Package-FipsDemoApp",
-      "name": "fips-demo-app",
-      "versionInfo": "1.0.0",
-      "supplier": "Organization: Root",
-      "downloadLocation": "NOASSERTION",
-      "filesAnalyzed": false,
-      "licenseConcluded": "NOASSERTION",
-      "licenseDeclared": "NOASSERTION",
-      "copyrightText": "NOASSERTION",
-      "description": "Java demonstration application for FIPS algorithm testing"
+      "bom-ref": "8d249c1a-5ce5-47b9-b8b6-3537d4bb1c06",
+      "type": "operating-system",
+      "name": "ubuntu",
+      "version": "22.04",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:Class",
+          "value": "os-pkgs"
+        },
+        {
+          "name": "aquasecurity:trivy:Type",
+          "value": "ubuntu"
+        }
+      ]
     }
   ],
-  "relationships": [
+  "dependencies": [
     {
-      "spdxElementId": "SPDXRef-DOCUMENT",
-      "relationshipType": "DESCRIBES",
-      "relatedSpdxElement": "SPDXRef-Package-Container"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-Container",
-      "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-Ubuntu"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-Container",
-      "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-OpenSSL"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-Container",
-      "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-wolfSSL"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-Container",
-      "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-wolfProvider"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-Container",
-      "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-OpenJDK"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-Container",
-      "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-JavaSecurityPolicy"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-Container",
-      "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-FipsDemoApp"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-OpenJDK",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-OpenSSL"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-OpenJDK",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-JavaSecurityPolicy"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-wolfProvider",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-wolfSSL"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-wolfProvider",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-OpenSSL"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-FipsDemoApp",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-OpenJDK"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-OpenSSL",
-      "relationshipType": "RUNTIME_DEPENDENCY_OF",
-      "relatedSpdxElement": "SPDXRef-Package-wolfProvider"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-wolfSSL",
-      "relationshipType": "RUNTIME_DEPENDENCY_OF",
-      "relatedSpdxElement": "SPDXRef-Package-wolfProvider"
+      "ref": "pkg:oci/java@sha256%3Ad267afdf717c2967d69369873d46c3a1346dcd594c56268bc8af4a1ce0b4c33e?arch=amd64&repository_url=index.docker.io%2Frootioinc%2Fjava",
+      "dependsOn": [
+        "8d249c1a-5ce5-47b9-b8b6-3537d4bb1c06"
+      ]
     }
-  ]
+  ],
+  "vulnerabilities": []
 }
