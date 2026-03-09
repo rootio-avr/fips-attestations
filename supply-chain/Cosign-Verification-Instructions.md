@@ -1,432 +1,203 @@
-# Cosign Verification Instructions
-
-**Version:** 1.0
-**Date:** 2026-03-04
-
----
+# Cosign Verification Guide for ECR Images
 
 ## Overview
 
-This document provides complete instructions for verifying the cryptographic signatures and attestations of the FIPS POC container images using Cosign (Sigstore).
-
-All images are signed with:
-- ✅ **Image signatures** (integrity verification)
-- ✅ **SLSA Level 2 attestations** (provenance verification)
-- ✅ **SBOM attestations** (software bill of materials)
-
----
+This guide explains how to verify cosign signatures for container images stored in AWS ECR. The images are signed using Sigstore's keyless signing method with ephemeral keys.
 
 ## Prerequisites
 
-### Install Cosign
+1. **Cosign installed**: Version 2.x or later
+   ```bash
+   cosign version
+   ```
 
+2. **AWS CLI configured**: With credentials for ECR access
+   ```bash
+   aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <redacted_root_ecr_base>
+   ```
+
+3. **Docker installed**: For pulling images
+
+## Signed Images
+
+The following images have been signed with cosign:
+
+| Image Name | Tag | Digest | ECR Repository |
+|------------|-----|--------|----------------|
+| java | 17-jammy-ubuntu-22.04-fips | sha256:d267afdf717c2967d69369873d46c3a1346dcd594c56268bc8af4a1ce0b4c33e | root-reg/java |
+| golang | 1.25-jammy-ubuntu-22.04-fips | sha256:9bade474c1c44860b6795e5212d261c3936d112f5e1659061bc25cc31bfb6078 | root-reg/golang |
+
+## Verification Methods
+
+### Method 1: Verify Using Tag (Simple)
+
+Verify the image using its tag. This is straightforward but note the warning that tags can change.
+
+**Java Image:**
 ```bash
-# Linux/macOS (Homebrew)
-brew install cosign
-
-# Linux (Binary download)
-wget https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64
-chmod +x cosign-linux-amd64
-sudo mv cosign-linux-amd64 /usr/local/bin/cosign
-
-# Verify installation
-cosign version
-```
-
-**Official Installation Guide:** https://docs.sigstore.dev/cosign/installation/
-
-### Obtain Public Key
-
-```bash
-# Download the public key used for signing
-# (Replace with actual public key distribution method)
-
-# Option 1: From repository
-cat > cosign.pub <<EOF
------BEGIN PUBLIC KEY-----
-... public key content ...
------END PUBLIC KEY-----
-EOF
-
-# Option 2: From secure key management service
-# cosign public-key --key azurekms://[VAULT_NAME][VAULT_URI]/[KEY]
-```
-
----
-
-## Image References
-
-| Image | Registry | Tag | Purpose |
-|-------|----------|-----|---------|
-| **golang** | `localhost:5000` | `1.25-jammy-ubuntu-22.04-fips` | Go FIPS runtime |
-| **java** | `localhost:5000` | `17-jammy-ubuntu-22.04-fips` | Java FIPS runtime |
-
-**Note:** Replace `localhost:5000` with your actual registry:
-- Docker Hub: `yourorg/golang:1.25-jammy-ubuntu-22.04-fips`
-- GitHub Container Registry: `ghcr.io/yourorg/golang:1.25-jammy-ubuntu-22.04-fips`
-- AWS ECR: `123456789.dkr.ecr.us-east-1.amazonaws.com/golang:1.25-jammy-ubuntu-22.04-fips`
-
----
-
-## Verification Workflows
-
-### 1. Verify Image Signature (Basic)
-
-Verify the cryptographic signature of the container image:
-
-```bash
-# Verify Go image
 cosign verify \
-  --key cosign.pub \
-  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
-
-# Verify Java image
-cosign verify \
-  --key cosign.pub \
-  localhost:5000/java:17-jammy-ubuntu-22.04-fips
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/java:17-jammy-ubuntu-22.04-fips
 ```
 
-**Expected Output:**
+**Golang Image:**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/golang:1.25-jammy-ubuntu-22.04-fips
+```
+
+### Method 2: Verify Using Digest (Recommended)
+
+Verify using the image digest for immutable verification.
+
+**Java Image:**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/java@sha256:d267afdf717c2967d69369873d46c3a1346dcd594c56268bc8af4a1ce0b4c33e
+```
+
+**Golang Image:**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/golang@sha256:9bade474c1c44860b6795e5212d261c3936d112f5e1659061bc25cc31bfb6078
+```
+
+### Expected Output
+
+Successful verification will output JSON with signature details:
+
 ```json
-[
-  {
-    "critical": {
-      "identity": {
-        "docker-reference": "localhost:5000/golang"
-      },
-      "image": {
-        "docker-manifest-digest": "sha256:..."
-      },
-      "type": "cosign container image signature"
+[{
+  "critical": {
+    "identity": {
+      "docker-reference": "<redacted_root_ecr_base>/root-reg/java:17-jammy-ubuntu-22.04-fips"
     },
-    "optional": {
-      "BuildDate": "2026-03-04T00:00:00Z",
-      "Version": "1.25-jammy-ubuntu-22.04-fips"
-    }
-  }
-]
+    "image": {
+      "docker-manifest-digest": "sha256:d267afdf717c2967d69369873d46c3a1346dcd594c56268bc8af4a1ce0b4c33e"
+    },
+    "type": "https://sigstore.dev/cosign/sign/v1"
+  },
+  "optional": {}
+}]
 ```
 
-**Verification Status:**
-- ✅ **Valid signature** → Image integrity confirmed, safe to use
-- ❌ **Invalid signature** → Image has been tampered with, DO NOT USE
+## Verifying Proxy Images (cr.root.io)
 
----
+The cr.root.io proxy is read-only and doesn't store signature artifacts. To verify images pulled from the proxy:
 
-### 2. Verify SLSA Attestation
+1. **Pull from proxy** (for runtime use):
+   ```bash
+   docker pull cr.root.io/java:17-jammy-ubuntu-22.04-fips
+   ```
 
-Verify the SLSA (Supply chain Levels for Software Artifacts) provenance:
+2. **Verify against ECR** using the same digest:
+   ```bash
+   # Get the digest from the pulled image
+   docker inspect cr.root.io/java:17-jammy-ubuntu-22.04-fips --format '{{index .RepoDigests 0}}'
 
+   # Verify using the ECR reference
+   cosign verify \
+     --certificate-identity-regexp '.*' \
+     --certificate-oidc-issuer-regexp '.*' \
+     <redacted_root_ecr_base>/root-reg/java@sha256:d267afdf717c2967d69369873d46c3a1346dcd594c56268bc8af4a1ce0b4c33e
+   ```
+
+## Advanced Commands
+
+### View Signature Artifacts
+
+Show the supply chain security artifacts attached to an image:
+
+**Java:**
 ```bash
-# Verify Go image SLSA attestation
-cosign verify-attestation \
-  --type slsaprovenance \
-  --key cosign.pub \
-  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
-
-# Verify Java image SLSA attestation
-cosign verify-attestation \
-  --type slsaprovenance \
-  --key cosign.pub \
-  localhost:5000/java:17-jammy-ubuntu-22.04-fips
+cosign tree <redacted_root_ecr_base>/root-reg/java:17-jammy-ubuntu-22.04-fips
 ```
 
-**Expected Output:**
-```json
-{
-  "payloadType": "application/vnd.in-toto+json",
-  "payload": "...",
-  "signatures": [
-    {
-      "keyid": "",
-      "sig": "..."
-    }
-  ]
-}
-```
-
-**What This Verifies:**
-- ✅ Build environment and parameters
-- ✅ Source repository and commit
-- ✅ Build dependencies
-- ✅ Builder identity
-
----
-
-### 3. Verify SBOM Attestation
-
-Verify the Software Bill of Materials (SBOM) attestation:
-
+**Golang:**
 ```bash
-# Verify Go image SBOM
-cosign verify-attestation \
-  --type spdx \
-  --key cosign.pub \
-  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
-
-# Verify Java image SBOM
-cosign verify-attestation \
-  --type spdx \
-  --key cosign.pub \
-  localhost:5000/java:17-jammy-ubuntu-22.04-fips
+cosign tree <redacted_root_ecr_base>/root-reg/golang:1.25-jammy-ubuntu-22.04-fips
 ```
 
-**What This Verifies:**
-- ✅ Complete list of software components
-- ✅ Package versions and licenses
-- ✅ Dependency tree integrity
+Example output:
+```
+📦 Supply Chain Security Related artifacts for an image: <redacted_root_ecr_base>/root-reg/java:17-jammy-ubuntu-22.04-fips
+└── 🔗 https://sigstore.dev/cosign/sign/v1 artifacts via OCI referrer: <redacted_root_ecr_base>/root-reg/java@sha256:6972503a1f2083a3c49d2c8aa1bd914c325bbe5884887f7d003e8286c8996218
+   └── 🍒 sha256:26f1f642c6c31b76789cfea296e26558ac80e1363701c6f5856ec69fbf3ba306
+```
 
----
+### List All Signature Artifacts in ECR
 
-### 4. Extract and Inspect Attestations
-
-Extract attestations for detailed inspection:
-
+**Java signatures:**
 ```bash
-# Extract SLSA provenance for Go image
-cosign verify-attestation \
-  --type slsaprovenance \
-  --key cosign.pub \
-  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips \
-  | jq -r '.payload' | base64 -d | jq .
-
-# Extract SBOM for Go image
-cosign verify-attestation \
-  --type spdx \
-  --key cosign.pub \
-  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips \
-  | jq -r '.payload' | base64 -d | jq .
+aws ecr describe-images \
+  --repository-name root-reg/java \
+  --region us-east-1 \
+  --query 'imageDetails[?imageSizeInBytes < `10000`].[imageDigest, imageSizeInBytes, imageManifestMediaType]' \
+  --output table
 ```
 
-**Use Cases:**
-- Security audits
-- Compliance documentation
-- Vulnerability tracking
-- License verification
-
----
-
-### 5. Verify Image Digest (Immutable Reference)
-
-Pull and verify images by their cryptographic digest:
-
+**Golang signatures:**
 ```bash
-# Get image digest for Go image
-IMAGE_DIGEST=$(docker inspect \
-  --format='{{index .RepoDigests 0}}' \
-  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips)
-
-echo "Go Image Digest: $IMAGE_DIGEST"
-
-# Pull by digest (immutable reference)
-docker pull $IMAGE_DIGEST
-
-# Verify signature using digest
-cosign verify \
-  --key cosign.pub \
-  $IMAGE_DIGEST
+aws ecr describe-images \
+  --repository-name root-reg/golang \
+  --region us-east-1 \
+  --query 'imageDetails[?imageSizeInBytes < `10000`].[imageDigest, imageSizeInBytes, imageManifestMediaType]' \
+  --output table
 ```
-
-**Why This Matters:**
-- Tags can be moved/updated
-- Digests are immutable and content-addressable
-- Production deployments should always use digests
-
----
-
-## Automated Verification Script
-
-Use the provided script to verify all images at once:
-
-```bash
-# Run automated verification
-./verify-all.sh
-
-# Expected output:
-# ✅ Go image signature: VALID
-# ✅ Go SLSA attestation: VALID
-# ✅ Go SBOM attestation: VALID
-# ✅ Java image signature: VALID
-# ✅ Java SLSA attestation: VALID
-# ✅ Java SBOM attestation: VALID
-```
-
----
 
 ## Troubleshooting
 
-### Error: "no matching signatures"
+### Error: no signatures found
 
-**Cause:** Public key mismatch or image not signed
+This error means:
+- The image is not signed, or
+- You're trying to verify through a proxy that doesn't support OCI referrers
+- Solution: Verify against the ECR URL directly
 
-**Solution:**
-1. Verify you have the correct public key
-2. Check image reference is correct (registry/name/tag)
-3. Ensure image was signed with the expected key
+### Error: --certificate-identity or --certificate-identity-regexp is required
 
-```bash
-# List all signatures for an image
-cosign tree localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
-```
+Cosign requires identity verification flags for keyless signatures.
+- Use `--certificate-identity-regexp '.*'` and `--certificate-oidc-issuer-regexp '.*'` for basic verification
+- For production, use specific identity patterns to ensure only authorized signers
 
----
+### Error: response did not include Docker-Content-Digest header
 
-### Error: "failed to verify signature"
+This indicates:
+- The registry doesn't support required OCI headers
+- Cannot be used for signing operations
+- Solution: Sign against ECR directly, not the proxy
 
-**Cause:** Image has been modified after signing
+## Signing Information
 
-**Solution:**
-1. **DO NOT USE THE IMAGE** - integrity compromised
-2. Re-pull the image from trusted source
-3. Verify digest matches expected value
-4. Contact image maintainer if issue persists
+**Signing Method:** Keyless signing via Sigstore
+- **Authentication:** OAuth2 device flow
+- **Key Type:** Ephemeral keys (generated per signing operation)
+- **Transparency Log:** Rekor (public log at rekor.sigstore.dev)
+- **Certificate Authority:** Fulcio (Sigstore's certificate authority)
 
----
+**Signature Storage:**
+- Signatures are stored as OCI artifacts in ECR
+- Linked to images via OCI Referrers specification
+- Small artifacts (~6KB) containing signature bundles
 
-### Error: "unsupported attestation type"
+## Security Considerations
 
-**Cause:** Trying to verify attestation type that wasn't attached
+1. **Digest Verification:** Always verify using digests in production for immutability
+2. **Certificate Identity:** In production, use specific certificate identity patterns instead of `.*`
+3. **Transparency Log:** Signatures are publicly logged in Rekor for audit purposes
+4. **Registry Access:** Ensure proper AWS IAM permissions for ECR access
+5. **Proxy Limitations:** Be aware that read-only proxies cannot store signatures
 
-**Solution:**
-1. Check available attestation types:
-   ```bash
-   cosign verify-attestation \
-     --key cosign.pub \
-     localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips \
-     | jq -r '.payloadType'
-   ```
-
-2. Use the correct `--type` flag based on available attestations
-
----
-
-## Keyless Verification (Sigstore Public Instance)
-
-If images are signed using Sigstore's keyless signing:
-
-```bash
-# Verify without a key (uses Sigstore's transparency log)
-cosign verify \
-  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
-
-# Verify attestation keyless
-cosign verify-attestation \
-  --type slsaprovenance \
-  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
-```
-
-**Requirements:**
-- Image must be signed with `cosign sign` (without `--key` flag)
-- Relies on Sigstore's Fulcio CA and Rekor transparency log
-- Requires internet access for verification
-
----
-
-## Security Best Practices
-
-### 1. Always Verify Before Use
-
-```bash
-# GOOD: Verify before running
-cosign verify --key cosign.pub localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips && \
-  docker run --rm localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
-
-# BAD: Run without verification
-docker run --rm localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
-```
-
-### 2. Use Immutable Digest References in Production
-
-```bash
-# GOOD: Digest reference (immutable)
-docker run --rm localhost:5000/golang@sha256:abc123...
-
-# BAD: Tag reference (mutable)
-docker run --rm localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
-```
-
-### 3. Store Public Keys Securely
-
-- ✅ Version control public keys (safe to share)
-- ✅ Use key management services (Azure Key Vault, AWS KMS, etc.)
-- ✅ Rotate keys periodically
-- ❌ Never commit private keys to repositories
-
-### 4. Verify SLSA Provenance
-
-```bash
-# Check builder identity and source repository
-cosign verify-attestation \
-  --type slsaprovenance \
-  --key cosign.pub \
-  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips \
-  | jq -r '.payload' | base64 -d | jq '.predicate.builder.id'
-```
-
----
-
-## Integration with CI/CD
-
-### Example: GitLab CI
-
-```yaml
-verify-images:
-  stage: verify
-  image: alpine:latest
-  before_script:
-    - apk add --no-cache cosign
-  script:
-    - cosign verify --key cosign.pub localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
-    - cosign verify --key cosign.pub localhost:5000/java:17-jammy-ubuntu-22.04-fips
-  only:
-    - main
-```
-
-### Example: GitHub Actions
-
-```yaml
-- name: Verify image signatures
-  run: |
-    cosign verify \
-      --key cosign.pub \
-      localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
-
-    cosign verify \
-      --key cosign.pub \
-      localhost:5000/java:17-jammy-ubuntu-22.04-fips
-```
-
----
-
-## References
+## Additional Resources
 
 - [Cosign Documentation](https://docs.sigstore.dev/cosign/overview/)
-- [SLSA Framework](https://slsa.dev/)
 - [Sigstore Project](https://www.sigstore.dev/)
-- [NIST Supply Chain Security](https://www.nist.gov/itl/executive-order-improving-nations-cybersecurity/software-supply-chain-security-guidance)
-- [in-toto Attestation Specification](https://github.com/in-toto/attestation)
-
----
-
-## Support
-
-For issues with signature verification:
-1. Check public key is correct
-2. Verify image reference (registry/name/tag)
-3. Ensure cosign version is up to date (`cosign version`)
-4. Review troubleshooting section above
-5. Contact image maintainer with verification logs
-
----
-
-## Document Metadata
-
-- **Author:** Root Security Team
-- **Classification:** PUBLIC
-- **Distribution:** UNLIMITED
-- **Version:** 1.0
-- **Last Updated:** 2026-03-04
-
----
-
-**END OF DOCUMENT**
+- [AWS ECR Documentation](https://docs.aws.amazon.com/ecr/)
+- [OCI Referrers Specification](https://github.com/opencontainers/distribution-spec/blob/main/spec.md#listing-referrers)
