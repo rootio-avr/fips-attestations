@@ -194,18 +194,18 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install OpenJDK 17 JRE and minimal dependencies
 RUN apt-get update && \
-    apt-get install -y \
+    apt-get install -y --no-install-recommends \
         openjdk-17-jre-headless \
         openssl \
         ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /var/lib/dpkg /var/log/dpkg.log /usr/bin/dpkg /usr/bin/apt*
 
 # Set Java environment
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
-# Copy wolfSSL from builder stage
-COPY --from=wolfssl-builder /usr/local/include/wolfssl /usr/local/include/wolfssl
+# Copy wolfSSL runtime libraries (no headers needed)
 COPY --from=wolfssl-builder /usr/local/lib/libwolfssl.* /usr/local/lib/
 
 # Copy compiled Java application
@@ -273,6 +273,8 @@ COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 WORKDIR /app
+
+USER 1001
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD []

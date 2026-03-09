@@ -47,7 +47,7 @@ log_audit_event() {
     local audit_entry=$(cat <<EOF
 {
   "timestamp": "$timestamp",
-  "image": "ubuntu-fips-go:v1.0.0-ubuntu-22.04",
+  "image": "golang:1.25-jammy-ubuntu-22.04-fips",
   "event_type": "$event_type",
   "status": "$event_status",
   "details": "$event_details",
@@ -73,7 +73,7 @@ echo "========================================"
 echo -e "${BOLD}${CYAN}Ubuntu FIPS Go${NC}"
 echo "========================================"
 echo ""
-echo "Version: v1.0.0-ubuntu-22.04"
+echo "Version: 1.25-jammy-ubuntu-22.04-fips"
 echo "Purpose: Go-only FIPS-140-3 image with strict policy"
 echo ""
 

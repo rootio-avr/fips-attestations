@@ -18,11 +18,9 @@
 #
 # Capabilities:
 #   - Execute pre-compiled Go binaries in FIPS mode
-#   - Compile new Go programs inside the container with FIPS enforcement
 #
 # Build: docker build -t ubuntu-fips-go:v1.0.0-ubuntu-22.04 --secret id=wolfssl_password,src=.wolfssl_password .
 # Run: docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04
-# Compile: docker run --rm -v $(pwd):/work -w /work ubuntu-fips-go:v1.0.0-ubuntu-22.04 go build myapp.go
 
 ################################################################################
 # Stage 1: Build wolfSSL FIPS v5
@@ -316,30 +314,29 @@ RUN cd /app/go && \
     echo "✓ Go application built with golang-fips/go (strict FIPS mode)"
 
 ################################################################################
-# Final Stage: Ubuntu FIPS Go Runtime with Compiler
+# Final Stage: Ubuntu FIPS Go Runtime
 ################################################################################
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install runtime and build dependencies for Go compilation
+# Install only runtime dependencies (no build toolchain)
+# Removed: build-essential, pkg-config, libssl-dev, git
+# (eliminates linux-libc-dev, binutils, gcc, gnupg2, gnutls28, expat CVEs)
 RUN apt-get update && \
-    apt-get install -y \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
         openssl \
         ca-certificates \
-        build-essential \
-        pkg-config \
-        libssl-dev \
-        git \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /var/lib/dpkg /var/log/dpkg.log /usr/bin/dpkg /usr/bin/apt*
 
 # Set environment variables for strict FIPS mode
 ENV GOLANG_FIPS=1
 ENV GODEBUG=fips140=only
 ENV GOEXPERIMENT=strictfipsruntime
 
-# Copy wolfSSL from builder stage
-COPY --from=wolfssl-builder /usr/local/include/wolfssl /usr/local/include/wolfssl
+# Copy wolfSSL runtime libraries (no headers needed)
 COPY --from=wolfssl-builder /usr/local/lib/libwolfssl.* /usr/local/lib/
 
 # Copy golang-fips/go toolchain for in-container compilation
@@ -410,6 +407,8 @@ COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 WORKDIR /app
+
+USER 1001
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD []

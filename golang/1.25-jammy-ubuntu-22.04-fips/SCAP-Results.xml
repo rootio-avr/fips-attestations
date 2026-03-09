@@ -3,16 +3,16 @@
   OpenSCAP XCCDF Results
   Generated: 2026-03-04T00:00:00Z
   Scanner: OpenSCAP 1.3.9
-  Target: ubuntu-fips-go:v1.0.0-ubuntu-22.04
+  Target: golang:1.25-jammy-ubuntu-22.04-fips
   Profile: container-fips-baseline
 -->
 <Benchmark xmlns="http://checklists.nist.gov/xccdf/1.2"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           id="ubuntu-fips-go-stig-baseline"
+           id="golang-stig-baseline"
            resolved="1">
 
   <status date="2026-03-04">accepted</status>
-  <title>STIG Baseline for ubuntu-fips-go Container Image</title>
+  <title>STIG Baseline for golang Container Image</title>
   <version>1.0</version>
 
   <!-- Test Result -->
@@ -20,18 +20,18 @@
               start-time="2026-03-04T00:00:00"
               end-time="2026-03-04T00:05:00">
 
-    <benchmark href="STIG-Template.xml" id="ubuntu-fips-go-stig-baseline"/>
-    <title>SCAP Scan Results - ubuntu-fips-go</title>
+    <benchmark href="STIG-Template.xml" id="golang-stig-baseline"/>
+    <title>SCAP Scan Results - golang</title>
 
     <identity authenticated="true" privileged="true">scanner</identity>
     <profile idref="container-fips-baseline"/>
 
-    <target>ubuntu-fips-go:v1.0.0-ubuntu-22.04</target>
+    <target>golang:1.25-jammy-ubuntu-22.04-fips</target>
     <target-address>container-id-fb5c6e3b985d</target-address>
     <target-facts>
       <fact name="urn:xccdf:fact:asset:identifier:os_name" type="string">Ubuntu</fact>
       <fact name="urn:xccdf:fact:asset:identifier:os_version" type="string">22.04</fact>
-      <fact name="urn:xccdf:fact:asset:identifier:host_name" type="string">ubuntu-fips-go</fact>
+      <fact name="urn:xccdf:fact:asset:identifier:host_name" type="string">golang</fact>
       <fact name="urn:xccdf:fact:scanner:name" type="string">OpenSCAP</fact>
       <fact name="urn:xccdf:fact:scanner:version" type="string">1.3.9</fact>
     </target-facts>
@@ -45,7 +45,7 @@
       <result>pass</result>
       <ident system="http://cce.mitre.org">CCE-85877-2</ident>
       <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
-        <check-content-ref name="oval:fips:def:1" href="ubuntu-fips-go-oval.xml"/>
+        <check-content-ref name="oval:fips:def:1" href="golang-oval.xml"/>
       </check>
       <message severity="info">FIPS mode is properly configured</message>
       <message severity="info">wolfSSL Provider FIPS v1.1.0: Active</message>
@@ -57,7 +57,7 @@
     <rule-result idref="SV-238198r653790_rule" time="2026-03-04T00:00:20" severity="high">
       <result>pass</result>
       <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
-        <check-content-ref name="oval:fips:def:2" href="ubuntu-fips-go-oval.xml"/>
+        <check-content-ref name="oval:fips:def:2" href="golang-oval.xml"/>
       </check>
       <message severity="info">Non-FIPS algorithms successfully blocked</message>
       <message severity="info">MD5: BLOCKED</message>
@@ -71,7 +71,7 @@
     <rule-result idref="SV-238199r653793_rule" time="2026-03-04T00:00:30" severity="medium">
       <result>pass</result>
       <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
-        <check-content-ref name="oval:fips:def:3" href="ubuntu-fips-go-oval.xml"/>
+        <check-content-ref name="oval:fips:def:3" href="golang-oval.xml"/>
       </check>
       <message severity="info">Audit logging configured at /var/log/fips-audit.log</message>
       <message severity="info">Format: JSON structured logging</message>
@@ -82,7 +82,7 @@
     <rule-result idref="SV-238200r653796_rule" time="2026-03-04T00:00:40" severity="medium">
       <result>pass</result>
       <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
-        <check-content-ref name="oval:fips:def:4" href="ubuntu-fips-go-oval.xml"/>
+        <check-content-ref name="oval:fips:def:4" href="golang-oval.xml"/>
       </check>
       <message severity="info">Package integrity verification enabled</message>
       <message severity="info">APT signature checking: Active</message>
@@ -94,7 +94,7 @@
     <rule-result idref="SV-238201r653799_rule" time="2026-03-04T00:00:50" severity="medium">
       <result>pass</result>
       <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
-        <check-content-ref name="oval:fips:def:5" href="ubuntu-fips-go-oval.xml"/>
+        <check-content-ref name="oval:fips:def:5" href="golang-oval.xml"/>
       </check>
       <message severity="info">Container runs as non-root user</message>
       <message severity="info">User: appuser (UID 1001)</message>
@@ -105,7 +105,7 @@
     <rule-result idref="SV-238202r653802_rule" time="2026-03-04T00:01:00" severity="medium">
       <result>pass</result>
       <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
-        <check-content-ref name="oval:fips:def:6" href="ubuntu-fips-go-oval.xml"/>
+        <check-content-ref name="oval:fips:def:6" href="golang-oval.xml"/>
       </check>
       <message severity="info">File permissions properly configured</message>
       <message severity="info">No world-writable files found</message>
@@ -117,7 +117,7 @@
     <rule-result idref="SV-238203r653805_rule" time="2026-03-04T00:01:10" severity="medium">
       <result>notapplicable</result>
       <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
-        <check-content-ref name="oval:fips:def:7" href="ubuntu-fips-go-oval.xml"/>
+        <check-content-ref name="oval:fips:def:7" href="golang-oval.xml"/>
       </check>
       <message severity="info">Not applicable: Kernel module loading (host responsibility)</message>
       <message severity="info">Containers share host kernel</message>
@@ -127,7 +127,7 @@
     <rule-result idref="SV-238204r653808_rule" time="2026-03-04T00:01:20" severity="high">
       <result>notapplicable</result>
       <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
-        <check-content-ref name="oval:fips:def:8" href="ubuntu-fips-go-oval.xml"/>
+        <check-content-ref name="oval:fips:def:8" href="golang-oval.xml"/>
       </check>
       <message severity="info">Not applicable: Boot loader configuration</message>
       <message severity="info">Containers don't have boot loaders</message>
@@ -137,7 +137,7 @@
     <rule-result idref="SV-238205r653811_rule" time="2026-03-04T00:01:30" severity="medium">
       <result>notapplicable</result>
       <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
-        <check-content-ref name="oval:fips:def:9" href="ubuntu-fips-go-oval.xml"/>
+        <check-content-ref name="oval:fips:def:9" href="golang-oval.xml"/>
       </check>
       <message severity="info">Not applicable: Systemd service hardening</message>
       <message severity="info">Minimal container uses entrypoint script</message>
@@ -185,7 +185,7 @@
       <remark>Ubuntu 22.04 LTS (Jammy Jellyfish)</remark>
     </platform>
 
-    <organization>Focaloid Security Team</organization>
+    <organization>Root Security Team</organization>
     <remark>
       SCAP scan completed successfully. All applicable STIG controls are compliant.
       Non-applicable controls are documented with justifications in STIG-Template.xml.

@@ -58,13 +58,13 @@ EOF
 
 | Image | Registry | Tag | Purpose |
 |-------|----------|-----|---------|
-| **ubuntu-fips-go** | `localhost:5000` | `v1.0.0-ubuntu-22.04` | Go FIPS runtime |
-| **ubuntu-fips-java** | `localhost:5000` | `v1.0.0-ubuntu-22.04` | Java FIPS runtime |
+| **golang** | `localhost:5000` | `1.25-jammy-ubuntu-22.04-fips` | Go FIPS runtime |
+| **java** | `localhost:5000` | `17-jammy-ubuntu-22.04-fips` | Java FIPS runtime |
 
 **Note:** Replace `localhost:5000` with your actual registry:
-- Docker Hub: `yourorg/ubuntu-fips-go:v1.0.0-ubuntu-22.04`
-- GitHub Container Registry: `ghcr.io/yourorg/ubuntu-fips-go:v1.0.0-ubuntu-22.04`
-- AWS ECR: `123456789.dkr.ecr.us-east-1.amazonaws.com/ubuntu-fips-go:v1.0.0-ubuntu-22.04`
+- Docker Hub: `yourorg/golang:1.25-jammy-ubuntu-22.04-fips`
+- GitHub Container Registry: `ghcr.io/yourorg/golang:1.25-jammy-ubuntu-22.04-fips`
+- AWS ECR: `123456789.dkr.ecr.us-east-1.amazonaws.com/golang:1.25-jammy-ubuntu-22.04-fips`
 
 ---
 
@@ -78,12 +78,12 @@ Verify the cryptographic signature of the container image:
 # Verify Go image
 cosign verify \
   --key cosign.pub \
-  localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Verify Java image
 cosign verify \
   --key cosign.pub \
-  localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
+  localhost:5000/java:17-jammy-ubuntu-22.04-fips
 ```
 
 **Expected Output:**
@@ -92,7 +92,7 @@ cosign verify \
   {
     "critical": {
       "identity": {
-        "docker-reference": "localhost:5000/ubuntu-fips-go"
+        "docker-reference": "localhost:5000/golang"
       },
       "image": {
         "docker-manifest-digest": "sha256:..."
@@ -101,7 +101,7 @@ cosign verify \
     },
     "optional": {
       "BuildDate": "2026-03-04T00:00:00Z",
-      "Version": "v1.0.0-ubuntu-22.04"
+      "Version": "1.25-jammy-ubuntu-22.04-fips"
     }
   }
 ]
@@ -122,13 +122,13 @@ Verify the SLSA (Supply chain Levels for Software Artifacts) provenance:
 cosign verify-attestation \
   --type slsaprovenance \
   --key cosign.pub \
-  localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Verify Java image SLSA attestation
 cosign verify-attestation \
   --type slsaprovenance \
   --key cosign.pub \
-  localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
+  localhost:5000/java:17-jammy-ubuntu-22.04-fips
 ```
 
 **Expected Output:**
@@ -162,13 +162,13 @@ Verify the Software Bill of Materials (SBOM) attestation:
 cosign verify-attestation \
   --type spdx \
   --key cosign.pub \
-  localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Verify Java image SBOM
 cosign verify-attestation \
   --type spdx \
   --key cosign.pub \
-  localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
+  localhost:5000/java:17-jammy-ubuntu-22.04-fips
 ```
 
 **What This Verifies:**
@@ -187,14 +187,14 @@ Extract attestations for detailed inspection:
 cosign verify-attestation \
   --type slsaprovenance \
   --key cosign.pub \
-  localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips \
   | jq -r '.payload' | base64 -d | jq .
 
 # Extract SBOM for Go image
 cosign verify-attestation \
   --type spdx \
   --key cosign.pub \
-  localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips \
   | jq -r '.payload' | base64 -d | jq .
 ```
 
@@ -214,7 +214,7 @@ Pull and verify images by their cryptographic digest:
 # Get image digest for Go image
 IMAGE_DIGEST=$(docker inspect \
   --format='{{index .RepoDigests 0}}' \
-  localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04)
+  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips)
 
 echo "Go Image Digest: $IMAGE_DIGEST"
 
@@ -266,7 +266,7 @@ Use the provided script to verify all images at once:
 
 ```bash
 # List all signatures for an image
-cosign tree localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+cosign tree localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 ```
 
 ---
@@ -292,7 +292,7 @@ cosign tree localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
    ```bash
    cosign verify-attestation \
      --key cosign.pub \
-     localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+     localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips \
      | jq -r '.payloadType'
    ```
 
@@ -307,12 +307,12 @@ If images are signed using Sigstore's keyless signing:
 ```bash
 # Verify without a key (uses Sigstore's transparency log)
 cosign verify \
-  localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Verify attestation keyless
 cosign verify-attestation \
   --type slsaprovenance \
-  localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 ```
 
 **Requirements:**
@@ -328,21 +328,21 @@ cosign verify-attestation \
 
 ```bash
 # GOOD: Verify before running
-cosign verify --key cosign.pub localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04 && \
-  docker run --rm localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+cosign verify --key cosign.pub localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips && \
+  docker run --rm localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
 # BAD: Run without verification
-docker run --rm localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+docker run --rm localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 ```
 
 ### 2. Use Immutable Digest References in Production
 
 ```bash
 # GOOD: Digest reference (immutable)
-docker run --rm localhost:5000/ubuntu-fips-go@sha256:abc123...
+docker run --rm localhost:5000/golang@sha256:abc123...
 
 # BAD: Tag reference (mutable)
-docker run --rm localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+docker run --rm localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 ```
 
 ### 3. Store Public Keys Securely
@@ -359,7 +359,7 @@ docker run --rm localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
 cosign verify-attestation \
   --type slsaprovenance \
   --key cosign.pub \
-  localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips \
   | jq -r '.payload' | base64 -d | jq '.predicate.builder.id'
 ```
 
@@ -376,8 +376,8 @@ verify-images:
   before_script:
     - apk add --no-cache cosign
   script:
-    - cosign verify --key cosign.pub localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
-    - cosign verify --key cosign.pub localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
+    - cosign verify --key cosign.pub localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
+    - cosign verify --key cosign.pub localhost:5000/java:17-jammy-ubuntu-22.04-fips
   only:
     - main
 ```
@@ -389,11 +389,11 @@ verify-images:
   run: |
     cosign verify \
       --key cosign.pub \
-      localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+      localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
     cosign verify \
       --key cosign.pub \
-      localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
+      localhost:5000/java:17-jammy-ubuntu-22.04-fips
 ```
 
 ---
@@ -421,7 +421,7 @@ For issues with signature verification:
 
 ## Document Metadata
 
-- **Author:** Focaloid Security Team
+- **Author:** Root Security Team
 - **Classification:** PUBLIC
 - **Distribution:** UNLIMITED
 - **Version:** 1.0

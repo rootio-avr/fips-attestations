@@ -8,8 +8,8 @@ set -e
 
 # Configuration
 REGISTRY="${REGISTRY:-localhost:5000}"
-GO_IMAGE="${REGISTRY}/ubuntu-fips-go:v1.0.0-ubuntu-22.04"
-JAVA_IMAGE="${REGISTRY}/ubuntu-fips-java:v1.0.0-ubuntu-22.04"
+GO_IMAGE="${REGISTRY}/golang:1.25-jammy-ubuntu-22.04-fips"
+JAVA_IMAGE="${REGISTRY}/java:17-jammy-ubuntu-22.04-fips"
 PUBLIC_KEY="${PUBLIC_KEY:-cosign.pub}"
 
 # Colors for output

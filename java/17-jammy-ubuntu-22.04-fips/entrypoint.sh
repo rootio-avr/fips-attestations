@@ -34,7 +34,7 @@ log_audit_event() {
     local audit_entry=$(cat <<EOF
 {
   "timestamp": "$timestamp",
-  "image": "ubuntu-fips-java:v1.0.0-ubuntu-22.04",
+  "image": "java:17-jammy-ubuntu-22.04-fips",
   "event_type": "$event_type",
   "status": "$event_status",
   "details": "$event_details",
@@ -55,7 +55,7 @@ echo "========================================"
 echo -e "${BOLD}${CYAN}Ubuntu FIPS Java${NC}"
 echo "========================================"
 echo ""
-echo "Version: v1.0.0-ubuntu-22.04"
+echo "Version: 17-jammy-ubuntu-22.04-fips"
 echo "Purpose: Java-only FIPS-140-3 image with strict policy"
 echo ""
 

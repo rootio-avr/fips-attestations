@@ -1,15 +1,15 @@
-# Chain of Custody: ubuntu-fips-java:v1.0.0-ubuntu-22.04
+# Chain of Custody: java:17-jammy-ubuntu-22.04-fips
 
 ## Document Information
-- **Image Name**: ubuntu-fips-java
-- **Version**: v1.0.0-ubuntu-22.04
+- **Image Name**: java
+- **Version**: 17-jammy-ubuntu-22.04-fips
 - **Date**: 2026-03-04
 - **Document Version**: 1.0
-- **Author**: Focaloid Security Team
+- **Author**: Root Security Team
 
 ## Executive Summary
 
-This document establishes the chain of custody for the ubuntu-fips-java container image, documenting its complete provenance from source materials through build process to final artifact. This image provides a FIPS 140-3 compliant Java runtime environment with strict security policy enforcement.
+This document establishes the chain of custody for the java container image, documenting its complete provenance from source materials through build process to final artifact. This image provides a FIPS 140-3 compliant Java runtime environment with strict security policy enforcement.
 
 ---
 
@@ -70,7 +70,7 @@ This document establishes the chain of custody for the ubuntu-fips-java containe
 - **Build File**: `Dockerfile` (committed to repository)
 - **Build Command**:
   ```bash
-  docker build -t ubuntu-fips-java:v1.0.0-ubuntu-22.04 \
+  docker build -t java:17-jammy-ubuntu-22.04-fips \
     --secret id=wolfssl_password,src=.wolfssl_password .
   ```
 - **Build Stages**:
@@ -106,9 +106,9 @@ This document establishes the chain of custody for the ubuntu-fips-java containe
    - Installed to `${JAVA_HOME}/conf/security/java.security`
 
 ### 2.3 Build Artifacts
-- **Container Image**: `ubuntu-fips-java:v1.0.0-ubuntu-22.04`
-- **SBOM**: `sbom-ubuntu-fips-java-v1.0.0.spdx.json`
-- **VEX**: `vex-ubuntu-fips-java-v1.0.0.json`
+- **Container Image**: `java:17-jammy-ubuntu-22.04-fips`
+- **SBOM**: `sbom-java-17-jammy-ubuntu-22.04-fips.spdx.json`
+- **VEX**: `vex-java-17-jammy-ubuntu-22.04-fips.json`
 - **Signatures**: (Generated via Cosign)
 - **Attestations**: (Generated via SLSA framework)
 
@@ -145,7 +145,7 @@ grep "jdk.tls.disabledAlgorithms" ${JAVA_HOME}/conf/security/java.security
 ### 3.3 Algorithm Enforcement Verification
 ```bash
 # CLI algorithm tests
-./tests/test-openssl-cli-algorithms.sh
+./diagnostic.sh test-openssl-cli-algorithms.sh
 
 # Java algorithm tests
 cd /app/java && java FipsDemoApp
@@ -166,14 +166,14 @@ grep "java_runtime_check" /var/log/fips-audit.log
 ## 4. Artifact Traceability
 
 ### 4.1 SBOM Traceability
-- **File**: `sbom-ubuntu-fips-java-v1.0.0.spdx.json`
+- **File**: `sbom-java-17-jammy-ubuntu-22.04-fips.spdx.json`
 - **Format**: SPDX 2.3
 - **Components Documented**: 8 packages
 - **Relationships**: Dependency graph included
 - **Verification**: `python3 -c "import json; json.load(open('sbom-...')"`
 
 ### 4.2 VEX Traceability
-- **File**: `vex-ubuntu-fips-java-v1.0.0.json`
+- **File**: `vex-java-17-jammy-ubuntu-22.04-fips.json`
 - **Format**: OpenVEX v0.2.0
 - **Vulnerability Statements**: 5 assessments (including Log4Shell)
 - **Status Tracking**: All vulnerabilities documented
@@ -291,13 +291,13 @@ grep "java_runtime_check" /var/log/fips-audit.log
 ## 9. Contact Information
 
 ### 9.1 Security Team
-- **Email**: security@focaloid.com
-- **Incident Reporting**: security-incidents@focaloid.com
+- **Email**: security@Root.com
+- **Incident Reporting**: security-incidents@Root.com
 - **Office Hours**: 24/7 for critical issues
 
 ### 9.2 Support Team
-- **Email**: support@focaloid.com
-- **Documentation**: https://docs.focaloid.com
+- **Email**: support@Root.com
+- **Documentation**: https://docs.Root.com
 - **Issue Tracking**: GitHub Issues
 
 ---
@@ -306,7 +306,7 @@ grep "java_runtime_check" /var/log/fips-audit.log
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | 2026-03-04 | Focaloid Security Team | Initial release |
+| 1.0 | 2026-03-04 | Root Security Team | Initial release |
 
 ---
 
@@ -315,8 +315,8 @@ grep "java_runtime_check" /var/log/fips-audit.log
 ### Appendix A: Build Script
 See `build.sh` in repository
 
-### Appendix B: Test Scripts
-See `tests/` directory in repository
+### Appendix B: Diagnostic Scripts
+See `diagnostics/` directory in repository
 
 ### Appendix C: Configuration Files
 - `Dockerfile`: Multi-stage build definition

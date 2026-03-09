@@ -1,6 +1,6 @@
-# Test Execution Summary - ubuntu-fips-go
+# Test Execution Summary - golang
 
-**Image:** ubuntu-fips-go:v1.0.0-ubuntu-22.04
+**Image:** golang:1.25-jammy-ubuntu-22.04-fips
 **Test Date:** 2026-03-04
 **Execution Environment:** Docker 24.x on Ubuntu 22.04 LTS
 
@@ -8,7 +8,7 @@
 
 ## Overview
 
-This document summarizes all test executions performed against the ubuntu-fips-go container image
+This document summarizes all test executions performed against the golang container image
 to validate FIPS compliance and security requirements.
 
 ---
@@ -17,7 +17,7 @@ to validate FIPS compliance and security requirements.
 
 ### Master Test Runner
 
-**Script:** `tests/run-all-tests.sh`
+**Script:** `diagnostics/run-all-tests.sh`
 **Total Suites:** 7
 **Status:** ✅ **ALL PASSED**
 
@@ -43,11 +43,7 @@ to validate FIPS compliance and security requirements.
 
 **Execution:**
 ```bash
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-go-fips-algorithms.sh
+./diagnostic.sh test-go-fips-algorithms.sh
 ```
 
 **Results:**
@@ -67,11 +63,7 @@ docker run --rm \
 
 **Execution:**
 ```bash
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-go-openssl-integration.sh
+./diagnostic.sh test-go-openssl-integration.sh
 ```
 
 **Results:**
@@ -90,11 +82,7 @@ docker run --rm \
 
 **Execution:**
 ```bash
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-go-fips-validation.sh
+./diagnostic.sh test-go-fips-validation.sh
 ```
 
 **Results:**
@@ -114,11 +102,7 @@ docker run --rm \
 
 **Execution:**
 ```bash
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-go-in-container-compilation.sh
+./diagnostic.sh test-go-in-container-compilation.sh
 ```
 
 **Results:**
@@ -137,11 +121,7 @@ docker run --rm \
 
 **Execution:**
 ```bash
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-openssl-cli-algorithms.sh
+./diagnostic.sh test-openssl-cli-algorithms.sh
 ```
 
 **Results:**
@@ -161,11 +141,7 @@ docker run --rm \
 
 **Execution:**
 ```bash
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-os-fips-status.sh
+./diagnostic.sh test-os-fips-status.sh
 ```
 
 **Results:**
@@ -185,11 +161,7 @@ docker run --rm \
 
 **Execution:**
 ```bash
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-contrast-fips-enabled-vs-disabled.sh
+./diagnostic.sh test-contrast-fips-enabled-vs-disabled.sh
 ```
 
 **Results:**
@@ -212,7 +184,7 @@ docker run --rm \
 
 **Execution:**
 ```bash
-docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04
+docker run --rm golang:1.25-jammy-ubuntu-22.04-fips
 ```
 
 **Results:** ✅ PASS
@@ -224,7 +196,7 @@ docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04
 
 **Execution:**
 ```bash
-docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04 validate
+docker run --rm golang:1.25-jammy-ubuntu-22.04-fips validate
 ```
 
 **Results:** ✅ PASS
@@ -302,16 +274,16 @@ To reproduce all tests:
 
 ```bash
 # Clone repository
-git clone <repo-url> && cd fips-poc/ubuntu-fips-go/v1.0.0-ubuntu-22.04
+git clone <repo-url> && cd fips-poc/golang/1.25-jammy-ubuntu-22.04-fips
 
 # Pull image
-docker pull localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+docker pull localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Run all tests
 docker run --rm \
   -v $(pwd)/tests:/tests \
   --entrypoint="" \
-  localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips \
   bash -c 'cd /tests && ./run-all-tests.sh'
 
 # Expected: ✅ ALL TEST SUITES PASSED (7/7)
@@ -321,7 +293,7 @@ docker run --rm \
 
 ## Document Metadata
 
-- **Author:** Focaloid Security Team
+- **Author:** Root Security Team
 - **Classification:** PUBLIC
 - **Distribution:** UNLIMITED
 - **Version:** 1.0

@@ -2,7 +2,7 @@
 
 ## Document Information
 
-- **Image**: ubuntu-fips-go:v1.0.0-ubuntu-22.04
+- **Image**: golang:1.25-jammy-ubuntu-22.04-fips
 - **Date**: 2026-03-04
 - **Version**: 1.0
 - **Status**: ✅ **VERIFIED - 100% POC CRITERIA MET**
@@ -11,7 +11,7 @@
 
 ## Executive Summary
 
-This document provides evidence that the `ubuntu-fips-go` container image fully satisfies all FIPS Proof of Concept (POC) criteria for federal and enterprise-grade hardening standards, including FIPS 140-3 enablement and compliance requirements.
+This document provides evidence that the `golang` container image fully satisfies all FIPS Proof of Concept (POC) criteria for federal and enterprise-grade hardening standards, including FIPS 140-3 enablement and compliance requirements.
 
 **Overall Compliance Status: ✅ 100% COMPLETE**
 
@@ -29,8 +29,8 @@ This document provides evidence that the `ubuntu-fips-go` container image fully 
 
 | Test Script | Location | Lines |
 |------------|----------|-------|
-| **Primary Test** | `tests/test-openssl-cli-algorithms.sh` | Full script |
-| **Integration Test** | `tests/run-all-tests.sh` | Lines 73-83 |
+| **Primary Test** | `diagnostics/test-openssl-cli-algorithms.sh` | Full script |
+| **Integration Test** | `diagnostics/run-all-tests.sh` | Lines 73-83 |
 
 #### Test Coverage
 
@@ -46,11 +46,7 @@ This document provides evidence that the `ubuntu-fips-go` container image fully 
 
 ```bash
 # Run algorithm enforcement test
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-openssl-cli-algorithms.sh
+./diagnostic.sh test-openssl-cli-algorithms.sh
 ```
 
 #### Expected Output
@@ -82,11 +78,11 @@ docker run --rm \
 
 | Test Script | Location | Purpose |
 |------------|----------|---------|
-| **Algorithm Test** | `tests/test-go-fips-algorithms.sh` | Verify MD5/SHA-1 blocked, SHA-256+ allowed |
+| **Algorithm Test** | `diagnostics/test-go-fips-algorithms.sh` | Verify MD5/SHA-1 blocked, SHA-256+ allowed |
 | **Demo Application** | `src/main.go` | Runtime algorithm enforcement with panic recovery |
-| **OpenSSL Integration** | `tests/test-go-openssl-integration.sh` | Verify Go → OpenSSL → wolfSSL chain |
-| **Full Validation** | `tests/test-go-fips-validation.sh` | Environment and library validation |
-| **Compilation Test** | `tests/test-go-in-container-compilation.sh` | Runtime Go compilation with FIPS |
+| **OpenSSL Integration** | `diagnostics/test-go-openssl-integration.sh` | Verify Go → OpenSSL → wolfSSL chain |
+| **Full Validation** | `diagnostics/test-go-fips-validation.sh` | Environment and library validation |
+| **Compilation Test** | `diagnostics/test-go-in-container-compilation.sh` | Runtime Go compilation with FIPS |
 
 #### Test Coverage
 
@@ -98,20 +94,20 @@ docker run --rm \
 | **SHA-384 Success** | `src/main.go:189-210` | Successful hash generation |
 | **SHA-512 Success** | `src/main.go:212-233` | Successful hash generation |
 | **FIPS Runtime** | Environment: `GODEBUG=fips140=only` | Enforced at Go runtime |
-| **OpenSSL Linkage** | `tests/test-go-openssl-integration.sh:68-74` | LD_DEBUG trace verification |
+| **OpenSSL Linkage** | `diagnostics/test-go-openssl-integration.sh:68-74` | LD_DEBUG trace verification |
 
 #### Validation Commands
 
 ```bash
 # Run Go algorithm enforcement test (uses default entrypoint)
-docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04
+docker run --rm golang:1.25-jammy-ubuntu-22.04-fips
 
 # Run specific algorithm test
 docker run --rm \
   -v $(pwd)/tests:/tests \
   --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-go-fips-algorithms.sh
+  golang:1.25-jammy-ubuntu-22.04-fips \
+  ./diagnostic.sh test-go-fips-algorithms.sh
 ```
 
 #### Expected Behavior
@@ -147,9 +143,9 @@ docker run --rm \
 
 | Test Script | Location | Purpose |
 |------------|----------|---------|
-| **OS FIPS Status** | `tests/test-os-fips-status.sh` | Comprehensive OS-level FIPS verification |
+| **OS FIPS Status** | `diagnostics/test-os-fips-status.sh` | Comprehensive OS-level FIPS verification |
 | **Environment Check** | `entrypoint.sh:25-64` | Audit logging with environment validation |
-| **Runtime Validation** | `tests/test-go-fips-validation.sh` | Environment variable and library checks |
+| **Runtime Validation** | `diagnostics/test-go-fips-validation.sh` | Environment variable and library checks |
 
 #### Test Coverage
 
@@ -167,7 +163,7 @@ docker run --rm \
 
 **Important Note**: In containerized environments, kernel-level FIPS enforcement (`/proc/sys/crypto/fips_enabled`) is controlled by the host kernel, not the container. This image implements **application-level FIPS enforcement**, which provides equivalent or stricter security:
 
-| Level | Standard FIPS | ubuntu-fips-go Implementation |
+| Level | Standard FIPS | golang Implementation |
 |-------|---------------|-------------------------------|
 | Kernel | `fips=1` boot parameter | Host kernel dependent (container) |
 | System Libraries | OpenSSL FIPS module | ✅ wolfSSL FIPS v5.8.2 (Cert #4718) |
@@ -184,8 +180,8 @@ docker run --rm \
 docker run --rm \
   -v $(pwd)/tests:/tests \
   --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-os-fips-status.sh
+  golang:1.25-jammy-ubuntu-22.04-fips \
+  ./diagnostic.sh test-os-fips-status.sh
 ```
 
 #### Expected Output
@@ -260,9 +256,9 @@ Note: Kernel-level checks report warnings (expected in containers)
 
 | File | Format | Standard | Generator |
 |------|--------|----------|-----------|
-| `sbom-ubuntu-fips-go-v1.0.0.spdx.json` | JSON | SPDX 2.3 | `generate-sbom.sh` |
-| `vex-ubuntu-fips-go-v1.0.0.json` | JSON | OpenVEX v0.2.0 | `generate-vex.sh` |
-| `slsa-provenance-ubuntu-fips-go-v1.0.0.json` | JSON | SLSA v1.0 | `generate-slsa-attestation.sh` |
+| `sbom-golang-1.25-jammy-ubuntu-22.04-fips.spdx.json` | JSON | SPDX 2.3 | `generate-sbom.sh` |
+| `vex-golang-1.25-jammy-ubuntu-22.04-fips.json` | JSON | OpenVEX v0.2.0 | `generate-vex.sh` |
+| `slsa-provenance-golang-1.25-jammy-ubuntu-22.04-fips.json` | JSON | SLSA v1.0 | `generate-slsa-attestation.sh` |
 | `CHAIN-OF-CUSTODY.md` | Markdown | Custom | Manual documentation |
 | `/var/log/fips-audit.log` | JSON | Custom | `entrypoint.sh` |
 
@@ -298,7 +294,7 @@ Note: Kernel-level checks report warnings (expected in containers)
 docker run --rm \
   -v $(pwd)/tests:/tests \
   --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  golang:1.25-jammy-ubuntu-22.04-fips \
   bash -c 'cd /tests && ./run-all-tests.sh'
 
 # Expected output
@@ -337,7 +333,7 @@ docker run --rm \
 
 This image implements **stricter-than-FIPS** policy:
 
-| Policy Level | Standard FIPS 140-3 | ubuntu-fips-go |
+| Policy Level | Standard FIPS 140-3 | golang |
 |--------------|---------------------|----------------|
 | MD5 | Deprecated, soft warning | **Hard block (panic)** |
 | SHA-1 | Allowed for legacy uses | **Hard block (disabled)** |
@@ -368,7 +364,7 @@ This image implements **stricter-than-FIPS** policy:
 └─────────────────────────────────────────┘
 ```
 
-**Validation Evidence**: See `tests/test-go-openssl-integration.sh:68-74` for LD_DEBUG library loading trace.
+**Validation Evidence**: See `diagnostics/test-go-openssl-integration.sh:68-74` for LD_DEBUG library loading trace.
 
 ---
 
@@ -388,12 +384,12 @@ This image implements **stricter-than-FIPS** policy:
 3. **Continuous Validation**: Run test suite on every deployment:
    ```bash
    docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
-     ubuntu-fips-go:v1.0.0-ubuntu-22.04 bash -c 'cd /tests && ./run-all-tests.sh'
+     golang:1.25-jammy-ubuntu-22.04-fips bash -c 'cd /tests && ./run-all-tests.sh'
    ```
 
 4. **Audit Log Monitoring**: Mount audit log volume and monitor for policy violations:
    ```bash
-   docker run -v /var/log/fips-audit:/var/log ubuntu-fips-go:v1.0.0-ubuntu-22.04
+   docker run -v /var/log/fips-audit:/var/log golang:1.25-jammy-ubuntu-22.04-fips
    ```
 
 ### For Enhanced Security
@@ -407,7 +403,7 @@ This image implements **stricter-than-FIPS** policy:
 
 ## Conclusion
 
-The `ubuntu-fips-go:v1.0.0-ubuntu-22.04` container image **fully satisfies all FIPS POC criteria**:
+The `golang:1.25-jammy-ubuntu-22.04-fips` container image **fully satisfies all FIPS POC criteria**:
 
 - ✅ **Test Case 1**: Algorithm enforcement via CLI - **100% VERIFIED**
 - ✅ **Test Case 2**: Golang cryptographic validation - **100% VERIFIED**
@@ -421,7 +417,7 @@ The `ubuntu-fips-go:v1.0.0-ubuntu-22.04` container image **fully satisfies all F
 
 ## Document Metadata
 
-- **Author**: Focaloid Security Team
+- **Author**: Root Security Team
 - **Classification**: PUBLIC
 - **Distribution**: UNLIMITED
 - **Revision**: 1.0

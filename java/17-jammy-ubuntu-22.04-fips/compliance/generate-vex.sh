@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-# VEX Generator for ubuntu-fips-java (OpenVEX Format)
+# VEX Generator for java (OpenVEX Format)
 #
 # Purpose: Generate Vulnerability Exploitability eXchange statement
 ################################################################################
@@ -8,9 +8,9 @@
 set -e
 
 # Configuration
-IMAGE_NAME="ubuntu-fips-java"
-IMAGE_VERSION="v1.0.0-ubuntu-22.04"
-VEX_OUTPUT="vex-ubuntu-fips-java-v1.0.0.json"
+IMAGE_NAME="java"
+IMAGE_VERSION="17-jammy-ubuntu-22.04-fips"
+VEX_OUTPUT="vex-java-17-jammy-ubuntu-22.04-fips.json"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 echo "================================================================================"
@@ -22,11 +22,11 @@ echo ""
 cat > "$VEX_OUTPUT" <<'EOF'
 {
   "@context": "https://openvex.dev/ns/v0.2.0",
-  "@id": "https://focaloid.com/vex/ubuntu-fips-java/v1.0.0",
-  "author": "Focaloid Security Team",
+  "@id": "https://Root.com/vex/java/v1.0.0",
+  "author": "Root Security Team",
   "timestamp": "TIMESTAMP_PLACEHOLDER",
   "version": 1,
-  "tooling": "focaloid-vex-generator-1.0",
+  "tooling": "Root-vex-generator-1.0",
   "statements": [
     {
       "vulnerability": {
@@ -35,9 +35,9 @@ cat > "$VEX_OUTPUT" <<'EOF'
       },
       "products": [
         {
-          "@id": "pkg:docker/ubuntu-fips-java@v1.0.0-ubuntu-22.04",
+          "@id": "pkg:docker/java@17-jammy-ubuntu-22.04-fips",
           "identifiers": {
-            "purl": "pkg:docker/focaloid/ubuntu-fips-java@v1.0.0-ubuntu-22.04"
+            "purl": "pkg:docker/Root/java@17-jammy-ubuntu-22.04-fips"
           },
           "subcomponents": [
             {
@@ -57,7 +57,7 @@ cat > "$VEX_OUTPUT" <<'EOF'
       },
       "products": [
         {
-          "@id": "pkg:docker/ubuntu-fips-java@v1.0.0-ubuntu-22.04",
+          "@id": "pkg:docker/java@17-jammy-ubuntu-22.04-fips",
           "subcomponents": [
             {
               "@id": "pkg:deb/ubuntu/openjdk-17-jre-headless@17"
@@ -76,7 +76,7 @@ cat > "$VEX_OUTPUT" <<'EOF'
       },
       "products": [
         {
-          "@id": "pkg:docker/ubuntu-fips-java@v1.0.0-ubuntu-22.04",
+          "@id": "pkg:docker/java@17-jammy-ubuntu-22.04-fips",
           "subcomponents": [
             {
               "@id": "pkg:generic/wolfssl@5.8.2-fips"
@@ -95,7 +95,7 @@ cat > "$VEX_OUTPUT" <<'EOF'
       },
       "products": [
         {
-          "@id": "pkg:docker/ubuntu-fips-java@v1.0.0-ubuntu-22.04"
+          "@id": "pkg:docker/java@17-jammy-ubuntu-22.04-fips"
         }
       ],
       "status": "not_affected",
@@ -109,7 +109,7 @@ cat > "$VEX_OUTPUT" <<'EOF'
       },
       "products": [
         {
-          "@id": "pkg:docker/ubuntu-fips-java@v1.0.0-ubuntu-22.04"
+          "@id": "pkg:docker/java@17-jammy-ubuntu-22.04-fips"
         }
       ],
       "status": "not_affected",

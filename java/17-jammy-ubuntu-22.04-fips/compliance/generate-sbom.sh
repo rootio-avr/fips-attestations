@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-# SBOM Generator for ubuntu-fips-java (SPDX Format)
+# SBOM Generator for java (SPDX Format)
 #
 # Purpose: Generate Software Bill of Materials in SPDX 2.3 JSON format
 ################################################################################
@@ -8,11 +8,11 @@
 set -e
 
 # Configuration
-IMAGE_NAME="ubuntu-fips-java"
-IMAGE_VERSION="v1.0.0-ubuntu-22.04"
-SBOM_OUTPUT="sbom-ubuntu-fips-java-v1.0.0.spdx.json"
+IMAGE_NAME="java"
+IMAGE_VERSION="17-jammy-ubuntu-22.04-fips"
+SBOM_OUTPUT="sbom-java-17-jammy-ubuntu-22.04-fips.spdx.json"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-DOCUMENT_NAMESPACE="https://focaloid.com/sbom/${IMAGE_NAME}/${IMAGE_VERSION}/${TIMESTAMP}"
+DOCUMENT_NAMESPACE="https://Root.com/sbom/${IMAGE_NAME}/${IMAGE_VERSION}/${TIMESTAMP}"
 
 echo "================================================================================"
 echo "Generating SBOM for ${IMAGE_NAME}:${IMAGE_VERSION}"
@@ -30,8 +30,8 @@ cat > "$SBOM_OUTPUT" <<EOF
   "creationInfo": {
     "created": "${TIMESTAMP}",
     "creators": [
-      "Tool: focaloid-sbom-generator-1.0",
-      "Organization: Focaloid"
+      "Tool: Root-sbom-generator-1.0",
+      "Organization: Root"
     ],
     "licenseListVersion": "3.21"
   },
@@ -40,7 +40,7 @@ cat > "$SBOM_OUTPUT" <<EOF
       "SPDXID": "SPDXRef-Package-Container",
       "name": "${IMAGE_NAME}",
       "versionInfo": "${IMAGE_VERSION}",
-      "supplier": "Organization: Focaloid",
+      "supplier": "Organization: Root",
       "downloadLocation": "NOASSERTION",
       "filesAnalyzed": false,
       "licenseConcluded": "NOASSERTION",
@@ -155,7 +155,7 @@ cat > "$SBOM_OUTPUT" <<EOF
       "SPDXID": "SPDXRef-Package-JavaSecurityPolicy",
       "name": "java-security-fips-policy",
       "versionInfo": "1.0.0",
-      "supplier": "Organization: Focaloid",
+      "supplier": "Organization: Root",
       "downloadLocation": "NOASSERTION",
       "filesAnalyzed": false,
       "licenseConcluded": "NOASSERTION",
@@ -168,7 +168,7 @@ cat > "$SBOM_OUTPUT" <<EOF
       "SPDXID": "SPDXRef-Package-FipsDemoApp",
       "name": "fips-demo-app",
       "versionInfo": "1.0.0",
-      "supplier": "Organization: Focaloid",
+      "supplier": "Organization: Root",
       "downloadLocation": "NOASSERTION",
       "filesAnalyzed": false,
       "licenseConcluded": "NOASSERTION",

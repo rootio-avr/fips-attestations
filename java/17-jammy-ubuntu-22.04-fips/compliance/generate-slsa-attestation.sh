@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-# SLSA Attestation Generator for ubuntu-fips-java
+# SLSA Attestation Generator for java
 #
 # Purpose: Generate SLSA Level 2 Build Provenance Attestation
 #          https://slsa.dev/spec/v1.0/levels
@@ -16,10 +16,10 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # Configuration
-IMAGE_NAME="ubuntu-fips-java"
-IMAGE_VERSION="v1.0.0-ubuntu-22.04"
+IMAGE_NAME="java"
+IMAGE_VERSION="17-jammy-ubuntu-22.04-fips"
 IMAGE_TAG="${IMAGE_NAME}:${IMAGE_VERSION}"
-ATTESTATION_OUTPUT="slsa-provenance-ubuntu-fips-java-v1.0.0.json"
+ATTESTATION_OUTPUT="slsa-provenance-java-17-jammy-ubuntu-22.04-fips.json"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 echo "================================================================================"
@@ -106,7 +106,7 @@ cat > "$ATTESTATION_OUTPUT" <<EOF
   "predicateType": "https://slsa.dev/provenance/v1",
   "predicate": {
     "buildDefinition": {
-      "buildType": "https://focaloid.com/docker-build@v1",
+      "buildType": "https://Root.com/docker-build@v1",
       "externalParameters": {
         "source": {
           "uri": "${GIT_REMOTE}",
@@ -182,7 +182,7 @@ cat > "$ATTESTATION_OUTPUT" <<EOF
     },
     "runDetails": {
       "builder": {
-        "id": "https://focaloid.com/build-system@v1",
+        "id": "https://Root.com/build-system@v1",
         "version": {
           "docker": "${DOCKER_VERSION}"
         },
@@ -200,12 +200,12 @@ cat > "$ATTESTATION_OUTPUT" <<EOF
       },
       "byproducts": [
         {
-          "uri": "sbom-ubuntu-fips-java-v1.0.0.spdx.json",
+          "uri": "sbom-java-17-jammy-ubuntu-22.04-fips.spdx.json",
           "name": "SBOM",
           "mediaType": "application/spdx+json"
         },
         {
-          "uri": "vex-ubuntu-fips-java-v1.0.0.json",
+          "uri": "vex-java-17-jammy-ubuntu-22.04-fips.json",
           "name": "VEX",
           "mediaType": "application/vnd.openvex+json"
         },
@@ -299,7 +299,7 @@ echo ""
 
 cat <<EOF
 SLSA Level 2 Requirements:
-  ✓ Build service: Documented (Focaloid build system)
+  ✓ Build service: Documented (Root build system)
   ✓ Build provenance: Generated (this file)
   ✓ Provenance authenticity: Available via Cosign
   ✓ Isolated builds: Docker containerized build

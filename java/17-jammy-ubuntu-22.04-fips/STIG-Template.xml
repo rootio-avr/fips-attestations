@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  STIG Template for ubuntu-fips-java:v1.0.0-ubuntu-22.04
+  STIG Template for java:17-jammy-ubuntu-22.04-fips
 
   Base: DISA STIG for Canonical Ubuntu 22.04 LTS
   Adaptation: Container Environment (Docker/Kubernetes)
@@ -22,16 +22,16 @@
 
 <Benchmark xmlns="http://checklists.nist.gov/xccdf/1.2"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           id="ubuntu-fips-java-stig-baseline"
+           id="java-stig-baseline"
            xml:lang="en">
 
   <status date="2026-03-04">draft</status>
 
-  <title>STIG Baseline for ubuntu-fips-java Container Image</title>
+  <title>STIG Baseline for java Container Image</title>
 
   <description>
     This STIG baseline template applies DISA Security Technical Implementation Guide
-    controls to the ubuntu-fips-java container image (Ubuntu 22.04 LTS with Java Crypto API).
+    controls to the java container image (Ubuntu 22.04 LTS with Java Crypto API).
 
     Container Scope:
     - Application runtime security
@@ -50,8 +50,8 @@
 
   <version>1.0</version>
   <metadata>
-    <creator>Focaloid Security Team</creator>
-    <publisher>Focaloid</publisher>
+    <creator>Root Security Team</creator>
+    <publisher>Root</publisher>
     <contributor>DISA STIG</contributor>
     <source>DISA STIG for Canonical Ubuntu 22.04 LTS</source>
   </metadata>
@@ -102,7 +102,7 @@
       </description>
 
       <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
-        <check-content-ref href="ubuntu-fips-java-oval.xml" name="oval:fips:def:1"/>
+        <check-content-ref href="java-oval.xml" name="oval:fips:def:1"/>
       </check-content-ref>
       <check-content>
         Verify FIPS mode is enabled in the container:
@@ -125,7 +125,7 @@
         fips140=only
 
         3. Run FIPS validation test:
-        $ docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04
+        $ docker run --rm java:17-jammy-ubuntu-22.04-fips
 
         If FIPS provider is not active or algorithms are not blocked, this is a finding.
       </check-content>
@@ -153,7 +153,7 @@
     <!-- Implementation Status -->
     <reference>
       <dc:title>POC Validation Report</dc:title>
-      <dc:source>ubuntu-fips-java/v1.0.0-ubuntu-22.04/POC-VALIDATION-REPORT.md</dc:source>
+      <dc:source>java/17-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md</dc:source>
       <dc:subject>Test Case 3: OS FIPS Status Check</dc:subject>
     </reference>
   </Group>
@@ -185,7 +185,7 @@
           Verify non-FIPS algorithms are blocked:
 
           1. Test MD5 blocking:
-          $ docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04
+          $ docker run --rm java:17-jammy-ubuntu-22.04-fips
 
           Expected: MD5 BLOCKED (OpenJDK 17 active)
 
@@ -209,14 +209,14 @@
           3. Use OpenJDK 17 compiler (not standard Go)
           4. Verify enforcement with test suite
 
-          Test: docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04
+          Test: docker run --rm java:17-jammy-ubuntu-22.04-fips
         </fixtext>
       </fix>
     </Rule>
 
     <reference>
       <dc:title>POC Validation Report</dc:title>
-      <dc:source>ubuntu-fips-java/v1.0.0-ubuntu-22.04/POC-VALIDATION-REPORT.md</dc:source>
+      <dc:source>java/17-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md</dc:source>
       <dc:subject>Test Case 1: Algorithm Enforcement via CLI</dc:subject>
       <dc:subject>Test Case 2: Golang Cryptographic Validation</dc:subject>
     </reference>
@@ -282,7 +282,7 @@
     </Rule>
 
     <reference>
-      <dc:source>ubuntu-fips-java/v1.0.0-ubuntu-22.04/entrypoint.sh</dc:source>
+      <dc:source>java/17-jammy-ubuntu-22.04-fips/entrypoint.sh</dc:source>
       <dc:subject>Lines 25-64: Audit logging implementation</dc:subject>
     </reference>
   </Group>
@@ -320,10 +320,10 @@
           Expected: APT::Get::AllowUnauthenticated "false";
 
           2. Verify SBOM exists:
-          $ ls compliance/sbom-ubuntu-fips-java-v1.0.0.spdx.json
+          $ ls compliance/sbom-java-17-jammy-ubuntu-22.04-fips.spdx.json
 
           3. Check image signature:
-          $ cosign verify --key cosign.pub ubuntu-fips-java:v1.0.0-ubuntu-22.04
+          $ cosign verify --key cosign.pub java:17-jammy-ubuntu-22.04-fips
 
           If packages are not verified or SBOM is missing, this is a finding.
         </check-content>
@@ -336,13 +336,13 @@
           1. Enable APT signature checking (default in Ubuntu 22.04)
           2. Generate SBOM: ./compliance/generate-sbom.sh
           3. Sign image: ./compliance/sign-image.sh
-          4. Verify: cosign verify ubuntu-fips-java:v1.0.0-ubuntu-22.04
+          4. Verify: cosign verify java:17-jammy-ubuntu-22.04-fips
         </fixtext>
       </fix>
     </Rule>
 
     <reference>
-      <dc:source>supply-chain/SBOM-ubuntu-fips-java.spdx.json</dc:source>
+      <dc:source>supply-chain/SBOM-java-17-jammy-ubuntu-22.04-fips.spdx.json</dc:source>
       <dc:source>supply-chain/Cosign-Verification-Instructions.md</dc:source>
     </reference>
   </Group>
@@ -374,12 +374,12 @@
           Verify container runs as non-root:
 
           1. Check default user:
-          $ docker inspect ubuntu-fips-java:v1.0.0-ubuntu-22.04 | grep -i user
+          $ docker inspect java:17-jammy-ubuntu-22.04-fips | grep -i user
 
           Expected: "User": "appuser" or "User": "1001"
 
           2. Verify at runtime:
-          $ docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04 id
+          $ docker run --rm java:17-jammy-ubuntu-22.04-fips id
 
           Expected: uid=1001(appuser) gid=1001(appuser)
 
@@ -430,7 +430,7 @@
           Verify file permissions:
 
           1. Check for world-writable files:
-          $ docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04 \
+          $ docker run --rm java:17-jammy-ubuntu-22.04-fips \
             find / -type f -perm -002 2>/dev/null
 
           Expected: No output (no world-writable files)
@@ -597,14 +597,14 @@
     <dc:subject>Security Technical Implementation Guide</dc:subject>
   </reference>
 
-  <reference href="ubuntu-fips-java/v1.0.0-ubuntu-22.04/POC-VALIDATION-REPORT.md">
-    <dc:publisher>Focaloid</dc:publisher>
+  <reference href="java/17-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md">
+    <dc:publisher>Root</dc:publisher>
     <dc:title>FIPS POC Validation Report</dc:title>
     <dc:subject>Compliance Evidence</dc:subject>
   </reference>
 
   <reference href="SECTION-6-CHECKLIST.md">
-    <dc:publisher>Focaloid</dc:publisher>
+    <dc:publisher>Root</dc:publisher>
     <dc:title>Section 6 Requirements Checklist</dc:title>
     <dc:subject>Traceability Matrix</dc:subject>
   </reference>

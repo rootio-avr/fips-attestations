@@ -36,11 +36,11 @@ This FIPS/STIG Proof of Concept (POC) package is **100% complete** and ready for
 
 ---
 
-### ✅ Go Image (ubuntu-fips-go) - 100%
+### ✅ Go Image (golang) - 100%
 
 | Deliverable | Status | Location | Notes |
 |-------------|--------|----------|-------|
-| **README.md** | ✅ COMPLETE | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/` | Updated with STIG/SCAP/Contrast |
+| **README.md** | ✅ COMPLETE | `golang/1.25-jammy-ubuntu-22.04-fips/` | Updated with STIG/SCAP/Contrast |
 | **POC Validation Report** | ✅ COMPLETE | `POC-VALIDATION-REPORT.md` | Existing, comprehensive |
 | **STIG Template** | ✅ COMPLETE | `STIG-Template.xml` | Container-adapted baseline |
 | **SCAP Results (XML)** | ✅ COMPLETE | `SCAP-Results.xml` | Machine-readable output |
@@ -57,11 +57,11 @@ This FIPS/STIG Proof of Concept (POC) package is **100% complete** and ready for
 
 ---
 
-### ✅ Java Image (ubuntu-fips-java) - 100%
+### ✅ Java Image (java) - 100%
 
 | Deliverable | Status | Location | Notes |
 |-------------|--------|----------|-------|
-| **README.md** | ✅ COMPLETE | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/` | Updated with STIG/SCAP/Contrast |
+| **README.md** | ✅ COMPLETE | `java/17-jammy-ubuntu-22.04-fips/` | Updated with STIG/SCAP/Contrast |
 | **POC Validation Report** | ✅ COMPLETE | `POC-VALIDATION-REPORT.md` | Existing, comprehensive |
 | **STIG Template** | ✅ COMPLETE | `STIG-Template.xml` | Container-adapted baseline |
 | **SCAP Results (XML)** | ✅ COMPLETE | `SCAP-Results.xml` | Machine-readable output |
@@ -167,7 +167,7 @@ This FIPS/STIG Proof of Concept (POC) package is **100% complete** and ready for
 | SHA-1 | ❌ BLOCKED | ❌ BLOCKED (library) | ✅ Multi-layer defense |
 | SHA-256 | ✅ PASS | ✅ PASS | ✅ Approved algorithm |
 
-**Evidence:** `ubuntu-fips-go/v1.0.0-ubuntu-22.04/Evidence/contrast-test-results.md`
+**Evidence:** `golang/1.25-jammy-ubuntu-22.04-fips/Evidence/contrast-test-results.md`
 
 ### Java Image - Contrast Test
 
@@ -177,7 +177,7 @@ This FIPS/STIG Proof of Concept (POC) package is **100% complete** and ready for
 | SHA-1 | ❌ BLOCKED | ❌ BLOCKED (library) | ✅ Multi-layer defense |
 | SHA-256 | ✅ PASS | ✅ PASS | ✅ Approved algorithm |
 
-**Evidence:** `ubuntu-fips-java/v1.0.0-ubuntu-22.04/Evidence/contrast-test-results.md`
+**Evidence:** `java/17-jammy-ubuntu-22.04-fips/Evidence/contrast-test-results.md`
 
 **Conclusion:** Contrast tests conclusively prove that FIPS enforcement is **REAL** and not superficial.
 
@@ -208,22 +208,22 @@ cd supply-chain
 
 ### Step 4: Run Go Image Tests (3 minutes)
 ```bash
-cd ../ubuntu-fips-go/v1.0.0-ubuntu-22.04
-docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04
+cd ../golang/1.25-jammy-ubuntu-22.04-fips
+docker run --rm golang:1.25-jammy-ubuntu-22.04-fips
 # Expected: All FIPS tests PASS, MD5/SHA-1 BLOCKED
 ```
 
 ### Step 5: Run Java Image Tests (3 minutes)
 ```bash
-cd ../../ubuntu-fips-java/v1.0.0-ubuntu-22.04
-docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04
+cd ../../java/17-jammy-ubuntu-22.04-fips
+docker run --rm java:17-jammy-ubuntu-22.04-fips
 # Expected: All FIPS tests PASS, MD5/SHA-1 BLOCKED
 ```
 
 ### Step 6: Review SCAP Reports (1 minute)
 ```bash
 # View Go SCAP report
-firefox ../ubuntu-fips-go/v1.0.0-ubuntu-22.04/SCAP-Results.html
+firefox ../golang/1.25-jammy-ubuntu-22.04-fips/SCAP-Results.html
 
 # View Java SCAP report
 firefox SCAP-Results.html
@@ -240,19 +240,19 @@ firefox SCAP-Results.html
 
 | Artifact | Format | Location | Purpose |
 |----------|--------|----------|---------|
-| SBOM | SPDX 2.3 | `supply-chain/SBOM-ubuntu-fips-go.spdx.json` | Software Bill of Materials |
-| VEX | OpenVEX v0.2.0 | `supply-chain/VEX-ubuntu-fips-go.json` | Vulnerability assessment |
-| SLSA Provenance | SLSA v1.0 | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/compliance/slsa-provenance-*.json` | Build provenance |
-| Chain of Custody | Markdown | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/compliance/CHAIN-OF-CUSTODY.md` | Provenance docs |
+| SBOM | SPDX 2.3 | `supply-chain/SBOM-golang-1.25-jammy-ubuntu-22.04-fips.spdx.json` | Software Bill of Materials |
+| VEX | OpenVEX v0.2.0 | `supply-chain/VEX-golang-1.25-jammy-ubuntu-22.04-fips.json` | Vulnerability assessment |
+| SLSA Provenance | SLSA v1.0 | `golang/1.25-jammy-ubuntu-22.04-fips/compliance/slsa-provenance-*.json` | Build provenance |
+| Chain of Custody | Markdown | `golang/1.25-jammy-ubuntu-22.04-fips/compliance/CHAIN-OF-CUSTODY.md` | Provenance docs |
 
 ### Java Image
 
 | Artifact | Format | Location | Purpose |
 |----------|--------|----------|---------|
-| SBOM | SPDX 2.3 | `supply-chain/SBOM-ubuntu-fips-java.spdx.json` | Software Bill of Materials |
-| VEX | OpenVEX v0.2.0 | `supply-chain/VEX-ubuntu-fips-java.json` | Vulnerability assessment |
-| SLSA Provenance | SLSA v1.0 | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/compliance/slsa-provenance-*.json` | Build provenance |
-| Chain of Custody | Markdown | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/compliance/CHAIN-OF-CUSTODY.md` | Provenance docs |
+| SBOM | SPDX 2.3 | `supply-chain/SBOM-java-17-jammy-ubuntu-22.04-fips.spdx.json` | Software Bill of Materials |
+| VEX | OpenVEX v0.2.0 | `supply-chain/VEX-java-17-jammy-ubuntu-22.04-fips.json` | Vulnerability assessment |
+| SLSA Provenance | SLSA v1.0 | `java/17-jammy-ubuntu-22.04-fips/compliance/slsa-provenance-*.json` | Build provenance |
+| Chain of Custody | Markdown | `java/17-jammy-ubuntu-22.04-fips/compliance/CHAIN-OF-CUSTODY.md` | Provenance docs |
 
 **Verification:** `supply-chain/verify-all.sh` automates all verification steps
 
@@ -387,7 +387,7 @@ firefox SCAP-Results.html
 ## Contact Information
 
 For questions or clarifications:
-- **Technical Lead:** Focaloid Security Team
+- **Technical Lead:** Root Security Team
 - **Documentation:** All artifacts are self-documenting with inline comments
 - **Status Tracking:** IMPLEMENTATION-STATUS.md
 - **Requirements:** Root_FIPS_STIG_POC_Execution_Plan.md
@@ -396,7 +396,7 @@ For questions or clarifications:
 
 ## Document Metadata
 
-- **Author:** Focaloid Security Team
+- **Author:** Root Security Team
 - **Classification:** PUBLIC
 - **Distribution:** UNLIMITED
 - **Version:** 1.0

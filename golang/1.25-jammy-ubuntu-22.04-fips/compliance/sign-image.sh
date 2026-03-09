@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-# Cosign Image Signing Script for ubuntu-fips-go
+# Cosign Image Signing Script for golang
 #
 # Purpose: Sign container image using Cosign with keyless signing (Sigstore)
 ################################################################################
@@ -15,8 +15,8 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # Configuration
-IMAGE_NAME="ubuntu-fips-go"
-IMAGE_VERSION="v1.0.0-ubuntu-22.04"
+IMAGE_NAME="golang"
+IMAGE_VERSION="1.25-jammy-ubuntu-22.04-fips"
 IMAGE_TAG="${IMAGE_NAME}:${IMAGE_VERSION}"
 REGISTRY="${REGISTRY:-localhost:5000}"
 FULL_IMAGE_TAG="${REGISTRY}/${IMAGE_TAG}"
@@ -137,7 +137,7 @@ echo -e "${BOLD}[4/5] Attaching SBOM${NC}"
 echo "========================================="
 echo ""
 
-SBOM_FILE="sbom-ubuntu-fips-go-v1.0.0.spdx.json"
+SBOM_FILE="sbom-golang-1.25-jammy-ubuntu-22.04-fips.spdx.json"
 
 if [ -f "$SBOM_FILE" ]; then
     echo "Attaching SBOM: $SBOM_FILE"
@@ -222,7 +222,7 @@ Compliance:
   - FIPS 140-3 Certificate: #4718 (wolfSSL FIPS v5.8.2)
   - Supply Chain Security: Sigstore transparency log
   - SLSA Provenance: See attestation scripts
-  - VEX Statement: See vex-ubuntu-fips-go-v1.0.0.json
+  - VEX Statement: See vex-golang-1.25-jammy-ubuntu-22.04-fips.json
 
 Additional Resources:
   - Rekor Transparency Log: https://search.sigstore.dev/
@@ -265,6 +265,6 @@ echo "Documentation:"
 echo "  - Signature Report: ${VERIFICATION_OUTPUT}"
 echo "  - Chain of Custody: compliance/CHAIN-OF-CUSTODY.md"
 echo "  - SBOM: ${SBOM_FILE}"
-echo "  - VEX: vex-ubuntu-fips-go-v1.0.0.json"
+echo "  - VEX: vex-golang-1.25-jammy-ubuntu-22.04-fips.json"
 echo ""
 echo "================================================================================"

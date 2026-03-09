@@ -55,7 +55,7 @@ This is not a marketing document. It is a validation deliverable.
 Two images hosted in Root registry:
 
 1.  root/ubuntu-fips-openjdk:`<tag>`{=html}
-2.  root/ubuntu-fips-go:`<tag>`{=html}
+2.  root/golang:`<tag>`{=html}
 
 Each image will:
 

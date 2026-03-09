@@ -2,7 +2,7 @@
   "_type": "https://in-toto.io/Statement/v1",
   "subject": [
     {
-      "name": "ubuntu-fips-go",
+      "name": "golang",
       "digest": {
         "sha256": "fb5c6e3b985d7873b8109abbafe7dcc2a2533a5bc74dd5a16ae4901f75cd1766"
       }
@@ -11,7 +11,7 @@
   "predicateType": "https://slsa.dev/provenance/v1",
   "predicate": {
     "buildDefinition": {
-      "buildType": "https://focaloid.com/docker-build@v1",
+      "buildType": "https://Root.com/docker-build@v1",
       "externalParameters": {
         "source": {
           "uri": "git@github.com:Root-IO-Labs/fips-poc.git",
@@ -86,7 +86,7 @@
     },
     "runDetails": {
       "builder": {
-        "id": "https://focaloid.com/build-system@v1",
+        "id": "https://Root.com/build-system@v1",
         "version": {
           "docker": "28.5.1"
         },
@@ -104,12 +104,12 @@
       },
       "byproducts": [
         {
-          "uri": "sbom-ubuntu-fips-go-v1.0.0.spdx.json",
+          "uri": "sbom-golang-1.25-jammy-ubuntu-22.04-fips.spdx.json",
           "name": "SBOM",
           "mediaType": "application/spdx+json"
         },
         {
-          "uri": "vex-ubuntu-fips-go-v1.0.0.json",
+          "uri": "vex-golang-1.25-jammy-ubuntu-22.04-fips.json",
           "name": "VEX",
           "mediaType": "application/vnd.openvex+json"
         },

@@ -1,15 +1,15 @@
-# SCAP Scan Summary - ubuntu-fips-java:v1.0.0-ubuntu-22.04
+# SCAP Scan Summary - java:17-jammy-ubuntu-22.04-fips
 
 **Scan Date:** 2026-03-04
 **Scanner:** OpenSCAP 1.3.9
 **Profile:** DISA STIG for Canonical Ubuntu 22.04 LTS (Container-Adapted)
-**Image:** ubuntu-fips-java:v1.0.0-ubuntu-22.04
+**Image:** java:17-jammy-ubuntu-22.04-fips
 
 ---
 
 ## Executive Summary
 
-This document summarizes the OpenSCAP security compliance scan results for the ubuntu-fips-java container image. The scan evaluates compliance against DISA STIG baseline controls adapted for containerized environments.
+This document summarizes the OpenSCAP security compliance scan results for the java container image. The scan evaluates compliance against DISA STIG baseline controls adapted for containerized environments.
 
 **Overall Compliance Status:** ✅ **COMPLIANT**
 
@@ -99,7 +99,7 @@ ldconfig -p | grep wolfssl
 - wolfSSL FIPS library: Present at /usr/local/lib/libwolfssl.so.44
 
 **Evidence Files:**
-- `tests/test-os-fips-status.sh`
+- `diagnostics/test-os-fips-status.sh`
 - `POC-VALIDATION-REPORT.md` (Lines 140-210)
 
 ---
@@ -128,8 +128,8 @@ cd /app/java && java FipsDemoApp
 - SHA-512: ✅ AVAILABLE
 
 **Evidence Files:**
-- `tests/test-go-fips-algorithms.sh`
-- `tests/test-openssl-cli-algorithms.sh`
+- `diagnostics/test-java-algorithm-enforcement.sh`
+- `diagnostics/test-openssl-cli-algorithms.sh`
 - `src/main.go` (Lines 115-164)
 
 ---
@@ -179,10 +179,10 @@ cat /var/log/fips-audit.log
 cat /etc/apt/apt.conf.d/99verify
 
 # SBOM presence
-ls compliance/sbom-ubuntu-fips-java-v1.0.0.spdx.json
+ls compliance/sbom-java-17-jammy-ubuntu-22.04-fips.spdx.json
 
 # Image signature
-cosign verify ubuntu-fips-java:v1.0.0-ubuntu-22.04
+cosign verify java:17-jammy-ubuntu-22.04-fips
 ```
 
 **Results:**
@@ -192,8 +192,8 @@ cosign verify ubuntu-fips-java:v1.0.0-ubuntu-22.04
 - VEX statement: Available
 
 **Evidence Files:**
-- `compliance/sbom-ubuntu-fips-java-v1.0.0.spdx.json`
-- `supply-chain/SBOM-ubuntu-fips-java.spdx.json`
+- `compliance/sbom-java-17-jammy-ubuntu-22.04-fips.spdx.json`
+- `supply-chain/SBOM-java-17-jammy-ubuntu-22.04-fips.spdx.json`
 - `compliance/sign-image.sh`
 
 ---
@@ -205,10 +205,10 @@ cosign verify ubuntu-fips-java:v1.0.0-ubuntu-22.04
 **Check Performed:**
 ```bash
 # Inspect image USER directive
-docker inspect ubuntu-fips-java:v1.0.0-ubuntu-22.04 | grep User
+docker inspect java:17-jammy-ubuntu-22.04-fips | grep User
 
 # Verify at runtime
-docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04 id
+docker run --rm java:17-jammy-ubuntu-22.04-fips id
 ```
 
 **Results:**
@@ -324,7 +324,7 @@ All applicable controls are compliant. No remediation actions required.
 
 ```bash
 # Run container in background for scanning
-docker run -d --name fips-go-scan ubuntu-fips-java:v1.0.0-ubuntu-22.04 tail -f /dev/null
+docker run -d --name fips-go-scan java:17-jammy-ubuntu-22.04-fips tail -f /dev/null
 
 # Execute SCAP scan
 oscap xccdf eval \
@@ -381,7 +381,7 @@ docker rm fips-go-scan
 
 ## Document Metadata
 
-- **Author:** Focaloid Security Team
+- **Author:** Root Security Team
 - **Classification:** PUBLIC
 - **Distribution:** UNLIMITED
 - **Version:** 1.0

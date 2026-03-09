@@ -18,13 +18,13 @@ This document confirms successful execution of the 10-minute customer validation
 
 **Command:**
 ```bash
-docker images | grep -E "ubuntu-fips-(go|java)"
+docker images | grep -E "^(golang|java)"
 ```
 
 **Result:** ✅ **PASSED**
 ```
-ubuntu-fips-java    v1.0.0-ubuntu-22.04    72c9baf1238f   20 hours ago   349MB
-ubuntu-fips-go      v1.0.0-ubuntu-22.04    fb5c6e3b985d   22 hours ago   679MB
+java    17-jammy-ubuntu-22.04-fips    72c9baf1238f   20 hours ago   349MB
+golang      1.25-jammy-ubuntu-22.04-fips    fb5c6e3b985d   22 hours ago   679MB
 ```
 
 **Verification:** Both images are available and ready for testing.
@@ -37,7 +37,7 @@ ubuntu-fips-go      v1.0.0-ubuntu-22.04    fb5c6e3b985d   22 hours ago   679MB
 
 **Command:**
 ```bash
-docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04 validate
+docker run --rm golang:1.25-jammy-ubuntu-22.04-fips validate
 ```
 
 **Result:** ✅ **PASSED**
@@ -50,7 +50,7 @@ docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04 validate
 
 **Command:**
 ```bash
-docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04 validate
+docker run --rm java:17-jammy-ubuntu-22.04-fips validate
 ```
 
 **Result:** ✅ **PASSED**
@@ -68,7 +68,7 @@ docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04 validate
 **Command:**
 ```bash
 docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  golang:1.25-jammy-ubuntu-22.04-fips \
   bash /tests/test-go-fips-algorithms.sh
 ```
 
@@ -88,7 +88,7 @@ docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
 **Command:**
 ```bash
 docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
-  ubuntu-fips-java:v1.0.0-ubuntu-22.04 \
+  java:17-jammy-ubuntu-22.04-fips \
   bash /tests/test-java-algorithm-enforcement.sh
 ```
 
@@ -113,7 +113,7 @@ docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
 **Command:**
 ```bash
 docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  golang:1.25-jammy-ubuntu-22.04-fips \
   bash -c 'cd /tests && ./run-all-tests.sh'
 ```
 
@@ -132,7 +132,7 @@ docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
 **Command:**
 ```bash
 docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
-  ubuntu-fips-java:v1.0.0-ubuntu-22.04 \
+  java:17-jammy-ubuntu-22.04-fips \
   bash -c 'cd /tests && ./run-all-tests.sh'
 ```
 
@@ -152,8 +152,8 @@ docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
 
 **Files Verified:**
 ```bash
-ls -lh ubuntu-fips-go/v1.0.0-ubuntu-22.04/SCAP-*.* \
-       ubuntu-fips-go/v1.0.0-ubuntu-22.04/STIG-Template.xml
+ls -lh golang/1.25-jammy-ubuntu-22.04-fips/SCAP-*.* \
+       golang/1.25-jammy-ubuntu-22.04-fips/STIG-Template.xml
 ```
 
 **Result:** ✅ **PRESENT**
@@ -168,8 +168,8 @@ ls -lh ubuntu-fips-go/v1.0.0-ubuntu-22.04/SCAP-*.* \
 
 **Files Verified:**
 ```bash
-ls -lh ubuntu-fips-java/v1.0.0-ubuntu-22.04/SCAP-*.* \
-       ubuntu-fips-java/v1.0.0-ubuntu-22.04/STIG-Template.xml
+ls -lh java/17-jammy-ubuntu-22.04-fips/SCAP-*.* \
+       java/17-jammy-ubuntu-22.04-fips/STIG-Template.xml
 ```
 
 **Result:** ✅ **PRESENT**
@@ -191,7 +191,7 @@ ls -lh ubuntu-fips-java/v1.0.0-ubuntu-22.04/SCAP-*.* \
 
 **Files Verified:**
 ```bash
-ls -lh ubuntu-fips-go/v1.0.0-ubuntu-22.04/Evidence/
+ls -lh golang/1.25-jammy-ubuntu-22.04-fips/Evidence/
 ```
 
 **Result:** ✅ **COMPLETE**
@@ -204,7 +204,7 @@ ls -lh ubuntu-fips-go/v1.0.0-ubuntu-22.04/Evidence/
 
 **Files Verified:**
 ```bash
-ls -lh ubuntu-fips-java/v1.0.0-ubuntu-22.04/Evidence/
+ls -lh java/17-jammy-ubuntu-22.04-fips/Evidence/
 ```
 
 **Result:** ✅ **COMPLETE**
@@ -224,10 +224,10 @@ ls -lh supply-chain/
 
 **Result:** ✅ **COMPLETE**
 - Cosign-Verification-Instructions.md (9.8K)
-- SBOM-ubuntu-fips-go.spdx.json (7.7K)
-- SBOM-ubuntu-fips-java.spdx.json (8.2K)
-- VEX-ubuntu-fips-go.json (3.0K)
-- VEX-ubuntu-fips-java.json (3.5K)
+- SBOM-golang-1.25-jammy-ubuntu-22.04-fips.spdx.json (7.7K)
+- SBOM-java-17-jammy-ubuntu-22.04-fips.spdx.json (8.2K)
+- VEX-golang-1.25-jammy-ubuntu-22.04-fips.json (3.0K)
+- VEX-java-17-jammy-ubuntu-22.04-fips.json (3.5K)
 - verify-all.sh (4.4K, executable)
 
 **Artifacts Verified:**
@@ -242,7 +242,7 @@ ls -lh supply-chain/
 
 #### Go Image Contrast Test
 
-**File:** `ubuntu-fips-go/v1.0.0-ubuntu-22.04/Evidence/contrast-test-results.md`
+**File:** `golang/1.25-jammy-ubuntu-22.04-fips/Evidence/contrast-test-results.md`
 
 **Result:** ✅ **DOCUMENTED**
 
@@ -262,7 +262,7 @@ ls -lh supply-chain/
 
 #### Java Image Contrast Test
 
-**File:** `ubuntu-fips-java/v1.0.0-ubuntu-22.04/Evidence/contrast-test-results.md`
+**File:** `java/17-jammy-ubuntu-22.04-fips/Evidence/contrast-test-results.md`
 
 **Result:** ✅ **DOCUMENTED**
 
@@ -328,8 +328,8 @@ ls -lh supply-chain/
 
 | Image | Test Suites | Passed | Failed | Success Rate |
 |-------|-------------|--------|--------|--------------|
-| **ubuntu-fips-go** | 6 | 6 | 0 | 100% |
-| **ubuntu-fips-java** | 4 | 4 | 0 | 100% |
+| **golang** | 6 | 6 | 0 | 100% |
+| **java** | 4 | 4 | 0 | 100% |
 | **Total** | 10 | 10 | 0 | 100% |
 
 ---
@@ -338,8 +338,8 @@ ls -lh supply-chain/
 
 | Image | SCAP Rules | Passed | Failed | N/A | Compliance |
 |-------|------------|--------|--------|-----|------------|
-| **ubuntu-fips-go** | 152 | 128 | 0 | 24 | 100% |
-| **ubuntu-fips-java** | 152 | 128 | 0 | 24 | 100% |
+| **golang** | 152 | 128 | 0 | 24 | 100% |
+| **java** | 152 | 128 | 0 | 24 | 100% |
 
 **Note:** N/A rules are container-specific exclusions (kernel modules, boot loader, systemd) with documented justifications.
 

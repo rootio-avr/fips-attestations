@@ -85,7 +85,7 @@ chmod 600 .wolfssl_password
 ```bash
 docker build \
   --secret id=wolfssl_password,src=.wolfssl_password \
-  -t ubuntu-fips-java:v1.0.0-ubuntu-22.04 \
+  -t java:17-jammy-ubuntu-22.04-fips \
   .
 ```
 
@@ -93,72 +93,63 @@ docker build \
 
 ### Run FIPS Demo (Default)
 ```bash
-docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04
+docker run --rm java:17-jammy-ubuntu-22.04-fips
 ```
 
 ### Validate FIPS Environment Only
 ```bash
-docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04 validate
+docker run --rm java:17-jammy-ubuntu-22.04-fips validate
 ```
 
 ### Interactive Shell
 ```bash
-docker run --rm -it ubuntu-fips-java:v1.0.0-ubuntu-22.04 bash
+docker run --rm -it java:17-jammy-ubuntu-22.04-fips bash
 ```
 
 ### Run Specific Java Application
 ```bash
-docker run --rm --entrypoint="" ubuntu-fips-java:v1.0.0-ubuntu-22.04 \
+docker run --rm --entrypoint="" java:17-jammy-ubuntu-22.04-fips \
   bash -c "cd /app/java && java FipsDemoApp"
 ```
 
-## Testing
+## Diagnostics
 
-### Run All Tests
+### Run All Diagnostics
 ```bash
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-java:v1.0.0-ubuntu-22.04 \
-  bash -c 'cd /tests && ./run-all-tests.sh'
+./diagnostic.sh
 ```
 
-### Run Individual Tests
+### Run Individual Diagnostic Tests
 
 **Java Algorithm Enforcement:**
 ```bash
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-java:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-java-algorithm-enforcement.sh
+./diagnostic.sh test-java-algorithm-enforcement.sh
 ```
 
 **Java FIPS Validation:**
 ```bash
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-java:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-java-fips-validation.sh
+./diagnostic.sh test-java-fips-validation.sh
 ```
 
 **CLI Algorithm Enforcement:**
 ```bash
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-java:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-openssl-cli-algorithms.sh
+./diagnostic.sh test-openssl-cli-algorithms.sh
 ```
 
 **OS FIPS Status Check:**
 ```bash
+./diagnostic.sh test-os-fips-status.sh
+```
+
+### Advanced: Run Diagnostics Manually
+If you need more control, you can mount the diagnostics folder directly:
+
+```bash
 docker run --rm \
-  -v $(pwd)/tests:/tests \
+  -v $(pwd)/diagnostics:/diagnostics \
   --entrypoint="" \
-  ubuntu-fips-java:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-os-fips-status.sh
+  java:17-jammy-ubuntu-22.04-fips \
+  bash -c 'cd /diagnostics && ./run-all-tests.sh'
 ```
 
 ## FIPS POC Compliance
@@ -169,9 +160,9 @@ This image **fully satisfies all FIPS Proof of Concept (POC) criteria** for fede
 
 | Test Case | Status | Implementation |
 |-----------|--------|----------------|
-| **1. Algorithm Enforcement via CLI** | ✅ VERIFIED | `tests/test-openssl-cli-algorithms.sh` |
-| **2. Java Cryptographic Validation** | ✅ VERIFIED | `tests/test-java-algorithm-enforcement.sh`, `src/FipsDemoApp.java` |
-| **3. OS FIPS Status Check** | ✅ VERIFIED | `tests/test-os-fips-status.sh` |
+| **1. Algorithm Enforcement via CLI** | ✅ VERIFIED | `diagnostics/test-openssl-cli-algorithms.sh` |
+| **2. Java Cryptographic Validation** | ✅ VERIFIED | `diagnostics/test-java-algorithm-enforcement.sh`, `src/FipsDemoApp.java` |
+| **3. OS FIPS Status Check** | ✅ VERIFIED | `diagnostics/test-os-fips-status.sh` |
 
 ### ✅ Success Criteria Met
 
@@ -199,11 +190,7 @@ See **[POC-VALIDATION-REPORT.md](POC-VALIDATION-REPORT.md)** for:
 Validate all POC requirements with a single command:
 
 ```bash
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-java:v1.0.0-ubuntu-22.04 \
-  bash -c 'cd /tests && ./run-all-tests.sh'
+./diagnostic.sh
 ```
 
 **Expected Result**: ✅ 4/4 test suites passed
@@ -266,11 +253,7 @@ This image includes a contrast test that **proves FIPS enforcement is real** by 
 
 ```bash
 # Execute contrast test
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-java:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-contrast-fips-enabled-vs-disabled.sh
+./diagnostic.sh test-contrast-fips-enabled-vs-disabled.sh
 ```
 
 ### 📊 Expected Results
@@ -307,7 +290,7 @@ Results are documented in `Evidence/contrast-test-results.md` with:
 
 ### Check FIPS Provider Status
 ```bash
-docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04 bash -c "openssl list -providers"
+docker run --rm java:17-jammy-ubuntu-22.04-fips bash -c "openssl list -providers"
 ```
 
 Expected output:
@@ -321,7 +304,7 @@ Providers:
 
 ### Test Java Crypto API
 ```bash
-docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04
+docker run --rm java:17-jammy-ubuntu-22.04-fips
 ```
 
 Expected behavior:
@@ -331,16 +314,17 @@ Expected behavior:
 
 ### Verify wolfSSL Library
 ```bash
-docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04 bash -c \
+docker run --rm java:17-jammy-ubuntu-22.04-fips bash -c \
   "ldconfig -p | grep wolfssl"
 ```
 
 ## Directory Structure
 
 ```
-ubuntu-fips-java/v1.0.0-ubuntu-22.04/
+java/17-jammy-ubuntu-22.04-fips/
 ├── Dockerfile                            # Multi-stage build
 ├── build.sh                              # Build script
+├── diagnostic.sh                         # Diagnostic runner script
 ├── entrypoint.sh                         # Container entrypoint
 ├── openssl-wolfprov.cnf                 # OpenSSL provider config
 ├── java.security.fips                   # Java security policy
@@ -354,7 +338,7 @@ ubuntu-fips-java/v1.0.0-ubuntu-22.04/
 │   ├── FipsDemoApp.java                 # Java FIPS demo (main application)
 │   ├── FipsSecurityProvider.java        # FIPS provider enforcement
 │   └── FipsMessageDigest.java           # Algorithm wrapper
-├── tests/
+├── diagnostics/
 │   ├── test-java-algorithm-enforcement.sh # Java algorithm blocking tests
 │   ├── test-java-fips-validation.sh     # Java FIPS validation
 │   ├── test-openssl-cli-algorithms.sh   # CLI algorithm enforcement
@@ -367,9 +351,9 @@ ubuntu-fips-java/v1.0.0-ubuntu-22.04/
 │   ├── contrast-test-results.md         # FIPS enabled vs disabled comparison
 │   └── fips-validation-screenshots/     # Optional visual evidence
 ├── compliance/
-│   ├── sbom-ubuntu-fips-java-v1.0.0.spdx.json # Software Bill of Materials
-│   ├── vex-ubuntu-fips-java-v1.0.0.json # Vulnerability Exploitability eXchange
-│   ├── slsa-provenance-ubuntu-fips-java-v1.0.0.json # SLSA build provenance
+│   ├── sbom-java-17-jammy-ubuntu-22.04-fips.spdx.json # Software Bill of Materials
+│   ├── vex-java-17-jammy-ubuntu-22.04-fips.json # Vulnerability Exploitability eXchange
+│   ├── slsa-provenance-java-17-jammy-ubuntu-22.04-fips.json # SLSA build provenance
 │   ├── generate-sbom.sh                 # SBOM generator (SPDX)
 │   ├── generate-vex.sh                  # VEX generator (OpenVEX)
 │   ├── generate-slsa-attestation.sh     # SLSA attestation generator
@@ -411,17 +395,17 @@ If MD5/SHA-1 are not blocked, verify:
 
 1. FIPS initialization occurred:
 ```bash
-docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04 | grep "FIPS Initialization"
+docker run --rm java:17-jammy-ubuntu-22.04-fips | grep "FIPS Initialization"
 ```
 
 2. wolfSSL was built with `--disable-sha`:
 ```bash
-docker image inspect ubuntu-fips-java:v1.0.0-ubuntu-22.04
+docker image inspect java:17-jammy-ubuntu-22.04-fips
 ```
 
 3. Check Java security provider configuration:
 ```bash
-docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04 bash -c \
+docker run --rm java:17-jammy-ubuntu-22.04-fips bash -c \
   'cat $JAVA_HOME/conf/security/java.security | grep disabledAlgorithms'
 ```
 
@@ -429,13 +413,13 @@ docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04 bash -c \
 
 Check OpenSSL configuration:
 ```bash
-docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04 bash -c \
+docker run --rm java:17-jammy-ubuntu-22.04-fips bash -c \
   'cat /etc/ssl/openssl.cnf'
 ```
 
 Verify wolfProvider module exists:
 ```bash
-docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04 bash -c \
+docker run --rm java:17-jammy-ubuntu-22.04-fips bash -c \
   'ls -la /usr/lib/*/ossl-modules/'
 ```
 
@@ -443,13 +427,13 @@ docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04 bash -c \
 
 Check Java runtime:
 ```bash
-docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04 bash -c \
+docker run --rm java:17-jammy-ubuntu-22.04-fips bash -c \
   'java -version'
 ```
 
 Verify class file exists:
 ```bash
-docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04 bash -c \
+docker run --rm java:17-jammy-ubuntu-22.04-fips bash -c \
   'ls -la /app/java/'
 ```
 
@@ -467,7 +451,7 @@ docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04 bash -c \
 
 ## Related Images
 
-- **ubuntu-fips-go**: Go-only FIPS image with golang-fips/go
+- **golang**: Go-only FIPS image with golang-fips/go
 - **fips-reference-app**: Combined Go + Java reference implementation
 
 ## License
@@ -481,7 +465,7 @@ Components:
 ## Support
 
 For issues and questions:
-1. Review test output: `./tests/run-all-tests.sh`
+1. Review diagnostic output: `./diagnostic.sh`
 2. Check logs: `docker logs <container>`
 3. Verify environment: Run with `validate` command
 

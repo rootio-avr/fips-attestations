@@ -1,14 +1,14 @@
 # Contrast Test Results: FIPS Enabled vs Disabled
 
 **Test Date:** 2026-03-05
-**Image:** ubuntu-fips-go:v1.0.0-ubuntu-22.04
+**Image:** golang:1.25-jammy-ubuntu-22.04-fips
 **Purpose:** Demonstrate that FIPS enforcement is real and not superficial
 
 ---
 
 ## Executive Summary
 
-This document provides side-by-side evidence comparing the behavior of the ubuntu-fips-go container
+This document provides side-by-side evidence comparing the behavior of the golang container
 with FIPS enforcement **enabled** (default) vs **disabled** (override configuration).
 
 **Key Finding:** FIPS enforcement is **REAL** - non-approved algorithms are blocked when FIPS is enabled,
@@ -205,7 +205,7 @@ For Section 6 (Contrast Test) requirement:
 | **FIPS Enabled Output** | Default demo application run | Raw console output with FIPS enabled |
 | **FIPS Disabled Output** | Environment override test | Raw console output with FIPS disabled |
 | **This Document** | `contrast-test-results.md` | Analysis and comparison |
-| **Test Script** | `tests/test-contrast-fips-enabled-vs-disabled.sh` | Automated test execution |
+| **Test Script** | `diagnostics/test-contrast-fips-enabled-vs-disabled.sh` | Automated test execution |
 
 ---
 
@@ -215,21 +215,21 @@ To reproduce this contrast test:
 
 ```bash
 # Test 1: FIPS ENABLED (default)
-docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04
+docker run --rm golang:1.25-jammy-ubuntu-22.04-fips
 
 # Test 2: FIPS DISABLED (override)
 docker run --rm \
   -e GOLANG_FIPS=0 \
   -e GODEBUG="" \
   -e GOEXPERIMENT="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04
+  golang:1.25-jammy-ubuntu-22.04-fips
 ```
 
 ---
 
 ## Document Metadata
 
-- **Author:** Focaloid Security Team
+- **Author:** Root Security Team
 - **Classification:** PUBLIC
 - **Distribution:** UNLIMITED
 - **Version:** 1.0

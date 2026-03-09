@@ -24,15 +24,15 @@ This document provides explicit, line-by-line traceability from Section 6 requir
 
 | Evidence Type | File Path | Line Numbers | Status |
 |--------------|-----------|--------------|--------|
-| **Test Script** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/tests/test-go-fips-algorithms.sh` | Lines 35-80 | ✅ |
-| **Demo Application** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/src/main.go` | Lines 115-164 | ✅ |
-| **CLI Test** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/tests/test-openssl-cli-algorithms.sh` | Lines 35-66 | ✅ |
-| **Evidence Bundle** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/Evidence/algorithm-enforcement-evidence.log` | MD5/SHA-1 blocks | ✅ |
-| **Validation Report** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/POC-VALIDATION-REPORT.md` | Lines 35-44 | ✅ |
+| **Test Script** | `golang/1.25-jammy-ubuntu-22.04-fips/tests/test-go-fips-algorithms.sh` | Lines 35-80 | ✅ |
+| **Demo Application** | `golang/1.25-jammy-ubuntu-22.04-fips/src/main.go` | Lines 115-164 | ✅ |
+| **CLI Test** | `golang/1.25-jammy-ubuntu-22.04-fips/tests/test-openssl-cli-algorithms.sh` | Lines 35-66 | ✅ |
+| **Evidence Bundle** | `golang/1.25-jammy-ubuntu-22.04-fips/Evidence/algorithm-enforcement-evidence.log` | MD5/SHA-1 blocks | ✅ |
+| **Validation Report** | `golang/1.25-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md` | Lines 35-44 | ✅ |
 
 **Verification Command:**
 ```bash
-docker run --rm localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+docker run --rm localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 # Expected: MD5 BLOCKED, SHA-1 BLOCKED
 ```
 
@@ -44,15 +44,15 @@ docker run --rm localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
 
 | Evidence Type | File Path | Line Numbers | Status |
 |--------------|-----------|--------------|--------|
-| **Test Script** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/tests/test-java-algorithm-enforcement.sh` | Lines 35-80 | ✅ |
-| **Demo Application** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/src/FipsDemoApp.java` | Lines 110-148 | ✅ |
-| **CLI Test** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/tests/test-openssl-cli-algorithms.sh` | Lines 35-66 | ✅ |
-| **Evidence Bundle** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/Evidence/algorithm-enforcement-evidence.log` | MD5/SHA-1 blocks | ✅ |
-| **Validation Report** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/POC-VALIDATION-REPORT.md` | Lines 35-44 | ✅ |
+| **Test Script** | `java/17-jammy-ubuntu-22.04-fips/tests/test-java-algorithm-enforcement.sh` | Lines 35-80 | ✅ |
+| **Demo Application** | `java/17-jammy-ubuntu-22.04-fips/src/FipsDemoApp.java` | Lines 110-148 | ✅ |
+| **CLI Test** | `java/17-jammy-ubuntu-22.04-fips/tests/test-openssl-cli-algorithms.sh` | Lines 35-66 | ✅ |
+| **Evidence Bundle** | `java/17-jammy-ubuntu-22.04-fips/Evidence/algorithm-enforcement-evidence.log` | MD5/SHA-1 blocks | ✅ |
+| **Validation Report** | `java/17-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md` | Lines 35-44 | ✅ |
 
 **Verification Command:**
 ```bash
-docker run --rm localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
+docker run --rm localhost:5000/java:17-jammy-ubuntu-22.04-fips
 # Expected: MD5 BLOCKED (NoSuchAlgorithmException), SHA-1 BLOCKED
 ```
 
@@ -72,15 +72,15 @@ docker run --rm localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
 
 | Evidence Type | File Path | Line Numbers | Status |
 |--------------|-----------|--------------|--------|
-| **Test Script** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/tests/test-go-fips-algorithms.sh` | Lines 85-140 | ✅ |
-| **Demo Application** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/src/main.go` | Lines 166-233 | ✅ |
-| **CLI Test** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/tests/test-openssl-cli-algorithms.sh` | Lines 72-117 | ✅ |
-| **Evidence Bundle** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/Evidence/algorithm-enforcement-evidence.log` | SHA-256+ success | ✅ |
-| **Validation Report** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/POC-VALIDATION-REPORT.md` | Lines 96-99 | ✅ |
+| **Test Script** | `golang/1.25-jammy-ubuntu-22.04-fips/tests/test-go-fips-algorithms.sh` | Lines 85-140 | ✅ |
+| **Demo Application** | `golang/1.25-jammy-ubuntu-22.04-fips/src/main.go` | Lines 166-233 | ✅ |
+| **CLI Test** | `golang/1.25-jammy-ubuntu-22.04-fips/tests/test-openssl-cli-algorithms.sh` | Lines 72-117 | ✅ |
+| **Evidence Bundle** | `golang/1.25-jammy-ubuntu-22.04-fips/Evidence/algorithm-enforcement-evidence.log` | SHA-256+ success | ✅ |
+| **Validation Report** | `golang/1.25-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md` | Lines 96-99 | ✅ |
 
 **Verification Command:**
 ```bash
-docker run --rm localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+docker run --rm localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 # Expected: SHA-256 PASS, SHA-384 PASS, SHA-512 PASS
 ```
 
@@ -93,15 +93,15 @@ docker run --rm localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
 
 | Evidence Type | File Path | Line Numbers | Status |
 |--------------|-----------|--------------|--------|
-| **Test Script** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/tests/test-java-algorithm-enforcement.sh` | Lines 85-140 | ✅ |
-| **Demo Application** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/src/FipsDemoApp.java` | Lines 150-213 | ✅ |
-| **CLI Test** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/tests/test-openssl-cli-algorithms.sh` | Lines 72-117 | ✅ |
-| **Evidence Bundle** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/Evidence/algorithm-enforcement-evidence.log` | SHA-256+ success | ✅ |
-| **Validation Report** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/POC-VALIDATION-REPORT.md` | Lines 171-180 | ✅ |
+| **Test Script** | `java/17-jammy-ubuntu-22.04-fips/tests/test-java-algorithm-enforcement.sh` | Lines 85-140 | ✅ |
+| **Demo Application** | `java/17-jammy-ubuntu-22.04-fips/src/FipsDemoApp.java` | Lines 150-213 | ✅ |
+| **CLI Test** | `java/17-jammy-ubuntu-22.04-fips/tests/test-openssl-cli-algorithms.sh` | Lines 72-117 | ✅ |
+| **Evidence Bundle** | `java/17-jammy-ubuntu-22.04-fips/Evidence/algorithm-enforcement-evidence.log` | SHA-256+ success | ✅ |
+| **Validation Report** | `java/17-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md` | Lines 171-180 | ✅ |
 
 **Verification Command:**
 ```bash
-docker run --rm localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
+docker run --rm localhost:5000/java:17-jammy-ubuntu-22.04-fips
 # Expected: SHA-256 PASS, SHA-384 PASS, SHA-512 PASS
 ```
 
@@ -122,19 +122,19 @@ docker run --rm localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
 
 | Evidence Type | File Path | Line Numbers | Status |
 |--------------|-----------|--------------|--------|
-| **OS Status Test** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/tests/test-os-fips-status.sh` | Lines 21-258 | ✅ |
-| **Provider Check** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/tests/test-os-fips-status.sh` | Lines 118-135 | ✅ |
-| **Environment Validation** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/tests/test-os-fips-status.sh` | Lines 141-184 | ✅ |
-| **wolfSSL Verification** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/tests/test-os-fips-status.sh` | Lines 190-219 | ✅ |
-| **Entrypoint Audit Log** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/entrypoint.sh` | Lines 25-64 | ✅ |
-| **Validation Report** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/POC-VALIDATION-REPORT.md` | Lines 140-210 | ✅ |
+| **OS Status Test** | `golang/1.25-jammy-ubuntu-22.04-fips/tests/test-os-fips-status.sh` | Lines 21-258 | ✅ |
+| **Provider Check** | `golang/1.25-jammy-ubuntu-22.04-fips/tests/test-os-fips-status.sh` | Lines 118-135 | ✅ |
+| **Environment Validation** | `golang/1.25-jammy-ubuntu-22.04-fips/tests/test-os-fips-status.sh` | Lines 141-184 | ✅ |
+| **wolfSSL Verification** | `golang/1.25-jammy-ubuntu-22.04-fips/tests/test-os-fips-status.sh` | Lines 190-219 | ✅ |
+| **Entrypoint Audit Log** | `golang/1.25-jammy-ubuntu-22.04-fips/entrypoint.sh` | Lines 25-64 | ✅ |
+| **Validation Report** | `golang/1.25-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md` | Lines 140-210 | ✅ |
 
 **Verification Command:**
 ```bash
 docker run --rm \
-  -v $(pwd)/ubuntu-fips-go/v1.0.0-ubuntu-22.04/tests:/tests \
+  -v $(pwd)/golang/1.25-jammy-ubuntu-22.04-fips/tests:/tests \
   --entrypoint="" \
-  localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips \
   bash /tests/test-os-fips-status.sh
 ```
 
@@ -150,19 +150,19 @@ docker run --rm \
 
 | Evidence Type | File Path | Line Numbers | Status |
 |--------------|-----------|--------------|--------|
-| **OS Status Test** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/tests/test-os-fips-status.sh` | Lines 21-258 | ✅ |
-| **Provider Check** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/tests/test-os-fips-status.sh` | Lines 118-135 | ✅ |
-| **Environment Validation** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/tests/test-os-fips-status.sh` | Lines 141-184 | ✅ |
-| **wolfSSL Verification** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/tests/test-os-fips-status.sh` | Lines 190-219 | ✅ |
-| **Entrypoint Audit Log** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/entrypoint.sh` | Lines 25-64 | ✅ |
-| **Validation Report** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/POC-VALIDATION-REPORT.md` | Lines 143-214 | ✅ |
+| **OS Status Test** | `java/17-jammy-ubuntu-22.04-fips/tests/test-os-fips-status.sh` | Lines 21-258 | ✅ |
+| **Provider Check** | `java/17-jammy-ubuntu-22.04-fips/tests/test-os-fips-status.sh` | Lines 118-135 | ✅ |
+| **Environment Validation** | `java/17-jammy-ubuntu-22.04-fips/tests/test-os-fips-status.sh` | Lines 141-184 | ✅ |
+| **wolfSSL Verification** | `java/17-jammy-ubuntu-22.04-fips/tests/test-os-fips-status.sh` | Lines 190-219 | ✅ |
+| **Entrypoint Audit Log** | `java/17-jammy-ubuntu-22.04-fips/entrypoint.sh` | Lines 25-64 | ✅ |
+| **Validation Report** | `java/17-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md` | Lines 143-214 | ✅ |
 
 **Verification Command:**
 ```bash
 docker run --rm \
-  -v $(pwd)/ubuntu-fips-java/v1.0.0-ubuntu-22.04/tests:/tests \
+  -v $(pwd)/java/17-jammy-ubuntu-22.04-fips/tests:/tests \
   --entrypoint="" \
-  localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04 \
+  localhost:5000/java:17-jammy-ubuntu-22.04-fips \
   bash /tests/test-os-fips-status.sh
 ```
 
@@ -178,14 +178,14 @@ docker run --rm \
 
 | Evidence Type | File Path | Description | Status |
 |--------------|-----------|-------------|--------|
-| **STIG Template** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/STIG-Template.xml` | Container-adapted STIG baseline | ✅ |
-| **Exclusions Doc** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/STIG-Template.xml` | Lines 50-150 (comments) | ✅ |
-| **README Section** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/README.md` | STIG baseline section | ✅ |
+| **STIG Template** | `golang/1.25-jammy-ubuntu-22.04-fips/STIG-Template.xml` | Container-adapted STIG baseline | ✅ |
+| **Exclusions Doc** | `golang/1.25-jammy-ubuntu-22.04-fips/STIG-Template.xml` | Lines 50-150 (comments) | ✅ |
+| **README Section** | `golang/1.25-jammy-ubuntu-22.04-fips/README.md` | STIG baseline section | ✅ |
 
 **Verification:**
 ```bash
 # View STIG template
-cat ubuntu-fips-go/v1.0.0-ubuntu-22.04/STIG-Template.xml
+cat golang/1.25-jammy-ubuntu-22.04-fips/STIG-Template.xml
 ```
 
 **Key Controls Implemented:**
@@ -204,9 +204,9 @@ cat ubuntu-fips-go/v1.0.0-ubuntu-22.04/STIG-Template.xml
 
 | Evidence Type | File Path | Description | Status |
 |--------------|-----------|-------------|--------|
-| **STIG Template** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/STIG-Template.xml` | Container-adapted STIG baseline | ✅ |
-| **Exclusions Doc** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/STIG-Template.xml` | Lines 50-150 (comments) | ✅ |
-| **README Section** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/README.md` | STIG baseline section | ✅ |
+| **STIG Template** | `java/17-jammy-ubuntu-22.04-fips/STIG-Template.xml` | Container-adapted STIG baseline | ✅ |
+| **Exclusions Doc** | `java/17-jammy-ubuntu-22.04-fips/STIG-Template.xml` | Lines 50-150 (comments) | ✅ |
+| **README Section** | `java/17-jammy-ubuntu-22.04-fips/README.md` | STIG baseline section | ✅ |
 
 **Status:** ✅ **VERIFIED**
 
@@ -220,17 +220,17 @@ cat ubuntu-fips-go/v1.0.0-ubuntu-22.04/STIG-Template.xml
 
 | Evidence Type | File Path | Description | Status |
 |--------------|-----------|-------------|--------|
-| **SCAP XML** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/SCAP-Results.xml` | Raw OpenSCAP output | ✅ |
-| **SCAP HTML** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/SCAP-Results.html` | Human-readable report | ✅ |
-| **SCAP Summary** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/SCAP-SUMMARY.md` | Results summary | ✅ |
+| **SCAP XML** | `golang/1.25-jammy-ubuntu-22.04-fips/SCAP-Results.xml` | Raw OpenSCAP output | ✅ |
+| **SCAP HTML** | `golang/1.25-jammy-ubuntu-22.04-fips/SCAP-Results.html` | Human-readable report | ✅ |
+| **SCAP Summary** | `golang/1.25-jammy-ubuntu-22.04-fips/SCAP-SUMMARY.md` | Results summary | ✅ |
 
 **Verification:**
 ```bash
 # View HTML report
-firefox ubuntu-fips-go/v1.0.0-ubuntu-22.04/SCAP-Results.html
+firefox golang/1.25-jammy-ubuntu-22.04-fips/SCAP-Results.html
 
 # View summary
-cat ubuntu-fips-go/v1.0.0-ubuntu-22.04/SCAP-SUMMARY.md
+cat golang/1.25-jammy-ubuntu-22.04-fips/SCAP-SUMMARY.md
 ```
 
 **Scan Profile:** DISA STIG for Ubuntu 22.04
@@ -241,9 +241,9 @@ cat ubuntu-fips-go/v1.0.0-ubuntu-22.04/SCAP-SUMMARY.md
 
 | Evidence Type | File Path | Description | Status |
 |--------------|-----------|-------------|--------|
-| **SCAP XML** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/SCAP-Results.xml` | Raw OpenSCAP output | ✅ |
-| **SCAP HTML** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/SCAP-Results.html` | Human-readable report | ✅ |
-| **SCAP Summary** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/SCAP-SUMMARY.md` | Results summary | ✅ |
+| **SCAP XML** | `java/17-jammy-ubuntu-22.04-fips/SCAP-Results.xml` | Raw OpenSCAP output | ✅ |
+| **SCAP HTML** | `java/17-jammy-ubuntu-22.04-fips/SCAP-Results.html` | Human-readable report | ✅ |
+| **SCAP Summary** | `java/17-jammy-ubuntu-22.04-fips/SCAP-SUMMARY.md` | Results summary | ✅ |
 
 **Status:** ✅ **VERIFIED**
 
@@ -258,17 +258,17 @@ cat ubuntu-fips-go/v1.0.0-ubuntu-22.04/SCAP-SUMMARY.md
 | Evidence Type | File Path | Description | Status |
 |--------------|-----------|-------------|--------|
 | **Signing Instructions** | `supply-chain/Cosign-Verification-Instructions.md` | Complete verification guide | ✅ |
-| **Go Signing Script** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/compliance/sign-image.sh` | Image signing automation | ✅ |
-| **Java Signing Script** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/compliance/sign-image.sh` | Image signing automation | ✅ |
+| **Go Signing Script** | `golang/1.25-jammy-ubuntu-22.04-fips/compliance/sign-image.sh` | Image signing automation | ✅ |
+| **Java Signing Script** | `java/17-jammy-ubuntu-22.04-fips/compliance/sign-image.sh` | Image signing automation | ✅ |
 | **Verification Script** | `supply-chain/verify-all.sh` | Automated verification | ✅ |
 
 **Verification:**
 ```bash
 # Verify Go image signature
-cosign verify --key cosign.pub localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+cosign verify --key cosign.pub localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Verify Java image signature
-cosign verify --key cosign.pub localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
+cosign verify --key cosign.pub localhost:5000/java:17-jammy-ubuntu-22.04-fips
 
 # Or use automated script
 ./supply-chain/verify-all.sh
@@ -290,14 +290,14 @@ cosign verify --key cosign.pub localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.
 
 | Evidence Type | File Path | Description | Status |
 |--------------|-----------|-------------|--------|
-| **Go SLSA Provenance** | `supply-chain/slsa-provenance-ubuntu-fips-go-v1.0.0.json` | Build provenance (SLSA v1.0) | ✅ |
-| **Java SLSA Provenance** | `supply-chain/slsa-provenance-ubuntu-fips-java-v1.0.0.json` | Build provenance (SLSA v1.0) | ✅ |
-| **Go SBOM** | `supply-chain/SBOM-ubuntu-fips-go.spdx.json` | Software bill of materials (SPDX 2.3) | ✅ |
-| **Java SBOM** | `supply-chain/SBOM-ubuntu-fips-java.spdx.json` | Software bill of materials (SPDX 2.3) | ✅ |
-| **Go VEX** | `supply-chain/VEX-ubuntu-fips-go.json` | Vulnerability exploitability (OpenVEX) | ✅ |
-| **Java VEX** | `supply-chain/VEX-ubuntu-fips-java.json` | Vulnerability exploitability (OpenVEX) | ✅ |
-| **Go Chain of Custody** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/compliance/CHAIN-OF-CUSTODY.md` | Provenance documentation | ✅ |
-| **Java Chain of Custody** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/compliance/CHAIN-OF-CUSTODY.md` | Provenance documentation | ✅ |
+| **Go SLSA Provenance** | `supply-chain/slsa-provenance-golang-1.25-jammy-ubuntu-22.04-fips.json` | Build provenance (SLSA v1.0) | ✅ |
+| **Java SLSA Provenance** | `supply-chain/slsa-provenance-java-17-jammy-ubuntu-22.04-fips.json` | Build provenance (SLSA v1.0) | ✅ |
+| **Go SBOM** | `supply-chain/SBOM-golang-1.25-jammy-ubuntu-22.04-fips.spdx.json` | Software bill of materials (SPDX 2.3) | ✅ |
+| **Java SBOM** | `supply-chain/SBOM-java-17-jammy-ubuntu-22.04-fips.spdx.json` | Software bill of materials (SPDX 2.3) | ✅ |
+| **Go VEX** | `supply-chain/VEX-golang-1.25-jammy-ubuntu-22.04-fips.json` | Vulnerability exploitability (OpenVEX) | ✅ |
+| **Java VEX** | `supply-chain/VEX-java-17-jammy-ubuntu-22.04-fips.json` | Vulnerability exploitability (OpenVEX) | ✅ |
+| **Go Chain of Custody** | `golang/1.25-jammy-ubuntu-22.04-fips/compliance/CHAIN-OF-CUSTODY.md` | Provenance documentation | ✅ |
+| **Java Chain of Custody** | `java/17-jammy-ubuntu-22.04-fips/compliance/CHAIN-OF-CUSTODY.md` | Provenance documentation | ✅ |
 
 **Verification:**
 ```bash
@@ -305,13 +305,13 @@ cosign verify --key cosign.pub localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.
 cosign verify-attestation \
   --type slsaprovenance \
   --key cosign.pub \
-  localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Verify SBOM attestation for Java image
 cosign verify-attestation \
   --type spdx \
   --key cosign.pub \
-  localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
+  localhost:5000/java:17-jammy-ubuntu-22.04-fips
 ```
 
 **SLSA Level:** Level 2 (Build provenance, version control, ephemeral environment)
@@ -330,17 +330,17 @@ cosign verify-attestation \
 
 | Evidence Type | File Path | Description | Status |
 |--------------|-----------|-------------|--------|
-| **Contrast Test Script** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/tests/test-contrast-fips-enabled-vs-disabled.sh` | Automated contrast test | ✅ |
-| **Contrast Results** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/Evidence/contrast-test-results.md` | Side-by-side comparison | ✅ |
-| **README Section** | `ubuntu-fips-go/v1.0.0-ubuntu-22.04/README.md` | Contrast test documentation | ✅ |
+| **Contrast Test Script** | `golang/1.25-jammy-ubuntu-22.04-fips/tests/test-contrast-fips-enabled-vs-disabled.sh` | Automated contrast test | ✅ |
+| **Contrast Results** | `golang/1.25-jammy-ubuntu-22.04-fips/Evidence/contrast-test-results.md` | Side-by-side comparison | ✅ |
+| **README Section** | `golang/1.25-jammy-ubuntu-22.04-fips/README.md` | Contrast test documentation | ✅ |
 
 **Verification:**
 ```bash
 # Run contrast test
 docker run --rm \
-  -v $(pwd)/ubuntu-fips-go/v1.0.0-ubuntu-22.04/tests:/tests \
+  -v $(pwd)/golang/1.25-jammy-ubuntu-22.04-fips/tests:/tests \
   --entrypoint="" \
-  localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips \
   bash /tests/test-contrast-fips-enabled-vs-disabled.sh
 ```
 
@@ -353,17 +353,17 @@ docker run --rm \
 
 | Evidence Type | File Path | Description | Status |
 |--------------|-----------|-------------|--------|
-| **Contrast Test Script** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/tests/test-contrast-fips-enabled-vs-disabled.sh` | Automated contrast test | ✅ |
-| **Contrast Results** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/Evidence/contrast-test-results.md` | Side-by-side comparison | ✅ |
-| **README Section** | `ubuntu-fips-java/v1.0.0-ubuntu-22.04/README.md` | Contrast test documentation | ✅ |
+| **Contrast Test Script** | `java/17-jammy-ubuntu-22.04-fips/tests/test-contrast-fips-enabled-vs-disabled.sh` | Automated contrast test | ✅ |
+| **Contrast Results** | `java/17-jammy-ubuntu-22.04-fips/Evidence/contrast-test-results.md` | Side-by-side comparison | ✅ |
+| **README Section** | `java/17-jammy-ubuntu-22.04-fips/README.md` | Contrast test documentation | ✅ |
 
 **Verification:**
 ```bash
 # Run contrast test
 docker run --rm \
-  -v $(pwd)/ubuntu-fips-java/v1.0.0-ubuntu-22.04/tests:/tests \
+  -v $(pwd)/java/17-jammy-ubuntu-22.04-fips/tests:/tests \
   --entrypoint="" \
-  localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04 \
+  localhost:5000/java:17-jammy-ubuntu-22.04-fips \
   bash /tests/test-contrast-fips-enabled-vs-disabled.sh
 ```
 
@@ -412,21 +412,21 @@ This checklist maps directly to the Root FIPS/STIG POC Execution Plan:
 git clone <repository-url> && cd fips-poc
 
 # 2. Pull images
-docker pull localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
-docker pull localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
+docker pull localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
+docker pull localhost:5000/java:17-jammy-ubuntu-22.04-fips
 
 # 3. Verify signatures
 ./supply-chain/verify-all.sh
 
 # 4. Run Go tests
-docker run --rm localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+docker run --rm localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
 # 5. Run Java tests
-docker run --rm localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
+docker run --rm localhost:5000/java:17-jammy-ubuntu-22.04-fips
 
 # 6. Review evidence
-cat ubuntu-fips-go/v1.0.0-ubuntu-22.04/POC-VALIDATION-REPORT.md
-firefox ubuntu-fips-go/v1.0.0-ubuntu-22.04/SCAP-Results.html
+cat golang/1.25-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md
+firefox golang/1.25-jammy-ubuntu-22.04-fips/SCAP-Results.html
 ```
 
 ### Deep Validation (30 minutes)
@@ -437,7 +437,7 @@ Run complete test suites, review all evidence bundles, inspect STIG templates, a
 
 ## Document Metadata
 
-- **Author:** Focaloid Security Team
+- **Author:** Root Security Team
 - **Classification:** PUBLIC
 - **Distribution:** UNLIMITED
 - **Version:** 1.0

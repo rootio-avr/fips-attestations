@@ -8,8 +8,8 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-IMAGE_NAME="ubuntu-fips-java"
-IMAGE_TAG="v1.0.0-ubuntu-22.04"
+IMAGE_NAME="java"
+IMAGE_TAG="17-jammy-ubuntu-22.04-fips"
 WOLFSSL_PASSWORD_FILE="wolfssl_password.txt"
 
 echo ""

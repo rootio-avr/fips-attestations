@@ -86,7 +86,7 @@ chmod 600 .wolfssl_password
 ```bash
 docker build \
   --secret id=wolfssl_password,src=.wolfssl_password \
-  -t ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  -t golang:1.25-jammy-ubuntu-22.04-fips \
   .
 ```
 
@@ -94,71 +94,62 @@ docker build \
 
 ### Run FIPS Demo (Default)
 ```bash
-docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04
+docker run --rm golang:1.25-jammy-ubuntu-22.04-fips
 ```
 
 ### Validate FIPS Environment Only
 ```bash
-docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04 validate
+docker run --rm golang:1.25-jammy-ubuntu-22.04-fips validate
 ```
 
 ### Interactive Shell
 ```bash
-docker run --rm -it ubuntu-fips-go:v1.0.0-ubuntu-22.04 bash
+docker run --rm -it golang:1.25-jammy-ubuntu-22.04-fips bash
 ```
 
 ### Run Specific Go Binary
 ```bash
-docker run --rm --entrypoint="" ubuntu-fips-go:v1.0.0-ubuntu-22.04 /app/fips-go-demo
+docker run --rm --entrypoint="" golang:1.25-jammy-ubuntu-22.04-fips /app/fips-go-demo
 ```
 
-## Testing
+## Diagnostics
 
-### Run All Tests
+### Run All Diagnostics
 ```bash
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
-  bash -c 'cd /tests && ./run-all-tests.sh'
+./diagnostic.sh
 ```
 
-### Run Individual Tests
+### Run Individual Diagnostic Tests
 
 **Algorithm Enforcement Test:**
 ```bash
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-go-fips-algorithms.sh
+./diagnostic.sh test-go-fips-algorithms.sh
 ```
 
 **OpenSSL Integration Test:**
 ```bash
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-go-openssl-integration.sh
+./diagnostic.sh test-go-openssl-integration.sh
 ```
 
 **Full FIPS Validation:**
 ```bash
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-go-fips-validation.sh
+./diagnostic.sh test-go-fips-validation.sh
 ```
 
 **OS FIPS Status Check:**
 ```bash
+./diagnostic.sh test-os-fips-status.sh
+```
+
+### Advanced: Run Diagnostics Manually
+If you need more control, you can mount the diagnostics folder directly:
+
+```bash
 docker run --rm \
-  -v $(pwd)/tests:/tests \
+  -v $(pwd)/diagnostics:/diagnostics \
   --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-os-fips-status.sh
+  golang:1.25-jammy-ubuntu-22.04-fips \
+  bash -c 'cd /diagnostics && ./run-all-tests.sh'
 ```
 
 ## FIPS POC Compliance
@@ -169,9 +160,9 @@ This image **fully satisfies all FIPS Proof of Concept (POC) criteria** for fede
 
 | Test Case | Status | Implementation |
 |-----------|--------|----------------|
-| **1. Algorithm Enforcement via CLI** | ✅ VERIFIED | `tests/test-openssl-cli-algorithms.sh` |
-| **2. Golang Cryptographic Validation** | ✅ VERIFIED | `tests/test-go-fips-algorithms.sh`, `src/main.go` |
-| **3. OS FIPS Status Check** | ✅ VERIFIED | `tests/test-os-fips-status.sh` |
+| **1. Algorithm Enforcement via CLI** | ✅ VERIFIED | `diagnostics/test-openssl-cli-algorithms.sh` |
+| **2. Golang Cryptographic Validation** | ✅ VERIFIED | `diagnostics/test-go-fips-algorithms.sh`, `src/main.go` |
+| **3. OS FIPS Status Check** | ✅ VERIFIED | `diagnostics/test-os-fips-status.sh` |
 
 ### ✅ Success Criteria Met
 
@@ -198,11 +189,7 @@ See **[POC-VALIDATION-REPORT.md](POC-VALIDATION-REPORT.md)** for:
 Validate all POC requirements with a single command:
 
 ```bash
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
-  bash -c 'cd /tests && ./run-all-tests.sh'
+./diagnostic.sh
 ```
 
 **Expected Result**: ✅ 6/6 test suites passed
@@ -265,11 +252,7 @@ This image includes a contrast test that **proves FIPS enforcement is real** by 
 
 ```bash
 # Execute contrast test
-docker run --rm \
-  -v $(pwd)/tests:/tests \
-  --entrypoint="" \
-  ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
-  bash /tests/test-contrast-fips-enabled-vs-disabled.sh
+./diagnostic.sh test-contrast-fips-enabled-vs-disabled.sh
 ```
 
 ### 📊 Expected Results
@@ -306,7 +289,7 @@ Results are documented in `Evidence/contrast-test-results.md` with:
 
 ### Check FIPS Provider Status
 ```bash
-docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04 bash -c "openssl list -providers"
+docker run --rm golang:1.25-jammy-ubuntu-22.04-fips bash -c "openssl list -providers"
 ```
 
 Expected output:
@@ -320,7 +303,7 @@ Providers:
 
 ### Verify Runtime Library Loading
 ```bash
-docker run --rm --entrypoint="" ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+docker run --rm --entrypoint="" golang:1.25-jammy-ubuntu-22.04-fips \
   bash -c "LD_DEBUG=libs /app/fips-go-demo 2>&1 | grep -E 'libcrypto|libwolfssl'"
 ```
 
@@ -331,7 +314,7 @@ This should show:
 
 ### Test Algorithm Blocking
 ```bash
-docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04
+docker run --rm golang:1.25-jammy-ubuntu-22.04-fips
 ```
 
 Expected behavior:
@@ -342,9 +325,10 @@ Expected behavior:
 ## Directory Structure
 
 ```
-ubuntu-fips-go/v1.0.0-ubuntu-22.04/
+golang/1.25-jammy-ubuntu-22.04-fips/
 ├── Dockerfile                          # Multi-stage build
 ├── build.sh                            # Build script
+├── diagnostic.sh                       # Diagnostic runner script
 ├── entrypoint.sh                       # Container entrypoint
 ├── openssl-wolfprov.cnf               # OpenSSL provider config
 ├── README.md                           # This file
@@ -355,7 +339,7 @@ ubuntu-fips-go/v1.0.0-ubuntu-22.04/
 ├── SCAP-SUMMARY.md                    # SCAP compliance executive summary
 ├── src/
 │   └── main.go                        # Go FIPS demo application
-├── tests/
+├── diagnostics/
 │   ├── test-go-fips-algorithms.sh     # Algorithm blocking tests
 │   ├── test-go-openssl-integration.sh # OpenSSL integration tests
 │   ├── test-go-fips-validation.sh     # Full FIPS validation
@@ -370,9 +354,9 @@ ubuntu-fips-go/v1.0.0-ubuntu-22.04/
 │   ├── contrast-test-results.md       # FIPS enabled vs disabled comparison
 │   └── fips-validation-screenshots/   # Optional visual evidence
 ├── compliance/
-│   ├── sbom-ubuntu-fips-go-v1.0.0.spdx.json # Software Bill of Materials
-│   ├── vex-ubuntu-fips-go-v1.0.0.json # Vulnerability Exploitability eXchange
-│   ├── slsa-provenance-ubuntu-fips-go-v1.0.0.json # SLSA build provenance
+│   ├── sbom-golang-1.25-jammy-ubuntu-22.04-fips.spdx.json # Software Bill of Materials
+│   ├── vex-golang-1.25-jammy-ubuntu-22.04-fips.json # Vulnerability Exploitability eXchange
+│   ├── slsa-provenance-golang-1.25-jammy-ubuntu-22.04-fips.json # SLSA build provenance
 │   ├── generate-sbom.sh               # SBOM generator (SPDX)
 │   ├── generate-vex.sh                # VEX generator (OpenVEX)
 │   ├── generate-slsa-attestation.sh   # SLSA attestation generator
@@ -386,14 +370,14 @@ ubuntu-fips-go/v1.0.0-ubuntu-22.04/
 
 Ensure `GODEBUG=fips140=only` is set:
 ```bash
-docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04 bash -c 'echo $GODEBUG'
+docker run --rm golang:1.25-jammy-ubuntu-22.04-fips bash -c 'echo $GODEBUG'
 ```
 
 ### SHA-1 Still Available
 
 Verify wolfSSL was built with `--disable-sha`:
 ```bash
-docker inspect ubuntu-fips-go:v1.0.0-ubuntu-22.04
+docker inspect golang:1.25-jammy-ubuntu-22.04-fips
 ```
 
 Look for `--disable-sha` in the build logs.
@@ -402,12 +386,12 @@ Look for `--disable-sha` in the build logs.
 
 Check OpenSSL configuration:
 ```bash
-docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04 bash -c 'cat /etc/ssl/openssl.cnf'
+docker run --rm golang:1.25-jammy-ubuntu-22.04-fips bash -c 'cat /etc/ssl/openssl.cnf'
 ```
 
 Verify wolfProvider module exists:
 ```bash
-docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04 bash -c 'ls -la /usr/lib/*/ossl-modules/'
+docker run --rm golang:1.25-jammy-ubuntu-22.04-fips bash -c 'ls -la /usr/lib/*/ossl-modules/'
 ```
 
 ## Security Considerations
@@ -422,7 +406,7 @@ docker run --rm ubuntu-fips-go:v1.0.0-ubuntu-22.04 bash -c 'ls -la /usr/lib/*/os
 
 ## Related Images
 
-- **ubuntu-fips-java**: Java-only FIPS image with OpenJDK 17
+- **java**: Java-only FIPS image with OpenJDK 17
 - **fips-reference-app**: Combined Go + Java reference implementation
 
 ## License
@@ -436,7 +420,7 @@ Components:
 ## Support
 
 For issues and questions:
-1. Review test output: `./tests/run-all-tests.sh`
+1. Review diagnostic output: `./diagnostic.sh`
 2. Check logs: `docker logs <container>`
 3. Verify environment: Run with `validate` command
 

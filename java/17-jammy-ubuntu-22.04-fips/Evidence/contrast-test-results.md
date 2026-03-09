@@ -1,14 +1,14 @@
 # Contrast Test Results: FIPS Enabled vs Disabled
 
 **Test Date:** 2026-03-05
-**Image:** ubuntu-fips-java:v1.0.0-ubuntu-22.04
+**Image:** java:17-jammy-ubuntu-22.04-fips
 **Purpose:** Demonstrate that FIPS enforcement is real and not superficial
 
 ---
 
 ## Executive Summary
 
-This document provides side-by-side evidence comparing the behavior of the ubuntu-fips-java container
+This document provides side-by-side evidence comparing the behavior of the java container
 with FIPS enforcement **enabled** (default) vs **disabled** (skip provider removal).
 
 **Key Finding:** FIPS enforcement is **REAL** - non-approved algorithms are blocked when FIPS is enabled
@@ -256,7 +256,7 @@ To reproduce this contrast test:
 
 ```bash
 # Test 1: FIPS ENABLED (default)
-docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04
+docker run --rm java:17-jammy-ubuntu-22.04-fips
 
 # Test 2: FIPS DISABLED (requires code modification)
 # Comment out static block in FipsDemoApp.java and rebuild
@@ -269,7 +269,7 @@ To disable it would require recompiling the source code with the provider remova
 
 ## Document Metadata
 
-- **Author:** Focaloid Security Team
+- **Author:** Root Security Team
 - **Classification:** PUBLIC
 - **Distribution:** UNLIMITED
 - **Version:** 1.0

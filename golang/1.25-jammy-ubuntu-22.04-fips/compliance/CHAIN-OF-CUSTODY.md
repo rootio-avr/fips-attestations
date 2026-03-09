@@ -1,15 +1,15 @@
-# Chain of Custody: ubuntu-fips-go:v1.0.0-ubuntu-22.04
+# Chain of Custody: golang:1.25-jammy-ubuntu-22.04-fips
 
 ## Document Information
-- **Image Name**: ubuntu-fips-go
-- **Version**: v1.0.0-ubuntu-22.04
+- **Image Name**: golang
+- **Version**: 1.25-jammy-ubuntu-22.04-fips
 - **Date**: 2026-03-04
 - **Document Version**: 1.0
-- **Author**: Focaloid Security Team
+- **Author**: Root Security Team
 
 ## Executive Summary
 
-This document establishes the chain of custody for the ubuntu-fips-go container image, documenting its complete provenance from source materials through build process to final artifact. This image provides a FIPS 140-3 compliant Go development and runtime environment with strict policy enforcement.
+This document establishes the chain of custody for the golang container image, documenting its complete provenance from source materials through build process to final artifact. This image provides a FIPS 140-3 compliant Go development and runtime environment with strict policy enforcement.
 
 ---
 
@@ -60,7 +60,7 @@ This document establishes the chain of custody for the ubuntu-fips-go container 
 - **Build File**: `Dockerfile` (committed to repository)
 - **Build Command**:
   ```bash
-  docker build -t ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  docker build -t golang:1.25-jammy-ubuntu-22.04-fips \
     --secret id=wolfssl_password,src=.wolfssl_password .
   ```
 - **Build Stages**:
@@ -96,9 +96,9 @@ This document establishes the chain of custody for the ubuntu-fips-go container 
    - FIPS environment enforced during build
 
 ### 2.3 Build Artifacts
-- **Container Image**: `ubuntu-fips-go:v1.0.0-ubuntu-22.04`
-- **SBOM**: `sbom-ubuntu-fips-go-v1.0.0.spdx.json`
-- **VEX**: `vex-ubuntu-fips-go-v1.0.0.json`
+- **Container Image**: `golang:1.25-jammy-ubuntu-22.04-fips`
+- **SBOM**: `sbom-golang-1.25-jammy-ubuntu-22.04-fips.spdx.json`
+- **VEX**: `vex-golang-1.25-jammy-ubuntu-22.04-fips.json`
 - **Signatures**: (Generated via Cosign)
 - **Attestations**: (Generated via SLSA framework)
 
@@ -136,10 +136,10 @@ echo $GOEXPERIMENT # Should be "strictfipsruntime"
 ### 3.3 Algorithm Enforcement Verification
 ```bash
 # CLI algorithm tests
-./tests/test-openssl-cli-algorithms.sh
+./diagnostic.sh test-openssl-cli-algorithms.sh
 
 # Go algorithm tests
-./tests/test-go-fips-algorithms.sh
+./diagnostic.sh test-go-fips-algorithms.sh
 ```
 
 ### 3.4 Audit Log Verification
@@ -157,14 +157,14 @@ grep "fips_validation_complete" /var/log/fips-audit.log
 ## 4. Artifact Traceability
 
 ### 4.1 SBOM Traceability
-- **File**: `sbom-ubuntu-fips-go-v1.0.0.spdx.json`
+- **File**: `sbom-golang-1.25-jammy-ubuntu-22.04-fips.spdx.json`
 - **Format**: SPDX 2.3
 - **Components Documented**: 8 packages
 - **Relationships**: Dependency graph included
 - **Verification**: `python3 -c "import json; json.load(open('sbom-...'))`
 
 ### 4.2 VEX Traceability
-- **File**: `vex-ubuntu-fips-go-v1.0.0.json`
+- **File**: `vex-golang-1.25-jammy-ubuntu-22.04-fips.json`
 - **Format**: OpenVEX v0.2.0
 - **Vulnerability Statements**: 4 assessments
 - **Status Tracking**: All vulnerabilities documented
@@ -279,13 +279,13 @@ grep "fips_validation_complete" /var/log/fips-audit.log
 ## 9. Contact Information
 
 ### 9.1 Security Team
-- **Email**: security@focaloid.com
-- **Incident Reporting**: security-incidents@focaloid.com
+- **Email**: security@Root.com
+- **Incident Reporting**: security-incidents@Root.com
 - **Office Hours**: 24/7 for critical issues
 
 ### 9.2 Support Team
-- **Email**: support@focaloid.com
-- **Documentation**: https://docs.focaloid.com
+- **Email**: support@Root.com
+- **Documentation**: https://docs.Root.com
 - **Issue Tracking**: GitHub Issues
 
 ---
@@ -294,7 +294,7 @@ grep "fips_validation_complete" /var/log/fips-audit.log
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | 2026-03-04 | Focaloid Security Team | Initial release |
+| 1.0 | 2026-03-04 | Root Security Team | Initial release |
 
 ---
 
@@ -303,8 +303,8 @@ grep "fips_validation_complete" /var/log/fips-audit.log
 ### Appendix A: Build Script
 See `build.sh` in repository
 
-### Appendix B: Test Scripts
-See `tests/` directory in repository
+### Appendix B: Diagnostic Scripts
+See `diagnostics/` directory in repository
 
 ### Appendix C: Configuration Files
 - `Dockerfile`: Multi-stage build definition

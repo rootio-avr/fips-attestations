@@ -2,22 +2,22 @@
   "spdxVersion": "SPDX-2.3",
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
-  "name": "ubuntu-fips-java-v1.0.0-ubuntu-22.04",
-  "documentNamespace": "https://focaloid.com/sbom/ubuntu-fips-java/v1.0.0-ubuntu-22.04/2026-03-04T12:19:46Z",
+  "name": "java-17-jammy-ubuntu-22.04-fips-ubuntu-22.04",
+  "documentNamespace": "https://Root.com/sbom/java/17-jammy-ubuntu-22.04-fips/2026-03-04T12:19:46Z",
   "creationInfo": {
     "created": "2026-03-04T12:19:46Z",
     "creators": [
-      "Tool: focaloid-sbom-generator-1.0",
-      "Organization: Focaloid"
+      "Tool: Root-sbom-generator-1.0",
+      "Organization: Root"
     ],
     "licenseListVersion": "3.21"
   },
   "packages": [
     {
       "SPDXID": "SPDXRef-Package-Container",
-      "name": "ubuntu-fips-java",
-      "versionInfo": "v1.0.0-ubuntu-22.04",
-      "supplier": "Organization: Focaloid",
+      "name": "java",
+      "versionInfo": "17-jammy-ubuntu-22.04-fips",
+      "supplier": "Organization: Root",
       "downloadLocation": "NOASSERTION",
       "filesAnalyzed": false,
       "licenseConcluded": "NOASSERTION",
@@ -132,7 +132,7 @@
       "SPDXID": "SPDXRef-Package-JavaSecurityPolicy",
       "name": "java-security-fips-policy",
       "versionInfo": "1.0.0",
-      "supplier": "Organization: Focaloid",
+      "supplier": "Organization: Root",
       "downloadLocation": "NOASSERTION",
       "filesAnalyzed": false,
       "licenseConcluded": "NOASSERTION",
@@ -145,7 +145,7 @@
       "SPDXID": "SPDXRef-Package-FipsDemoApp",
       "name": "fips-demo-app",
       "versionInfo": "1.0.0",
-      "supplier": "Organization: Focaloid",
+      "supplier": "Organization: Root",
       "downloadLocation": "NOASSERTION",
       "filesAnalyzed": false,
       "licenseConcluded": "NOASSERTION",

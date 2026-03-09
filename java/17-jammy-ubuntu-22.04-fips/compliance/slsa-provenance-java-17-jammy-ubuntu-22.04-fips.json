@@ -2,7 +2,7 @@
   "_type": "https://in-toto.io/Statement/v1",
   "subject": [
     {
-      "name": "ubuntu-fips-java",
+      "name": "java",
       "digest": {
         "sha256": "72c9baf1238fcf0d3febdf4ad590941dcfaf7cbfac9687317dc0707c37bad5fa"
       }
@@ -11,7 +11,7 @@
   "predicateType": "https://slsa.dev/provenance/v1",
   "predicate": {
     "buildDefinition": {
-      "buildType": "https://focaloid.com/docker-build@v1",
+      "buildType": "https://Root.com/docker-build@v1",
       "externalParameters": {
         "source": {
           "uri": "git@github.com:Root-IO-Labs/fips-poc.git",
@@ -87,7 +87,7 @@
     },
     "runDetails": {
       "builder": {
-        "id": "https://focaloid.com/build-system@v1",
+        "id": "https://Root.com/build-system@v1",
         "version": {
           "docker": "28.5.1"
         },
@@ -105,12 +105,12 @@
       },
       "byproducts": [
         {
-          "uri": "sbom-ubuntu-fips-java-v1.0.0.spdx.json",
+          "uri": "sbom-java-17-jammy-ubuntu-22.04-fips.spdx.json",
           "name": "SBOM",
           "mediaType": "application/spdx+json"
         },
         {
-          "uri": "vex-ubuntu-fips-java-v1.0.0.json",
+          "uri": "vex-java-17-jammy-ubuntu-22.04-fips.json",
           "name": "VEX",
           "mediaType": "application/vnd.openvex+json"
         },

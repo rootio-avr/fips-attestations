@@ -2,7 +2,7 @@
 ################################################################################
 # Ubuntu FIPS Go - Build Script
 #
-# Purpose: Build ubuntu-fips-go Docker image with wolfSSL FIPS v5.8.2
+# Purpose: Build golang Docker image with wolfSSL FIPS v5.8.2
 #
 # Usage:
 #   ./build.sh           # Standard build with cache
@@ -20,8 +20,8 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # Configuration
-IMAGE_NAME="ubuntu-fips-go"
-IMAGE_TAG="v1.0.0-ubuntu-22.04"
+IMAGE_NAME="golang"
+IMAGE_TAG="1.25-jammy-ubuntu-22.04-fips"
 WOLFSSL_PASSWORD_FILE="wolfssl_password.txt"
 
 echo ""

@@ -28,8 +28,8 @@ This POC uses **wolfSSL FIPS v5.8.2 (Certificate #4718)** as the cryptographic f
 
 | Image | Base | Runtime | FIPS Module | Tag |
 |-------|------|---------|-------------|-----|
-| **ubuntu-fips-go** | Ubuntu 22.04 LTS | golang-fips/go v1.25 | wolfSSL FIPS v5.8.2 | v1.0.0-ubuntu-22.04 |
-| **ubuntu-fips-java** | Ubuntu 22.04 LTS | OpenJDK 17 | wolfSSL FIPS v5.8.2 | v1.0.0-ubuntu-22.04 |
+| **golang** | Ubuntu 22.04 LTS | golang-fips/go v1.25 | wolfSSL FIPS v5.8.2 | 1.25-jammy-ubuntu-22.04-fips |
+| **java** | Ubuntu 22.04 LTS | OpenJDK 17 | wolfSSL FIPS v5.8.2 | 17-jammy-ubuntu-22.04-fips |
 
 Each image provides:
 - ✅ Lean and hardened Ubuntu base
@@ -78,25 +78,25 @@ docker --version
 
 ```bash
 # Pull Go FIPS image
-docker pull localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+docker pull localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Pull Java FIPS image
-docker pull localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
+docker pull localhost:5000/java:17-jammy-ubuntu-22.04-fips
 ```
 
 **Note:** Replace `localhost:5000` with your registry:
-- Docker Hub: `yourorg/ubuntu-fips-go:v1.0.0-ubuntu-22.04`
-- GitHub CR: `ghcr.io/yourorg/ubuntu-fips-go:v1.0.0-ubuntu-22.04`
-- AWS ECR: `123456789.dkr.ecr.us-east-1.amazonaws.com/ubuntu-fips-go:v1.0.0-ubuntu-22.04`
+- Docker Hub: `yourorg/golang:1.25-jammy-ubuntu-22.04-fips`
+- GitHub CR: `ghcr.io/yourorg/golang:1.25-jammy-ubuntu-22.04-fips`
+- AWS ECR: `123456789.dkr.ecr.us-east-1.amazonaws.com/golang:1.25-jammy-ubuntu-22.04-fips`
 
 ### Step 2: Verify Image Signatures (1 minute)
 
 ```bash
 # Verify Go image signature
-cosign verify localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+cosign verify localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Verify Java image signature
-cosign verify localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
+cosign verify localhost:5000/java:17-jammy-ubuntu-22.04-fips
 ```
 
 See [supply-chain/Cosign-Verification-Instructions.md](supply-chain/Cosign-Verification-Instructions.md) for detailed verification steps.
@@ -105,7 +105,7 @@ See [supply-chain/Cosign-Verification-Instructions.md](supply-chain/Cosign-Verif
 
 ```bash
 # Run default FIPS demo (algorithm enforcement)
-docker run --rm localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+docker run --rm localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Expected output:
 # ✅ MD5: BLOCKED (golang-fips/go active)
@@ -116,9 +116,9 @@ docker run --rm localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
 ```bash
 # Run complete test suite (6 tests)
 docker run --rm \
-  -v $(pwd)/ubuntu-fips-go/v1.0.0-ubuntu-22.04/tests:/tests \
+  -v $(pwd)/golang/1.25-jammy-ubuntu-22.04-fips/tests:/tests \
   --entrypoint="" \
-  localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips \
   bash -c 'cd /tests && ./run-all-tests.sh'
 
 # Expected: ✅ 6/6 test suites passed
@@ -128,7 +128,7 @@ docker run --rm \
 
 ```bash
 # Run default FIPS demo (algorithm enforcement)
-docker run --rm localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
+docker run --rm localhost:5000/java:17-jammy-ubuntu-22.04-fips
 
 # Expected output:
 # ✅ MD5: BLOCKED (NoSuchAlgorithmException)
@@ -139,9 +139,9 @@ docker run --rm localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
 ```bash
 # Run complete test suite (4 tests)
 docker run --rm \
-  -v $(pwd)/ubuntu-fips-java/v1.0.0-ubuntu-22.04/tests:/tests \
+  -v $(pwd)/java/17-jammy-ubuntu-22.04-fips/tests:/tests \
   --entrypoint="" \
-  localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04 \
+  localhost:5000/java:17-jammy-ubuntu-22.04-fips \
   bash -c 'cd /tests && ./run-all-tests.sh'
 
 # Expected: ✅ 4/4 test suites passed
@@ -151,18 +151,18 @@ docker run --rm \
 
 ```bash
 # View Go POC validation report
-cat ubuntu-fips-go/v1.0.0-ubuntu-22.04/POC-VALIDATION-REPORT.md
+cat golang/1.25-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md
 
 # View Java POC validation report
-cat ubuntu-fips-java/v1.0.0-ubuntu-22.04/POC-VALIDATION-REPORT.md
+cat java/17-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md
 
 # View SCAP scan results (HTML)
-firefox ubuntu-fips-go/v1.0.0-ubuntu-22.04/SCAP-Results.html
-firefox ubuntu-fips-java/v1.0.0-ubuntu-22.04/SCAP-Results.html
+firefox golang/1.25-jammy-ubuntu-22.04-fips/SCAP-Results.html
+firefox java/17-jammy-ubuntu-22.04-fips/SCAP-Results.html
 
 # View contrast test evidence
-cat ubuntu-fips-go/v1.0.0-ubuntu-22.04/Evidence/contrast-test-results.md
-cat ubuntu-fips-java/v1.0.0-ubuntu-22.04/Evidence/contrast-test-results.md
+cat golang/1.25-jammy-ubuntu-22.04-fips/Evidence/contrast-test-results.md
+cat java/17-jammy-ubuntu-22.04-fips/Evidence/contrast-test-results.md
 ```
 
 **Total Time:** ~10 minutes
@@ -174,10 +174,10 @@ cat ubuntu-fips-java/v1.0.0-ubuntu-22.04/Evidence/contrast-test-results.md
 
 ## Evidence Index
 
-### Go Image (ubuntu-fips-go)
+### Go Image (golang)
 
 ```
-ubuntu-fips-go/v1.0.0-ubuntu-22.04/
+golang/1.25-jammy-ubuntu-22.04-fips/
 ├── README.md                          # Complete image documentation
 ├── POC-VALIDATION-REPORT.md           # Detailed compliance report
 ├── STIG-Template.xml                  # Container-adapted Ubuntu STIG
@@ -199,9 +199,9 @@ ubuntu-fips-go/v1.0.0-ubuntu-22.04/
 │   ├── test-execution-summary.md
 │   └── fips-validation-screenshots/
 ├── compliance/
-│   ├── sbom-ubuntu-fips-go-v1.0.0.spdx.json
-│   ├── vex-ubuntu-fips-go-v1.0.0.json
-│   ├── slsa-provenance-ubuntu-fips-go-v1.0.0.json
+│   ├── sbom-golang-1.25-jammy-ubuntu-22.04-fips.spdx.json
+│   ├── vex-golang-1.25-jammy-ubuntu-22.04-fips.json
+│   ├── slsa-provenance-golang-1.25-jammy-ubuntu-22.04-fips.json
 │   ├── CHAIN-OF-CUSTODY.md
 │   ├── generate-sbom.sh
 │   ├── generate-vex.sh
@@ -212,10 +212,10 @@ ubuntu-fips-go/v1.0.0-ubuntu-22.04/
 └── entrypoint.sh                      # Container entrypoint
 ```
 
-### Java Image (ubuntu-fips-java)
+### Java Image (java)
 
 ```
-ubuntu-fips-java/v1.0.0-ubuntu-22.04/
+java/17-jammy-ubuntu-22.04-fips/
 ├── README.md                          # Complete image documentation
 ├── POC-VALIDATION-REPORT.md           # Detailed compliance report
 ├── STIG-Template.xml                  # Container-adapted Ubuntu STIG
@@ -240,9 +240,9 @@ ubuntu-fips-java/v1.0.0-ubuntu-22.04/
 │   ├── test-execution-summary.md
 │   └── fips-validation-screenshots/
 ├── compliance/
-│   ├── sbom-ubuntu-fips-java-v1.0.0.spdx.json
-│   ├── vex-ubuntu-fips-java-v1.0.0.json
-│   ├── slsa-provenance-ubuntu-fips-java-v1.0.0.json
+│   ├── sbom-java-17-jammy-ubuntu-22.04-fips.spdx.json
+│   ├── vex-java-17-jammy-ubuntu-22.04-fips.json
+│   ├── slsa-provenance-java-17-jammy-ubuntu-22.04-fips.json
 │   ├── CHAIN-OF-CUSTODY.md
 │   ├── generate-sbom.sh
 │   ├── generate-vex.sh
@@ -259,10 +259,10 @@ ubuntu-fips-java/v1.0.0-ubuntu-22.04/
 ```
 supply-chain/
 ├── Cosign-Verification-Instructions.md # Complete verification guide
-├── SBOM-ubuntu-fips-go.spdx.json      # Go image SBOM (SPDX 2.3)
-├── SBOM-ubuntu-fips-java.spdx.json    # Java image SBOM (SPDX 2.3)
-├── VEX-ubuntu-fips-go.json            # Go image VEX (OpenVEX v0.2.0)
-├── VEX-ubuntu-fips-java.json          # Java image VEX (OpenVEX v0.2.0)
+├── SBOM-golang-1.25-jammy-ubuntu-22.04-fips.spdx.json      # Go image SBOM (SPDX 2.3)
+├── SBOM-java-17-jammy-ubuntu-22.04-fips.spdx.json    # Java image SBOM (SPDX 2.3)
+├── VEX-golang-1.25-jammy-ubuntu-22.04-fips.json            # Go image VEX (OpenVEX v0.2.0)
+├── VEX-java-17-jammy-ubuntu-22.04-fips.json          # Java image VEX (OpenVEX v0.2.0)
 └── verify-all.sh                      # Automated verification script
 ```
 
@@ -274,50 +274,50 @@ supply-chain/
 
 ```bash
 # Image reference
-Image: localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+Image: localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Get image digest
 docker inspect --format='{{index .RepoDigests 0}}' \
-  localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Pull by digest (immutable reference)
-docker pull localhost:5000/ubuntu-fips-go@sha256:<digest>
+docker pull localhost:5000/golang@sha256:<digest>
 
 # Verify signature
 cosign verify \
   --key cosign.pub \
-  localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Verify SLSA attestation
 cosign verify-attestation \
   --type slsaprovenance \
   --key cosign.pub \
-  localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04
+  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 ```
 
 ### Java Image
 
 ```bash
 # Image reference
-Image: localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
+Image: localhost:5000/java:17-jammy-ubuntu-22.04-fips
 
 # Get image digest
 docker inspect --format='{{index .RepoDigests 0}}' \
-  localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
+  localhost:5000/java:17-jammy-ubuntu-22.04-fips
 
 # Pull by digest (immutable reference)
-docker pull localhost:5000/ubuntu-fips-java@sha256:<digest>
+docker pull localhost:5000/java@sha256:<digest>
 
 # Verify signature
 cosign verify \
   --key cosign.pub \
-  localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
+  localhost:5000/java:17-jammy-ubuntu-22.04-fips
 
 # Verify SLSA attestation
 cosign verify-attestation \
   --type slsaprovenance \
   --key cosign.pub \
-  localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04
+  localhost:5000/java:17-jammy-ubuntu-22.04-fips
 ```
 
 See [supply-chain/Cosign-Verification-Instructions.md](supply-chain/Cosign-Verification-Instructions.md) for complete verification workflows.
@@ -406,34 +406,34 @@ This is **validation-level evidence** suitable for POC evaluation and procuremen
 
 ```bash
 # Create wolfSSL password file (required for commercial FIPS package)
-echo 'your-wolfssl-password' > ubuntu-fips-go/v1.0.0-ubuntu-22.04/.wolfssl_password
-echo 'your-wolfssl-password' > ubuntu-fips-java/v1.0.0-ubuntu-22.04/.wolfssl_password
-chmod 600 ubuntu-fips-*/v1.0.0-ubuntu-22.04/.wolfssl_password
+echo 'your-wolfssl-password' > golang/1.25-jammy-ubuntu-22.04-fips/.wolfssl_password
+echo 'your-wolfssl-password' > java/17-jammy-ubuntu-22.04-fips/.wolfssl_password
+chmod 600 golang/1.25-jammy-ubuntu-22.04-fips/.wolfssl_password java/17-jammy-ubuntu-22.04-fips/.wolfssl_password
 ```
 
 ### Build Go Image
 
 ```bash
-cd ubuntu-fips-go/v1.0.0-ubuntu-22.04
+cd golang/1.25-jammy-ubuntu-22.04-fips
 ./build.sh
 
 # Or manual build
 docker build \
   --secret id=wolfssl_password,src=.wolfssl_password \
-  -t localhost:5000/ubuntu-fips-go:v1.0.0-ubuntu-22.04 \
+  -t localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips \
   .
 ```
 
 ### Build Java Image
 
 ```bash
-cd ubuntu-fips-java/v1.0.0-ubuntu-22.04
+cd java/17-jammy-ubuntu-22.04-fips
 ./build.sh
 
 # Or manual build
 docker build \
   --secret id=wolfssl_password,src=.wolfssl_password \
-  -t localhost:5000/ubuntu-fips-java:v1.0.0-ubuntu-22.04 \
+  -t localhost:5000/java:17-jammy-ubuntu-22.04-fips \
   .
 ```
 
@@ -442,13 +442,13 @@ docker build \
 ## Support and Documentation
 
 ### Image-Specific Documentation
-- [Go Image README](ubuntu-fips-go/v1.0.0-ubuntu-22.04/README.md)
-- [Java Image README](ubuntu-fips-java/v1.0.0-ubuntu-22.04/README.md)
+- [Go Image README](golang/1.25-jammy-ubuntu-22.04-fips/README.md)
+- [Java Image README](java/17-jammy-ubuntu-22.04-fips/README.md)
 
 ### Compliance Documentation
 - [Section 6 Checklist Mapping](SECTION-6-CHECKLIST.md)
-- [Go POC Validation Report](ubuntu-fips-go/v1.0.0-ubuntu-22.04/POC-VALIDATION-REPORT.md)
-- [Java POC Validation Report](ubuntu-fips-java/v1.0.0-ubuntu-22.04/POC-VALIDATION-REPORT.md)
+- [Go POC Validation Report](golang/1.25-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md)
+- [Java POC Validation Report](java/17-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md)
 
 ### Supply Chain Security
 - [Cosign Verification Instructions](supply-chain/Cosign-Verification-Instructions.md)
@@ -483,7 +483,7 @@ Components:
 
 ## Document Metadata
 
-- **Author:** Focaloid Security Team
+- **Author:** Root Security Team
 - **Classification:** PUBLIC
 - **Distribution:** UNLIMITED
 - **Version:** 1.0
