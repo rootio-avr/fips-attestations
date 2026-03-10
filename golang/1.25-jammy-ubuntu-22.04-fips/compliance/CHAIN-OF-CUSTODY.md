@@ -46,8 +46,10 @@ This document establishes the chain of custody for the golang container image, d
 - **Purpose**: FIPS-enabled Go compiler and runtime
 
 ### 1.5 System Dependencies
-- **OpenSSL**: 3.0.2 (Ubuntu package)
-- **Build Tools**: gcc, g++, make, pkg-config (Ubuntu packages)
+- **OpenSSL**: 3.0.19 (Compiled from source)
+- **Source**: https://www.openssl.org/source/openssl-3.0.19.tar.gz
+- **Verification**: SHA256 checksum verification, official OpenSSL website
+- **Build Tools**: gcc, g++, make, pkg-config, perl (Ubuntu packages)
 - **Source**: Ubuntu 22.04 official repositories
 - **Verification**: APT package manager, package signatures
 

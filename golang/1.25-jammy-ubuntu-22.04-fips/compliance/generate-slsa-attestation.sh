@@ -173,9 +173,9 @@ cat > "$ATTESTATION_OUTPUT" <<EOF
           }
         },
         {
-          "uri": "pkg:generic/openssl@3.0.2",
+          "uri": "pkg:generic/openssl@3.0.19",
           "name": "openssl",
-          "downloadLocation": "https://www.openssl.org/source/"
+          "downloadLocation": "https://www.openssl.org/source/openssl-3.0.19.tar.gz"
         }
       ]
     },

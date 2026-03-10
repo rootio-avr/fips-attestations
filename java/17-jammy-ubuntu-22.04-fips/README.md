@@ -8,7 +8,7 @@ This image provides a minimal, single-purpose FIPS environment for Java applicat
 - **OpenJDK 17** - Java runtime
 - **wolfSSL FIPS v5.8.2** - FIPS 140-3 Certificate #4718
 - **wolfProvider v1.1.0** - OpenSSL 3.x provider
-- **Ubuntu 22.04 LTS** - Base image with OpenSSL 3.0.2
+- **Ubuntu 22.04 LTS** - Base image with OpenSSL 3.0.19
 
 ## FIPS Policy: STRICT
 

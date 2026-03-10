@@ -71,19 +71,19 @@ cat > "$SBOM_OUTPUT" <<EOF
     {
       "SPDXID": "SPDXRef-Package-OpenSSL",
       "name": "openssl",
-      "versionInfo": "3.0.2",
+      "versionInfo": "3.0.19",
       "supplier": "Organization: OpenSSL Project",
-      "downloadLocation": "https://www.openssl.org/source/",
+      "downloadLocation": "https://www.openssl.org/source/openssl-3.0.19.tar.gz",
       "filesAnalyzed": false,
       "licenseConcluded": "Apache-2.0",
       "licenseDeclared": "Apache-2.0",
       "copyrightText": "Copyright (c) The OpenSSL Project",
-      "description": "System OpenSSL 3.0.2 cryptographic library (Ubuntu package)",
+      "description": "OpenSSL 3.0.19 cryptographic library (compiled from source)",
       "externalRefs": [
         {
           "referenceCategory": "SECURITY",
           "referenceType": "cpe23Type",
-          "referenceLocator": "cpe:2.3:a:openssl:openssl:3.0.2:*:*:*:*:*:*:*"
+          "referenceLocator": "cpe:2.3:a:openssl:openssl:3.0.19:*:*:*:*:*:*:*"
         }
       ]
     },
@@ -157,18 +157,6 @@ cat > "$SBOM_OUTPUT" <<EOF
       "licenseDeclared": "GPL",
       "copyrightText": "NOASSERTION",
       "description": "Build tools including gcc, g++, and make for Go compilation support"
-    },
-    {
-      "SPDXID": "SPDXRef-Package-LibSSLDev",
-      "name": "libssl-dev",
-      "versionInfo": "3.0.2",
-      "supplier": "Organization: Canonical Ltd.",
-      "downloadLocation": "http://archive.ubuntu.com/ubuntu/",
-      "filesAnalyzed": false,
-      "licenseConcluded": "Apache-2.0",
-      "licenseDeclared": "Apache-2.0",
-      "copyrightText": "NOASSERTION",
-      "description": "OpenSSL development libraries for CGO compilation"
     }
   ],
   "relationships": [
@@ -269,7 +257,7 @@ echo "Created: ${TIMESTAMP}"
 echo ""
 echo "Key Components:"
 echo "  - Ubuntu 22.04 LTS"
-echo "  - OpenSSL 3.0.2"
+echo "  - OpenSSL 3.0.19 (compiled from source)"
 echo "  - wolfSSL FIPS v5.8.2 (Cert #4718)"
 echo "  - wolfProvider v1.1.0"
 echo "  - golang-fips/go v1.25"

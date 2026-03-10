@@ -24,8 +24,8 @@ The following images have been signed with cosign:
 
 | Image Name | Tag | Digest | ECR Repository |
 |------------|-----|--------|----------------|
-| java | 17-jammy-ubuntu-22.04-fips | sha256:d267afdf717c2967d69369873d46c3a1346dcd594c56268bc8af4a1ce0b4c33e | root-reg/java |
-| golang | 1.25-jammy-ubuntu-22.04-fips | sha256:9bade474c1c44860b6795e5212d261c3936d112f5e1659061bc25cc31bfb6078 | root-reg/golang |
+| java | 17-jammy-ubuntu-22.04-fips | sha256:57188b45df1e59ceb69c230ef1a9ffe5b44e93cc827121744413683593901b44 | root-reg/java |
+| golang | 1.25-jammy-ubuntu-22.04-fips | sha256:d48386da5fcaea2cfc40a659ab16d37bd27619a031210e2e394b8685b02b5fad | root-reg/golang |
 
 ## Verification Methods
 
@@ -58,7 +58,7 @@ Verify using the image digest for immutable verification.
 cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
-  <redacted_root_ecr_base>/root-reg/java@sha256:d267afdf717c2967d69369873d46c3a1346dcd594c56268bc8af4a1ce0b4c33e
+  <redacted_root_ecr_base>/root-reg/java@sha256:57188b45df1e59ceb69c230ef1a9ffe5b44e93cc827121744413683593901b44
 ```
 
 **Golang Image:**
@@ -66,7 +66,7 @@ cosign verify \
 cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
-  <redacted_root_ecr_base>/root-reg/golang@sha256:9bade474c1c44860b6795e5212d261c3936d112f5e1659061bc25cc31bfb6078
+  <redacted_root_ecr_base>/root-reg/golang@sha256:d48386da5fcaea2cfc40a659ab16d37bd27619a031210e2e394b8685b02b5fad
 ```
 
 ### Expected Output
@@ -80,7 +80,7 @@ Successful verification will output JSON with signature details:
       "docker-reference": "<redacted_root_ecr_base>/root-reg/java:17-jammy-ubuntu-22.04-fips"
     },
     "image": {
-      "docker-manifest-digest": "sha256:d267afdf717c2967d69369873d46c3a1346dcd594c56268bc8af4a1ce0b4c33e"
+      "docker-manifest-digest": "sha256:57188b45df1e59ceb69c230ef1a9ffe5b44e93cc827121744413683593901b44"
     },
     "type": "https://sigstore.dev/cosign/sign/v1"
   },
@@ -106,7 +106,7 @@ The cr.root.io proxy is read-only and doesn't store signature artifacts. To veri
    cosign verify \
      --certificate-identity-regexp '.*' \
      --certificate-oidc-issuer-regexp '.*' \
-     <redacted_root_ecr_base>/root-reg/java@sha256:d267afdf717c2967d69369873d46c3a1346dcd594c56268bc8af4a1ce0b4c33e
+     <redacted_root_ecr_base>/root-reg/java@sha256:57188b45df1e59ceb69c230ef1a9ffe5b44e93cc827121744413683593901b44
    ```
 
 ## Advanced Commands

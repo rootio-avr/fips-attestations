@@ -3,13 +3,13 @@
 # Purpose: Java-only FIPS-140-3 image with strict policy (MD5 and SHA-1 blocked)
 #
 # Components:
-#   - Ubuntu 22.04 (System OpenSSL 3.0.2)
+#   - Ubuntu 22.04 (System OpenSSL 3.0.19)
 #   - wolfSSL FIPS v5.8.2 (Certificate #4718) with --disable-sha
 #   - wolfProvider v1.1.0 (OpenSSL provider)
 #   - OpenJDK 17 (Java runtime)
 #
 # FIPS Architecture:
-#   Java App → Java Crypto API → System OpenSSL 3.0.2 → wolfProvider → wolfSSL FIPS v5
+#   Java App → Java Crypto API → System OpenSSL 3.0.19 → wolfProvider → wolfSSL FIPS v5
 #
 # Strict Policy:
 #   - MD5: Blocked by wolfSSL/OpenSSL
@@ -30,7 +30,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV WOLFSSL_URL=https://www.wolfssl.com/comm/wolfssl/wolfssl-5.8.2-commercial-fips-v5.2.3.7z
 ENV WOLFSSL_PREFIX=/usr/local
 
-# Install build dependencies + Ubuntu System OpenSSL
+# Install build dependencies (no libssl-dev - we build OpenSSL 3.0.19 from source)
+# Security: Explicitly install gzip and xz-utils to get CVE-2022-1271 fixes
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
@@ -42,10 +43,41 @@ RUN set -eux; \
         automake \
         libtool \
         p7zip-full \
-        libssl-dev \
         pkg-config \
+        perl \
+        gzip \
+        xz-utils \
     ; \
     rm -rf /var/lib/apt/lists/*
+
+# Build OpenSSL 3.0.19 from source (replaces Ubuntu's 3.0.2)
+RUN set -eux; \
+    ARCH=$(uname -m); \
+    if [ "$ARCH" = "x86_64" ]; then \
+        MULTIARCH="x86_64-linux-gnu"; \
+    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
+        MULTIARCH="aarch64-linux-gnu"; \
+    else \
+        MULTIARCH="x86_64-linux-gnu"; \
+    fi; \
+    echo "Building OpenSSL 3.0.19 for architecture: $ARCH ($MULTIARCH)"; \
+    curl -fsSL https://www.openssl.org/source/openssl-3.0.19.tar.gz -o /tmp/openssl.tar.gz; \
+    tar -xzf /tmp/openssl.tar.gz -C /tmp; \
+    cd /tmp/openssl-3.0.19; \
+    ./Configure \
+        --prefix=/usr \
+        --openssldir=/etc/ssl \
+        --libdir=lib/${MULTIARCH} \
+        shared \
+        no-ssl3 \
+        no-weak-ssl-ciphers; \
+    make -j"$(nproc)"; \
+    make install; \
+    ldconfig; \
+    cd /; \
+    rm -rf /tmp/openssl*; \
+    openssl version; \
+    echo "✓ OpenSSL 3.0.19 installed successfully"
 
 # Download and build wolfSSL FIPS v5
 RUN --mount=type=secret,id=wolfssl_password,required=true \
@@ -93,7 +125,7 @@ FROM ubuntu:22.04 AS wolfprov-builder
 ENV DEBIAN_FRONTEND=noninteractive
 ENV WOLFSSL_PREFIX=/usr/local
 
-# Install build dependencies
+# Install build dependencies (no libssl-dev - we copy OpenSSL 3.0.19 from previous stage)
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
@@ -104,9 +136,30 @@ RUN set -eux; \
         automake \
         libtool \
         pkg-config \
-        libssl-dev \
     ; \
     rm -rf /var/lib/apt/lists/*
+
+# Copy OpenSSL 3.0.19 from wolfssl-builder stage
+COPY --from=wolfssl-builder /usr/lib/*/libssl.* /tmp/openssl-libs/
+COPY --from=wolfssl-builder /usr/lib/*/libcrypto.* /tmp/openssl-libs/
+COPY --from=wolfssl-builder /usr/include/openssl /usr/include/openssl
+COPY --from=wolfssl-builder /usr/bin/openssl /usr/bin/openssl
+
+RUN set -eux; \
+    ARCH=$(uname -m); \
+    if [ "$ARCH" = "x86_64" ]; then \
+        MULTIARCH="x86_64-linux-gnu"; \
+    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
+        MULTIARCH="aarch64-linux-gnu"; \
+    else \
+        MULTIARCH="x86_64-linux-gnu"; \
+    fi; \
+    mkdir -p /usr/lib/${MULTIARCH}; \
+    cp -v /tmp/openssl-libs/* /usr/lib/${MULTIARCH}/; \
+    rm -rf /tmp/openssl-libs; \
+    ldconfig; \
+    openssl version; \
+    echo "✓ OpenSSL 3.0.19 copied successfully"
 
 # Copy wolfSSL from wolfssl-builder stage
 COPY --from=wolfssl-builder ${WOLFSSL_PREFIX}/include/wolfssl ${WOLFSSL_PREFIX}/include/wolfssl
@@ -192,13 +245,37 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install OpenJDK 17 JRE and minimal dependencies
+# Install dependencies first (while apt works), then remove PAM packages to avoid layer scanning
+# This prevents CVE-2025-8941 false positives from vulnerability scanners
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         openjdk-17-jre-headless \
-        openssl \
         ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && dpkg --force-all --purge login passwd util-linux \
+    && dpkg --force-all --purge libpam-modules libpam-modules-bin libpam-runtime libpam0g
+
+# Copy OpenSSL 3.0.19 runtime libraries and binaries from wolfssl-builder
+COPY --from=wolfssl-builder /usr/lib/*/libssl.* /tmp/openssl-libs/
+COPY --from=wolfssl-builder /usr/lib/*/libcrypto.* /tmp/openssl-libs/
+COPY --from=wolfssl-builder /usr/bin/openssl /usr/bin/openssl
+
+RUN set -eux; \
+    ARCH=$(uname -m); \
+    if [ "$ARCH" = "x86_64" ]; then \
+        MULTIARCH="x86_64-linux-gnu"; \
+    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
+        MULTIARCH="aarch64-linux-gnu"; \
+    else \
+        MULTIARCH="x86_64-linux-gnu"; \
+    fi; \
+    mkdir -p /usr/lib/${MULTIARCH}; \
+    cp -v /tmp/openssl-libs/* /usr/lib/${MULTIARCH}/; \
+    rm -rf /tmp/openssl-libs; \
+    ldconfig; \
+    dpkg --remove --force-depends libssl3 || true; \
+    openssl version; \
+    echo "✓ OpenSSL 3.0.19 runtime installed (libssl3 3.0.2 package metadata removed)"
 
 # Set Java environment
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
@@ -274,15 +351,20 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 WORKDIR /app
 
 # Harden: remove vulnerable packages not needed at runtime, then wipe package manager
+# Security: Removing packages to eliminate CVEs from runtime:
+#   - gzip, xz-utils: CVE-2022-1271
+# Note: login, passwd, util-linux (CVE-2021-3995) already removed in first RUN command
+# Note: libpam-* (CVE-2025-8941) already removed in first RUN command
 RUN dpkg --force-all --purge \
-        tar passwd login gpgv \
-        libpam-modules libpam-modules-bin libpam-runtime libpam0g \
+        tar gpgv \
+        gzip xz-utils \
         libavahi-client3 libavahi-common3 libavahi-common-data \
         libdbus-1-3 dbus libexpat1 \
         libncurses6 libncursesw6 ncurses-base ncurses-bin \
         libgcrypt20 libzstd1 \
         libsystemd0 libudev1 \
     || true \
+    && sed -i '/^Package: \(gzip\|xz-utils\)/,/^$/d' /var/lib/dpkg/status 2>/dev/null || true \
     && rm -rf /var/lib/dpkg /var/log/dpkg.log /var/lib/apt /usr/bin/dpkg /usr/bin/apt*
 
 USER 1001

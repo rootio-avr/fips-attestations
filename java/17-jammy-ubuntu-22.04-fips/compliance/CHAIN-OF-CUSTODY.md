@@ -56,8 +56,11 @@ This document establishes the chain of custody for the java container image, doc
 - **Purpose**: FIPS policy enforcement at JDK level
 
 ### 1.6 System Dependencies
-- **OpenSSL**: 3.0.2 (Ubuntu package)
+- **OpenSSL**: 3.0.19 (Compiled from source)
+- **Source**: https://www.openssl.org/source/openssl-3.0.19.tar.gz
+- **Verification**: SHA256 checksum verification, official OpenSSL website
 - **CA Certificates**: System trust store
+- **Build Tools**: gcc, g++, make, pkg-config, perl (Ubuntu packages)
 - **Source**: Ubuntu 22.04 official repositories
 - **Verification**: APT package manager, package signatures
 

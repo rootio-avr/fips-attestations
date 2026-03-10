@@ -11,7 +11,7 @@ NC='\033[0m'
 ################################################################################
 # Audit Logging Configuration
 ################################################################################
-AUDIT_LOG_FILE="/var/log/fips-audit.log"
+AUDIT_LOG_FILE="/tmp/fips-audit.log"
 AUDIT_ENABLED="${FIPS_AUDIT_ENABLED:-true}"
 
 # Initialize audit log

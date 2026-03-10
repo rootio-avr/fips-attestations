@@ -318,7 +318,7 @@ docker run --rm \
 |-----------|---------|-------------|--------|
 | **wolfSSL FIPS** | v5.8.2 | FIPS 140-3 #4718 | ✅ Validated |
 | **OpenJDK** | 17 | N/A (runtime) | ✅ Java runtime |
-| **OpenSSL** | 3.0.2 | Ubuntu package | ✅ Provider interface |
+| **OpenSSL** | 3.0.19 | Compiled from source | ✅ Provider interface |
 | **wolfProvider** | v1.1.0 | N/A (bridge) | ✅ Active |
 
 ### Algorithm Support Matrix

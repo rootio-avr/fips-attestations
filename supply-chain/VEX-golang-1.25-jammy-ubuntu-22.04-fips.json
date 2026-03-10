@@ -19,14 +19,14 @@
           },
           "subcomponents": [
             {
-              "@id": "pkg:deb/ubuntu/openssl@3.0.2"
+              "@id": "pkg:generic/openssl@3.0.19"
             }
           ]
         }
       ],
       "status": "not_affected",
       "justification": "component_not_present",
-      "impact_statement": "This image uses wolfSSL FIPS v5.8.2 (Certificate #4718) as the primary cryptographic backend via wolfProvider. System OpenSSL 3.0.2 is present but not used for cryptographic operations in FIPS mode."
+      "impact_statement": "This image uses wolfSSL FIPS v5.8.2 (Certificate #4718) as the primary cryptographic backend via wolfProvider. OpenSSL 3.0.19 (compiled from source) provides the provider interface but cryptographic operations route through wolfSSL in FIPS mode."
     },
     {
       "vulnerability": {

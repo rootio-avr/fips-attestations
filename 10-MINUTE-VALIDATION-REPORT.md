@@ -41,7 +41,7 @@ docker run --rm golang:1.25-jammy-ubuntu-22.04-fips validate
 ```
 
 **Result:** ✅ **PASSED**
-- OpenSSL 3.0.2: ✓
+- OpenSSL 3.0.19: ✓
 - wolfProvider FIPS: ✓ ACTIVE
 - FIPS environment variables: ✓ (GOLANG_FIPS=1, GODEBUG=fips140=only)
 - Go Binary: ✓ AVAILABLE
@@ -54,7 +54,7 @@ docker run --rm java:17-jammy-ubuntu-22.04-fips validate
 ```
 
 **Result:** ✅ **PASSED**
-- OpenSSL 3.0.2: ✓
+- OpenSSL 3.0.19: ✓
 - wolfProvider FIPS: ✓ ACTIVE
 - Java Runtime: ✓ AVAILABLE (OpenJDK 17.0.18)
 - wolfSSL FIPS Integrity: ✓
