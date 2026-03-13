@@ -354,6 +354,10 @@ ENV JAVA_TOOL_OPTIONS="\
 --add-opens=java.base/sun.security.rsa=ALL-UNNAMED \
 -Djava.library.path=/usr/lib/jni:/usr/local/lib"
 
+# Create /app directory for user applications and set ownership
+RUN mkdir -p /app \
+    && chown -R appuser:appuser /app
+
 # Switch to non-root user for runtime (STIG SV-238201)
 USER appuser
 
