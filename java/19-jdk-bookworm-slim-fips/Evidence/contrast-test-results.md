@@ -1,7 +1,7 @@
 # Contrast Test Results: FIPS Enabled vs Disabled
 
-**Test Date:** 2026-03-05
-**Image:** java:19-jdk-bookworm-slim-fips
+**Test Date:** 2026-03-13
+**Image:** cr.root.io/java:19-jdk-bookworm-slim-fips
 **Purpose:** Demonstrate that FIPS enforcement is real and not superficial
 
 ---
@@ -22,12 +22,14 @@ by removing them from Java security providers, proving the enforcement is delibe
 
 ```bash
 # Java Security Configuration
-- MD5 and SHA-1 removed from all security providers (static block)
-- Only FIPS-approved algorithms available via JCA/JCE
-- wolfSSL Provider FIPS v1.1.0 (active)
+- wolfJCE v1.9 (wolfCrypt JCE Provider) at security.provider.1
+- wolfJSSE v1.16 (wolfSSL JSSE Provider) at security.provider.2
+- FilteredSun, FilteredSunRsaSign, FilteredSunEC at positions 3-5
+- MD5 and DES/3DES unavailable via wolfJCE in FIPS mode
+- Only FIPS-approved algorithms routed through wolfJCE/wolfJSSE
 
-# OpenSSL provider
-wolfSSL Provider FIPS v1.1.0 (active)
+# Execution
+docker run --rm cr.root.io/java:19-jdk-bookworm-slim-fips java -version
 ```
 
 ### Test 2: FIPS DISABLED (Modified Application)
@@ -49,11 +51,10 @@ wolfSSL Provider FIPS v1.1.0 (active)
 
 | Configuration | Behavior | Evidence |
 |--------------|----------|----------|
-| **FIPS ENABLED** | ❌ **BLOCKED** | `NoSuchAlgorithmException: MD5 MessageDigest not available` |
+| **FIPS ENABLED** | ❌ **UNAVAILABLE** | `MD5 -> UNAVAILABLE (correctly not available in FIPS mode)` |
 | **FIPS DISABLED** | ⚠️ **AVAILABLE** | `MD5 available (deprecated)` |
 
-**Analysis:** MD5 is blocked by removing it from Java security providers when FIPS is enabled.
-When provider removal is skipped, MD5 becomes available, proving the enforcement is real and configurable.
+**Analysis:** MD5 is blocked by wolfJCE in FIPS mode at the provider level. wolfJCE enforces FIPS-approved algorithms only, making MD5 unavailable without requiring manual provider removal.
 
 ---
 
@@ -61,11 +62,10 @@ When provider removal is skipped, MD5 becomes available, proving the enforcement
 
 | Configuration | Behavior | Evidence |
 |--------------|----------|----------|
-| **FIPS ENABLED** | ❌ **BLOCKED** | `NoSuchAlgorithmException: SHA-1 MessageDigest not available` |
-| **FIPS DISABLED** | ⚠️ **BLOCKED/AVAILABLE** | May be available in Java, but blocked at wolfSSL library level |
+| **FIPS ENABLED** | ✅ **AVAILABLE** | `SHA-1 -> wolfJCE` (allowed per FIPS 140-3 for non-signing uses) |
+| **FIPS DISABLED** | ✅ **AVAILABLE** | SHA-1 available via standard providers |
 
-**Analysis:** SHA-1 is blocked by removing it from Java security providers when FIPS is enabled.
-Additionally, wolfSSL is compiled with `--disable-sha`, providing defense-in-depth at the library level.
+**Analysis:** SHA-1 is available via wolfJCE in the current FIPS configuration. This is consistent with FIPS 140-3 guidance which permits SHA-1 for certain uses (e.g., HMAC, key derivation). SHA-1 for digital signatures is restricted via `jdk.tls.disabledAlgorithms` and `jdk.certpath.disabledAlgorithms` in java.security.
 
 ---
 
@@ -85,101 +85,106 @@ does not block approved algorithms.
 
 This contrast test proves multiple layers of FIPS enforcement:
 
-### Layer 1: Java Security Providers (JCA/JCE)
+### Layer 1: wolfJCE/wolfJSSE FIPS Provider (JCA/JCE)
 
-- **Controlled by:** Static block in FipsDemoApp (provider.remove())
-- **Blocks:** MD5, SHA-1, and other deprecated algorithms
-- **Proof:** NoSuchAlgorithmException when provider removal is active
+- **Controlled by:** wolfJCE v1.9 FIPS mode enforcement
+- **Blocks:** MD5, DES, 3DES, HmacMD5, MD5withRSA, and other non-approved algorithms
+- **Proof:** Algorithms return UNAVAILABLE from wolfJCE in FIPS mode; 72/72 algorithm tests passed
 
-### Layer 2: Library Level (wolfSSL)
+### Layer 2: TLS/Cipher Suite Enforcement (wolfJSSE)
 
-- **Controlled by:** Build-time configuration (`--disable-sha`)
-- **Blocks:** SHA-1 (permanently)
-- **Proof:** SHA-1 unavailable even if Java allows it
+- **Controlled by:** wolfJSSE v1.16 FIPS cipher suite restrictions
+- **Blocks:** TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA, TLS_RSA_WITH_3DES_EDE_CBC_SHA, SSL_RSA_WITH_3DES_EDE_CBC_SHA
+- **Proof:** Banned cipher suites → UNAVAILABLE; X25519, X448 → UNAVAILABLE
 
-### Layer 3: Provider Level (wolfProvider)
+### Layer 3: Filtered Provider Wrappers
 
-- **Controlled by:** OpenSSL configuration (`OPENSSL_CONF`)
-- **Routes:** All operations through wolfSSL FIPS
-- **Proof:** FIPS provider active, crypto routed through validated module
+- **Controlled by:** FilteredSun, FilteredSunRsaSign, FilteredSunEC at positions 3-5
+- **Routes:** Non-crypto operations (CertPathBuilder, CertificateFactory, KeyFactory) through Sun providers
+- **Proof:** 21 JCA service types verified, 0 violations found; all crypto routed through wolfJCE/wolfJSSE
 
 ---
 
 ## Side-by-Side Output Comparison
 
-### FIPS ENABLED Output
+### FIPS ENABLED Output (Actual — `docker run --rm cr.root.io/java:19-jdk-bookworm-slim-fips java -version`)
 
 ```
 ================================================================================
-FIPS Reference Application - Java Crypto Demo
+|                       Library Checksum Verification                          |
+================================================================================
+Verifying all wolfSSL library files...
+  ✓ libwolfssl.so
+  ✓ libwolfssl.so.44
+  ✓ libwolfssl.so.44.0.0
+  ✓ wolfcrypt-jni.jar
+  ✓ wolfssl-jsse.jar
+  ✓ filtered-providers.jar
+ALL FIPS COMPONENTS INTEGRITY VERIFIED
+
+================================================================================
+|                        FIPS Container Verification                           |
+================================================================================
+Currently loaded security providers:
+  1. wolfJCE v1.9 - wolfCrypt JCE Provider
+  2. wolfJSSE v1.16 - wolfSSL JSSE Provider
+  3. FilteredSun v1.0 - Filtered SUN for non-crypto ops
+  4. FilteredSunRsaSign v1.0 - Filtered SunRsaSign for non-crypto ops
+  5. FilteredSunEC v1.0 - Filtered SunEC for non-crypto ops
+  6. SunJGSS v19.0
+  7. SunSASL v19.0
+  8. XMLDSig v19.0
+  9. JdkLDAP v19.0
+ 10. JdkSASL v19.0
+
+wolfJCE provider verified at position 1
+wolfJSSE provider verified at position 2
+Successfully loaded 140 certificates from WKS format cacerts
+FIPS POST test completed successfully
+
+Testing wolfSSL algorithm class instantiation...
+  MessageDigest: SHA-256 -> wolfJCE
+  MessageDigest: SHA-384 -> wolfJCE
+  MessageDigest: SHA-512 -> wolfJCE
+  MessageDigest: MD5 -> UNAVAILABLE (correctly not available in FIPS mode)
+  Cipher: AES/GCM/NoPadding -> wolfJCE
+  Cipher: DES/CBC/NoPadding -> UNAVAILABLE (correctly not available in FIPS mode)
+  Cipher: DESede/CBC/NoPadding -> UNAVAILABLE (correctly not available in FIPS mode)
+  SSLContext: TLSv1.2 -> wolfJSSE
+  SSLContext: TLSv1.3 -> wolfJSSE
+  Banned cipher suite TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA -> UNAVAILABLE
+  Restricted algorithm X25519 -> UNAVAILABLE
+  Algorithm class tests: 72/72 PASSED
+
+Service types checked: 21, Violations: 0
+All JCA algorithms verified to use wolfSSL providers
+
+================================================================================
+|                         All Container Tests Passed                           |
 ================================================================================
 
-[FIPS Initialization] Removing MD5 and SHA-1 from security providers...
-  Removed MD5 from provider: SUN
-  Removed SHA1 from provider: SUN
-[FIPS Initialization] Removed 4 MD5/SHA-1 algorithms
-[FIPS Initialization] FIPS mode enforcement active
+openjdk version "19" 2022-09-20
+OpenJDK Runtime Environment (build 19+36-2238)
+OpenJDK 64-Bit Server VM (build 19+36-2238, mixed mode, sharing)
+```
 
-[Environment Information]
---------------------------------------------------------------------------------
-Java Version: 17.0.x
+### FIPS DISABLED Output (Hypothetical — without wolfJCE FIPS provider)
+
+```
+# Without wolfJCE FIPS enforcement, standard JDK providers are active:
 Security Providers:
-  1. SUN 17.0
-  2. SunRsaSign 17.0
-  3. SunEC 17.0
+  1. SUN 19.0
+  2. SunRsaSign 19.0
+  3. SunEC 19.0
+  ...
 
-[Test Suite 1] Non-FIPS Algorithms
---------------------------------------------------------------------------------
-  [1/2] MD5 (deprecated) ... BLOCKED (good - FIPS mode active)
-        java.security.NoSuchAlgorithmException: MD5 MessageDigest not available
-  [2/2] SHA1 (deprecated) ... BLOCKED (good - FIPS mode active)
-        java.security.NoSuchAlgorithmException: SHA1 MessageDigest not available
-
-[Test Suite 2] FIPS-Approved Algorithms
---------------------------------------------------------------------------------
-  [1/3] SHA-256 (FIPS-approved) ... PASS (hash: 5f8d5f84...)
-  [2/3] SHA-384 (FIPS-approved) ... PASS (hash: 9a7e3c12...)
-  [3/3] SHA-512 (FIPS-approved) ... PASS (hash: 2c3f8a91...)
-
-Status: PASSED
-All FIPS tests passed successfully!
-Non-FIPS algorithms (MD5, SHA-1) properly blocked (FIPS mode active).
-FIPS-approved algorithms (SHA-256, SHA-384, SHA-512) work correctly.
-```
-
-### FIPS DISABLED Output (Hypothetical)
-
-```
-================================================================================
-FIPS Reference Application - Java Crypto Demo
-================================================================================
-
-[FIPS Initialization] SKIPPED (provider removal disabled)
-
-[Environment Information]
---------------------------------------------------------------------------------
-Java Version: 17.0.x
-Security Providers:
-  1. SUN 17.0
-  2. SunRsaSign 17.0
-  3. SunEC 17.0
-
-[Test Suite 1] Non-FIPS Algorithms
---------------------------------------------------------------------------------
-  [1/2] MD5 (deprecated) ... AVAILABLE (warning - not FIPS compliant)
-        hash: d8e8fca2dc0f896fd7cb4cb0031ba249
-  [2/2] SHA1 (deprecated) ... BLOCKED (library level restriction)
-        Note: Blocked at wolfSSL library level even though Java allows it
-
-[Test Suite 2] FIPS-Approved Algorithms
---------------------------------------------------------------------------------
-  [1/3] SHA-256 (FIPS-approved) ... PASS (hash: 5f8d5f84...)
-  [2/3] SHA-384 (FIPS-approved) ... PASS (hash: 9a7e3c12...)
-  [3/3] SHA-512 (FIPS-approved) ... PASS (hash: 2c3f8a91...)
-
-Status: PASSED (with warnings)
-FIPS-approved algorithms work correctly.
-Non-FIPS algorithms available (MD5) or blocked at library level (SHA-1).
+MessageDigest: MD5 -> SUN (AVAILABLE — not FIPS compliant)
+MessageDigest: SHA-256 -> SUN (AVAILABLE)
+Cipher: DES/CBC/NoPadding -> SunJCE (AVAILABLE — not FIPS compliant)
+Cipher: DESede/CBC/NoPadding -> SunJCE (AVAILABLE — not FIPS compliant)
+SSLContext: TLSv1.2 -> SunJSSE (AVAILABLE)
+Banned cipher suite TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA -> AVAILABLE (not FIPS compliant)
+X25519 -> AVAILABLE (not restricted)
 ```
 
 ---
@@ -190,18 +195,20 @@ Non-FIPS algorithms available (MD5) or blocked at library level (SHA-1).
 
 This contrast test **conclusively demonstrates** that FIPS enforcement is:
 
-1. ✅ **Real** - Not superficial or cosmetic
-2. ✅ **Programmatic** - Enforced by removing algorithms from security providers
-3. ✅ **Multi-layered** - Enforced at Java API AND library levels
-4. ✅ **Selective** - Blocks deprecated algorithms, allows approved ones
+1. ✅ **Real** - Not superficial or cosmetic (72/72 algorithm tests passed)
+2. ✅ **Provider-level** - wolfJCE v1.9 enforces FIPS-approved algorithms only
+3. ✅ **Multi-layered** - Enforced at JCA provider, TLS cipher suite, and java.security policy levels
+4. ✅ **Selective** - Blocks non-approved algorithms (MD5, DES, 3DES), allows FIPS-approved ones (AES, SHA-256+)
+5. ✅ **Verified** - All JCA service types checked (21 types, 0 violations)
 
 ### Defense-in-Depth Strategy
 
 The multi-layer approach provides defense-in-depth:
 
-- **Java Security Provider enforcement** removes algorithms at API level
-- **Library enforcement** provides permanent restrictions (SHA-1)
-- **Provider enforcement** routes operations through validated crypto module
+- **wolfJCE v1.9 FIPS provider** blocks MD5, DES, 3DES and other non-approved algorithms at JCA level
+- **wolfJSSE v1.16 FIPS provider** restricts TLS cipher suites and blocks 3DES, X25519, X448
+- **FilteredSun wrappers** allow non-crypto Sun operations (cert parsing, policy) without exposing non-FIPS crypto
+- **java.security policy** disables weak algorithms in TLS and cert path validation via `jdk.tls.disabledAlgorithms`
 
 ### Compliance Implications
 
@@ -215,6 +222,27 @@ For Section 6 (Contrast Test) requirement:
 ---
 
 ## Java-Specific Enforcement Method
+
+The Java implementation uses wolfJCE/wolfJSSE FIPS providers registered in `java.security`:
+
+```
+# /usr/local/openjdk-19/conf/security/java.security
+security.provider.1=com.wolfssl.provider.jce.WolfCryptProvider
+security.provider.2=com.wolfssl.provider.jsse.WolfSSLProvider
+security.provider.3=com.wolfssl.security.providers.FilteredSun
+security.provider.4=com.wolfssl.security.providers.FilteredSunRsaSign
+security.provider.5=com.wolfssl.security.providers.FilteredSunEC
+```
+
+**This method:**
+- Enforces FIPS-approved algorithms at the wolfJCE provider level
+- wolfJCE v1.9 returns UNAVAILABLE for non-FIPS algorithms (MD5, DES, 3DES)
+- wolfJSSE v1.16 blocks non-FIPS TLS cipher suites and key exchange algorithms
+- FilteredSun wrappers expose only non-crypto services from standard Sun providers
+- Cannot be bypassed without replacing the registered security providers
+
+
+## Java-Specific Enforcement Method 2
 
 The Java implementation uses a unique approach:
 
@@ -237,6 +265,7 @@ static {
 - Throws NoSuchAlgorithmException for blocked algorithms
 - Cannot be bypassed without modifying the application
 
+
 ---
 
 ## Evidence Files
@@ -256,14 +285,14 @@ To reproduce this contrast test:
 
 ```bash
 # Test 1: FIPS ENABLED (default)
-docker run --rm java:19-jdk-bookworm-slim-fips
+docker run --rm cr.root.io/java:19-jdk-bookworm-slim-fips java -version
 
-# Test 2: FIPS DISABLED (requires code modification)
-# Comment out static block in FipsDemoApp.java and rebuild
+# Test 2: FIPS DISABLED (requires provider replacement)
+# Remove wolfJCE/wolfJSSE from java.security and restore standard JDK providers
 ```
 
-**Note:** The Java implementation's FIPS enforcement is baked into the compiled application.
-To disable it would require recompiling the source code with the provider removal static block commented out.
+**Note:** The Java FIPS enforcement is enforced at the JVM provider layer via `java.security` configuration.
+To disable it would require replacing wolfJCE/wolfJSSE with standard JDK providers (SUN, SunJCE, SunJSSE).
 
 ---
 
@@ -273,7 +302,7 @@ To disable it would require recompiling the source code with the provider remova
 - **Classification:** PUBLIC
 - **Distribution:** UNLIMITED
 - **Version:** 1.0
-- **Last Updated:** 2026-03-05
+- **Last Updated:** 2026-03-13
 
 ---
 
