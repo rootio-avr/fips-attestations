@@ -10,7 +10,7 @@ IMAGE_NAME="java-19-jdk-bookworm-slim-fips-demos"
 TAG="latest"
 VERBOSE=false
 NO_CACHE=false
-BASE_IMAGE="java:19-jdk-bookworm-slim-fips"
+BASE_IMAGE="cr.root.io/java:19-jdk-bookworm-slim-fips"
 
 # Colors for output
 RED='\033[0;31m'
@@ -37,7 +37,7 @@ OPTIONS:
 EXAMPLES:
   $0                                    # Basic build
   $0 -n my-demos -t v1.0               # Custom name and tag
-  $0 -b java:19-jdk-bookworm-slim-fips:custom -v   # Custom base image with verbose output
+  $0 -b cr.root.io/java:19-jdk-bookworm-slim-fips:custom -v   # Custom base image with verbose output
 
 EOF
 }

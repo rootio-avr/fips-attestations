@@ -10,7 +10,7 @@ IMAGE_NAME="java-19-jdk-bookworm-slim-fips-test-image"
 TAG="latest"
 VERBOSE=false
 NO_CACHE=false
-BASE_IMAGE="java:19-jdk-bookworm-slim-fips"
+BASE_IMAGE="cr.root.io/java:19-jdk-bookworm-slim-fips"
 
 # Colors for output
 RED='\033[0;31m'

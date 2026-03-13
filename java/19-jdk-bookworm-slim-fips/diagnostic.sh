@@ -17,7 +17,7 @@ YELLOW='\033[1;33m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-IMAGE_NAME="java:19-jdk-bookworm-slim-fips"
+IMAGE_NAME="cr.root.io/java:19-jdk-bookworm-slim-fips"
 DIAGNOSTICS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/diagnostics"
 
 echo ""

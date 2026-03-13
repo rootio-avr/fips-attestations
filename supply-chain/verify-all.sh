@@ -7,9 +7,9 @@
 set -e
 
 # Configuration
-REGISTRY="${REGISTRY:-localhost:5000}"
+REGISTRY="${REGISTRY:-cr.root.io}"
 GO_IMAGE="${REGISTRY}/golang:1.25-jammy-ubuntu-22.04-fips"
-JAVA_IMAGE="${REGISTRY}/java:17-jammy-ubuntu-22.04-fips"
+JAVA_IMAGE="${REGISTRY}/java:19-jdk-bookworm-slim-fips"
 PUBLIC_KEY="${PUBLIC_KEY:-cosign.pub}"
 
 # Colors for output

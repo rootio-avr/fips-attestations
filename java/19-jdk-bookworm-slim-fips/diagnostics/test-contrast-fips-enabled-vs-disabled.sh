@@ -19,7 +19,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-IMAGE_NAME="${IMAGE_NAME:-java:19-jdk-bookworm-slim-fips}"
+IMAGE_NAME="${IMAGE_NAME:-cr.root.io/java:19-jdk-bookworm-slim-fips}"
 EVIDENCE_DIR="/tmp/contrast-evidence"
 
 echo "================================================================================"
@@ -214,7 +214,7 @@ cat > "$EVIDENCE_FILE" <<'EOF'
 # Contrast Test Results: FIPS Enabled vs Disabled
 
 **Test Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
-**Image:** java:19-jdk-bookworm-slim-fips
+**Image:** cr.root.io/java:19-jdk-bookworm-slim-fips
 **Purpose:** Demonstrate that FIPS enforcement is real and not superficial
 
 ---
