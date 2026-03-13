@@ -247,7 +247,7 @@ The build process:
 Runs all tests: provider verification, cryptographic operations, TLS connectivity, and real-world scenarios.
 
 ```bash
-docker run --rm wolfssl-fips-basic-test-image:latest
+docker run --rm java-19-jdk-bookworm-slim-fips-test-image:latest
 ```
 
 **Expected Output**:
@@ -297,13 +297,13 @@ Testing TLS Connections to Public Endpoints:
 
 **Run JCA Cryptographic Operations Only**:
 ```bash
-docker run --rm wolfssl-fips-basic-test-image:latest \
+docker run --rm java-19-jdk-bookworm-slim-fips-test-image:latest \
   java -cp "/app/test:/opt/wolfssl-fips/bin:/usr/share/java/*" CryptoTestSuite
 ```
 
 **Run SSL/TLS Operations Only**:
 ```bash
-docker run --rm wolfssl-fips-basic-test-image:latest \
+docker run --rm java-19-jdk-bookworm-slim-fips-test-image:latest \
   java -cp "/app/test:/opt/wolfssl-fips/bin:/usr/share/java/*" TlsTestSuite
 ```
 
@@ -312,14 +312,14 @@ docker run --rm wolfssl-fips-basic-test-image:latest \
 docker run --rm \
   -e WOLFJCE_DEBUG=true \
   -e WOLFJSSE_DEBUG=true \
-  wolfssl-fips-basic-test-image:latest
+  java-19-jdk-bookworm-slim-fips-test-image:latest
 ```
 
 ### Interactive Testing
 
 ```bash
 # Interactive shell for manual testing
-docker run --rm -it wolfssl-fips-basic-test-image:latest bash
+docker run --rm -it java-19-jdk-bookworm-slim-fips-test-image:latest bash
 
 # Inside container
 cd /app/test
@@ -519,7 +519,7 @@ docker run --rm \
   -e WOLFJSSE_DEBUG=true \
   -e WOLFJSSE_ENGINE_DEBUG=true \
   -e JAVA_OPTS="-Djava.security.debug=all" \
-  wolfssl-fips-basic-test-image:latest
+  java-19-jdk-bookworm-slim-fips-test-image:latest
 ```
 
 ## Integration Examples

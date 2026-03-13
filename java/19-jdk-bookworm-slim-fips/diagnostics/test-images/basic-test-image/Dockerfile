@@ -8,14 +8,11 @@ FROM ${BASE_IMAGE}
 LABEL maintainer="Root User"
 LABEL description="FIPS-compliant Java test application demonstrating JCA and TLS usage"
 
-# Create application directory
-RUN mkdir -p /app/test
-
-# Copy test application source files
-COPY src/main/*.java /app/test/
-
 # Compile the test application
 WORKDIR /app/test
+
+COPY src/main/*.java /app/test/
+
 RUN javac -cp "/opt/wolfssl-fips/bin:/usr/share/java/*" \
     *.java
 
@@ -27,5 +24,5 @@ WORKDIR /app
 CMD ["java", "-cp", "/app/test:/opt/wolfssl-fips/bin:/usr/share/java/*", "FipsUserApplication"]
 
 # Alternative commands for running specific test suites:
-# docker run wolfssl-fips-basic-test-image:latest java -cp "/app/test:/opt/wolfssl-fips/bin:/usr/share/java/*" CryptoTestSuite
-# docker run wolfssl-fips-basic-test-image:latest java -cp "/app/test:/opt/wolfssl-fips/bin:/usr/share/java/*" TlsTestSuite
+# docker run java-19-jdk-bookworm-slim-fips-test-image:latest java -cp "/app/test:/opt/wolfssl-fips/bin:/usr/share/java/*" CryptoTestSuite
+# docker run java-19-jdk-bookworm-slim-fips-test-image:latest java -cp "/app/test:/opt/wolfssl-fips/bin:/usr/share/java/*" TlsTestSuite
