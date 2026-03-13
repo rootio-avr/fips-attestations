@@ -22,7 +22,8 @@ set -euo pipefail
 
 IMAGE_NAME="java"
 IMAGE_VERSION="19-jdk-bookworm-slim-fips"
-IMAGE_REF="${1:-${IMAGE_REF:-${IMAGE_NAME}:${IMAGE_VERSION}}}"
+REGISTRY="cr.root.io"
+IMAGE_REF="${1:-${IMAGE_REF:-${REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}}}"
 
 SBOM_FILENAME="SBOM-${IMAGE_NAME}-${IMAGE_VERSION}.cdx.json"
 
@@ -64,8 +65,8 @@ if ! docker image inspect "${IMAGE_REF}" >/dev/null 2>&1; then
     echo "  Or pull it:"
     echo "    docker pull ${IMAGE_REF}"
     echo ""
-    echo "  To scan a different image, pass it as an argument:"
-    echo "    ./generate-sbom.sh cr.root.io/java:19-jdk-bookworm-slim-fips"
+    echo "  To scan a locally tagged image, pass it as an argument:"
+    echo "    ./generate-sbom.sh java:19-jdk-bookworm-slim-fips"
     exit 1
 fi
 
