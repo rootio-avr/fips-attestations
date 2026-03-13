@@ -58,7 +58,7 @@ cd java/19-jdk-bookworm-slim-fips
 ./diagnostic.sh
 
 # Run WolfJceBlockingDemo for interactive algorithm enforcement proof
-docker run --rm java-19-jdk-bookworm-slim-fips-demos:latest \
+docker run --rm --entrypoint="" java-19-jdk-bookworm-slim-fips-demos \
   java -cp "/app/demos:/opt/wolfssl-fips/bin:/usr/share/java/*" WolfJceBlockingDemo
 ```
 

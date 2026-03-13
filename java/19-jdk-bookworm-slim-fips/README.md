@@ -270,6 +270,8 @@ The `demos-image` extends the base image with four runnable demonstration applic
 
 ### Build the Demos Image
 
+From the `java/19-jdk-bookworm-slim-fips/` directory:
+
 ```bash
 cd demos-image
 ./build.sh
@@ -277,12 +279,16 @@ cd demos-image
 ./build.sh -b cr.root.io/java:19-jdk-bookworm-slim-fips
 ```
 
+This produces the image `java-19-jdk-bookworm-slim-fips-demos:latest`.
+
+> **Note:** The base image has an entrypoint (FIPS init check). All demo run commands below use `--entrypoint=""` to invoke Java directly rather than passing it as an argument to the entrypoint.
+
 ### Demo 1: WolfJceBlockingDemo — JCE Algorithm Enforcement
 
 Demonstrates which algorithms are blocked and which are available via wolfJCE.
 
 ```bash
-docker run --rm java-19-jdk-bookworm-slim-fips-demos:latest \
+docker run --rm --entrypoint="" java-19-jdk-bookworm-slim-fips-demos \
   java -cp "/app/demos:/opt/wolfssl-fips/bin:/usr/share/java/*" WolfJceBlockingDemo
 ```
 
@@ -310,7 +316,7 @@ FIPS algorithms available:         15
 Demonstrates FIPS-enforced TLS configuration and makes a live outbound HTTPS connection.
 
 ```bash
-docker run --rm java-19-jdk-bookworm-slim-fips-demos:latest \
+docker run --rm --entrypoint="" java-19-jdk-bookworm-slim-fips-demos \
   java -cp "/app/demos:/opt/wolfssl-fips/bin:/usr/share/java/*" WolfJsseBlockingDemo
 ```
 
@@ -340,7 +346,7 @@ FIPS configurations available:   5
 Explains why MD5 is available at the `MessageDigest` API level but blocked in all security-sensitive contexts.
 
 ```bash
-docker run --rm java-19-jdk-bookworm-slim-fips-demos:latest \
+docker run --rm --entrypoint="" java-19-jdk-bookworm-slim-fips-demos \
   java -cp "/app/demos:/opt/wolfssl-fips/bin:/usr/share/java/*" MD5AvailabilityDemo
 ```
 
@@ -369,7 +375,7 @@ Tests failed: 0
 Demonstrates why WKS (WolfSSL KeyStore) is required in FIPS mode and proves the system CA certificates are in WKS format.
 
 ```bash
-docker run --rm java-19-jdk-bookworm-slim-fips-demos:latest \
+docker run --rm --entrypoint="" java-19-jdk-bookworm-slim-fips-demos \
   java -cp "/app/demos:/opt/wolfssl-fips/bin:/usr/share/java/*" KeyStoreFormatDemo
 ```
 
