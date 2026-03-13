@@ -30,10 +30,12 @@
         "buildConfig": {
           "dockerfile": "Dockerfile",
           "buildArgs": {
-            "BASE_IMAGE": "ubuntu:22.04",
+            "BASE_IMAGE": "rootpublic/openjdk:19-jdk-bookworm-slim",
             "WOLFSSL_VERSION": "5.8.2-commercial-fips-v5.2.3",
-            "WOLFPROVIDER_VERSION": "v1.1.0",
-            "OPENJDK_VERSION": "17"
+            "WOLFCRYPT_JNI_REPO": "https://github.com/wolfSSL/wolfcrypt-jni.git",
+            "WOLFCRYPT_JNI_BRANCH": "master",
+            "WOLFSSL_JNI_REPO": "https://github.com/wolfSSL/wolfssljni.git",
+            "WOLFSSL_JNI_BRANCH": "master"
           }
         }
       },
@@ -45,43 +47,59 @@
       },
       "resolvedDependencies": [
         {
-          "uri": "pkg:docker/ubuntu@22.04",
+          "uri": "pkg:oci/rootpublic/openjdk@19-jdk-bookworm-slim",
           "digest": {
-            "sha256": "ubuntu22.04"
+            "sha256": "TBD"
           },
-          "name": "ubuntu",
-          "downloadLocation": "https://hub.docker.com/_/ubuntu"
+          "name": "openjdk-base-image",
+          "downloadLocation": "rootpublic/openjdk:19-jdk-bookworm-slim",
+          "annotations": {
+            "os": "Debian 12 (Bookworm)",
+            "java_version": "19"
+          }
         },
         {
-          "uri": "pkg:generic/wolfssl@5.8.2-fips",
+          "uri": "pkg:generic/wolfssl@5.8.2-fips-v5.2.3",
           "name": "wolfssl",
           "downloadLocation": "https://www.wolfssl.com/comm/wolfssl/",
           "annotations": {
             "fips_certificate": "4718",
-            "fips_version": "140-3"
+            "fips_version": "140-3",
+            "build_config": "--enable-fips=v5 --enable-jni --disable-md5"
           }
         },
         {
-          "uri": "pkg:generic/wolfprovider@1.1.0",
-          "name": "wolfProvider",
-          "downloadLocation": "https://github.com/wolfSSL/wolfProvider",
+          "uri": "pkg:github/wolfSSL/wolfcrypt-jni@master",
+          "name": "wolfcrypt-jni",
+          "downloadLocation": "https://github.com/wolfSSL/wolfcrypt-jni",
           "digest": {
-            "gitCommit": "v1.1.0"
-          }
-        },
-        {
-          "uri": "pkg:deb/ubuntu/openjdk-17-jre-headless",
-          "name": "openjdk-17",
-          "downloadLocation": "https://packages.ubuntu.com/jammy/openjdk-17-jre-headless",
+            "gitCommit": "master"
+          },
           "annotations": {
-            "java_version": "17",
-            "distribution": "Ubuntu 22.04"
+            "purpose": "JCE Provider (WolfCryptProvider)",
+            "artifacts": "libwolfcryptjni.so, wolfcrypt-jni.jar"
           }
         },
         {
-          "uri": "pkg:generic/openssl@3.0.19",
-          "name": "openssl",
-          "downloadLocation": "https://www.openssl.org/source/openssl-3.0.19.tar.gz"
+          "uri": "pkg:github/wolfSSL/wolfssljni@master",
+          "name": "wolfssljni",
+          "downloadLocation": "https://github.com/wolfSSL/wolfssljni",
+          "digest": {
+            "gitCommit": "master"
+          },
+          "annotations": {
+            "purpose": "JSSE Provider (WolfSSLProvider)",
+            "artifacts": "libwolfssljni.so, wolfssl-jsse.jar"
+          }
+        },
+        {
+          "uri": "pkg:maven/junit/junit@4.13.2",
+          "name": "junit",
+          "downloadLocation": "https://repo1.maven.org/maven2/junit/junit/4.13.2/",
+          "annotations": {
+            "scope": "build-time-only",
+            "purpose": "JUnit testing for JNI builds"
+          }
         }
       ]
     },

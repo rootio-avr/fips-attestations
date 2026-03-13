@@ -1,115 +1,267 @@
-# Ubuntu FIPS Java
+# Java FIPS 140-3 Container with wolfSSL
 
-Java-only FIPS-140-3 compliant Docker image with strict cryptographic policy.
+FIPS 140-3 compliant Java Docker image using wolfSSL JNI providers for cryptographic operations.
 
 ## Overview
 
-This image provides a minimal, single-purpose FIPS environment for Java applications using:
-- **OpenJDK 17** - Java runtime
+This image provides a FIPS-validated Java environment using:
+- **OpenJDK 19** - Java Development Kit (Debian Bookworm Slim base)
 - **wolfSSL FIPS v5.8.2** - FIPS 140-3 Certificate #4718
-- **wolfProvider v1.1.0** - OpenSSL 3.x provider
-- **Ubuntu 22.04 LTS** - Base image with OpenSSL 3.0.19
-
-## FIPS Policy: STRICT
-
-This image implements a **stricter-than-FIPS** policy:
-
-| Algorithm | Status | Enforcement Layer |
-|-----------|--------|-------------------|
-| **MD5** | ❌ BLOCKED | wolfSSL/OpenSSL |
-| **SHA-1** | ❌ BLOCKED | wolfSSL library |
-| **SHA-256** | ✅ ALLOWED | FIPS approved |
-| **SHA-384** | ✅ ALLOWED | FIPS approved |
-| **SHA-512** | ✅ ALLOWED | FIPS approved |
-
-**⚠️ Important**: Blocking SHA-1 at the library level breaks FIPS 140-3 validation, as SHA-1 is required for approved legacy operations. This configuration prioritizes maximum security over certification compliance.
+- **wolfCrypt JNI v1.1.0** - JCE provider (wolfJCE) with JNI bindings to wolfSSL FIPS
+- **wolfSSL JNI v1.13.0** - JSSE provider (wolfJSSE) with JNI bindings to wolfSSL FIPS
+- **Ubuntu 22.04 LTS** (via Debian Bookworm Slim) - Container base
 
 ## Architecture
+
+This container uses a **JNI-based provider architecture** where Java cryptographic operations are routed directly to the FIPS-validated wolfSSL native library through Java Native Interface (JNI) bridges:
 
 ```
 Java Application
     ↓
-Java Crypto API (JCA/JCE)
+Java Crypto API (JCA/JCE/JSSE)
     ↓
-System OpenSSL 3.x
+┌─────────────────────────────────────────┐
+│  wolfJCE Provider (priority 1)          │  → JNI → wolfCrypt FIPS
+│  wolfJSSE Provider (priority 2)         │  → JNI → wolfSSL FIPS
+│  Filtered Sun Providers (non-crypto)    │
+└─────────────────────────────────────────┘
     ↓
-wolfProvider (OSSL provider)
+libwolfcryptjni.so / libwolfssljni.so (JNI bridges)
     ↓
-wolfSSL FIPS v5.8.2 (FIPS-validated cryptographic module)
+libwolfssl.so (FIPS 140-3 validated cryptographic module)
 ```
+
+### How It Works
+
+1. **Provider Registration**: The `java.security` configuration registers wolfJCE and wolfJSSE as priority 1 and 2 providers
+2. **JCA/JSSE API Calls**: Application code uses standard Java APIs (MessageDigest, Cipher, SSLContext, etc.)
+3. **Provider Selection**: Java security framework routes requests to wolfJCE/wolfJSSE based on provider priority
+4. **JNI Bridge**: wolfJCE/wolfJSSE providers call native methods via JNI
+5. **FIPS Crypto**: Native code executes FIPS-validated cryptographic operations in libwolfssl.so
 
 ## Components
 
-- **OpenJDK 17**
-  - Java runtime (JRE headless)
-  - Uses system OpenSSL via JCA/JCE providers
-  - Located: `/usr/lib/jvm/java-17-openjdk-amd64`
+### Java Providers
+- **wolfJCE** (com.wolfssl.provider.jce.WolfCryptProvider)
+  - Implements JCE services: MessageDigest, Mac, Cipher, Signature, KeyGenerator, KeyPairGenerator, KeyAgreement, SecureRandom
+  - Priority 1 in java.security configuration
+  - Routes to FIPS-validated wolfCrypt via JNI
+  - JAR: `/usr/share/java/wolfcrypt-jni.jar`
+  - Native library: `/usr/lib/jni/libwolfcryptjni.so`
 
+- **wolfJSSE** (com.wolfssl.provider.jsse.WolfSSLProvider)
+  - Implements JSSE services: SSLContext, KeyManagerFactory, TrustManagerFactory
+  - Priority 2 in java.security configuration
+  - Routes to FIPS-validated wolfSSL TLS via JNI
+  - JAR: `/usr/share/java/wolfssl-jsse.jar`
+  - Native library: `/usr/lib/jni/libwolfssljni.so`
+
+- **Filtered Sun Providers** (FilteredSun, FilteredSunRsaSign, FilteredSunEC)
+  - Provide non-cryptographic services only (CertificateFactory, KeyStore, etc.)
+  - Filter out cryptographic algorithms to ensure only FIPS crypto is used
+  - JAR: `/usr/share/java/filtered-providers.jar`
+
+### Native FIPS Library
 - **wolfSSL FIPS v5.8.2**
   - FIPS 140-3 Certificate #4718
-  - Built with `--disable-sha` for strict SHA-1 blocking
+  - Built with `--enable-fips=v5 --enable-jni`
+  - In-core integrity check enabled
   - Located: `/usr/local/lib/libwolfssl.so`
 
-- **wolfProvider v1.1.0**
-  - OpenSSL 3.x provider routing to wolfSSL
-  - Located: `/usr/lib/*/ossl-modules/libwolfprov.so`
-
-- **Java Demo Application**
-  - Tests FIPS algorithm enforcement via Java Crypto API
-  - Located: `/app/java/FipsDemoApp.class`
+### Keystores
+- **WKS Format** (WolfSSL KeyStore)
+  - System CA certificates in WKS format (FIPS-compliant)
+  - Located: `$JAVA_HOME/lib/security/cacerts`
+  - Converted from JKS during build (JKS/PKCS12 use non-FIPS crypto)
+  - Password: `changeitchangeit`
+  - See [KEYSTORE-TRUST-STORE-GUIDE.md](KEYSTORE-TRUST-STORE-GUIDE.md) for details
 
 ## Prerequisites
 
 ### wolfSSL Commercial FIPS Package
 
-This image requires the commercial wolfSSL FIPS package. Create a password file:
+This image requires the commercial wolfSSL FIPS package. The password can be provided via:
 
-```bash
-echo 'your-wolfssl-password' > .wolfssl_password
-chmod 600 .wolfssl_password
-```
+1. **Password file** (recommended):
+   ```bash
+   echo 'your-wolfssl-password' > wolfssl_password.txt
+   chmod 600 wolfssl_password.txt
+   ```
+
+2. **Command line** (for CI/CD):
+   ```bash
+   ./build.sh -p your_password
+   ```
 
 ## Build
 
-### Standard Build
+### Quick Build
 ```bash
+# Build using wolfssl_password.txt
 ./build.sh
 ```
 
-### Clean Build (no cache)
+### Build Options
 ```bash
+# Specify password via command line
+./build.sh -p your_password
+
+# Custom image name and tag
+./build.sh -n my-java-fips -t v1.0
+
+# Build without cache
 ./build.sh --no-cache
+
+# Use custom wolfcrypt-jni/wolfssljni repositories
+./build.sh -p pass --wolfcrypt-jni-repo https://github.com/user/wolfcrypt-jni.git
+./build.sh -p pass --wolfssl-jni-branch develop
+
+# Use local wolfcrypt-jni/wolfssljni directories (for development)
+./build.sh -p pass --wolfcrypt-jni /path/to/wolfcrypt-jni
+./build.sh -p pass --wolfssl-jni /path/to/wolfssljni
+
+# Verbose build with debug logging
+./build.sh -p pass -v
+
+# Show help
+./build.sh --help
 ```
 
 ### Manual Build
 ```bash
 docker build \
-  --secret id=wolfssl_password,src=.wolfssl_password \
+  --secret id=wolfssl_pw,src=wolfssl_password.txt \
   -t java:17-jammy-ubuntu-22.04-fips \
   .
 ```
 
 ## Usage
 
-### Run FIPS Demo (Default)
+### FIPS Mode (Default - Production)
+
+FIPS mode performs full validation including:
+- Library integrity verification (SHA-256 checksums)
+- FIPS provider verification (wolfJCE/wolfJSSE registration)
+- WKS cacerts format verification
+- FIPS POST (Power-On Self Test)
+- Algorithm availability checks
+- Provider configuration sanity checks
+
 ```bash
+# Run with FIPS validation (default)
 docker run --rm java:17-jammy-ubuntu-22.04-fips
-```
 
-### Validate FIPS Environment Only
-```bash
-docker run --rm java:17-jammy-ubuntu-22.04-fips validate
-```
+# Run with debug logging
+docker run --rm \
+  -e WOLFJCE_DEBUG=true \
+  -e WOLFJSSE_DEBUG=true \
+  java:17-jammy-ubuntu-22.04-fips
 
-### Interactive Shell
-```bash
+# Run user application in FIPS mode
+docker run --rm \
+  -v /path/to/app:/app/user \
+  java:17-jammy-ubuntu-22.04-fips \
+  java -cp "/app/user:/usr/share/java/*" com.example.MyApp
+
+# Interactive shell (FIPS mode)
 docker run --rm -it java:17-jammy-ubuntu-22.04-fips bash
 ```
 
-### Run Specific Java Application
+### Non-FIPS Mode (Development/Testing)
+
+Non-FIPS mode skips FIPS validation checks but still uses wolfSSL providers. Useful for:
+- Development and debugging
+- Testing non-FIPS scenarios
+- Quick container startup
+- Custom java.security configurations
+
 ```bash
-docker run --rm --entrypoint="" java:17-jammy-ubuntu-22.04-fips \
-  bash -c "cd /app/java && java FipsDemoApp"
+# Skip FIPS validation checks
+docker run --rm \
+  -e FIPS_CHECK=false \
+  java:17-jammy-ubuntu-22.04-fips
+
+# Non-FIPS with custom java.security
+docker run --rm \
+  -e FIPS_CHECK=false \
+  -v /path/to/java.security:$JAVA_HOME/conf/security/java.security \
+  java:17-jammy-ubuntu-22.04-fips
+
+# Run specific Java version check
+docker run --rm \
+  -e FIPS_CHECK=false \
+  java:17-jammy-ubuntu-22.04-fips \
+  java -version
+```
+
+See [FIPS-vs-NON-FIPS-MODES.md](FIPS-vs-NON-FIPS-MODES.md) for detailed comparison and usage patterns.
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `JAVA_HOME` | `/usr/local/openjdk-19` | Java installation directory |
+| `JAVA_OPTS` | `-Xmx512m` | JVM options |
+| `JAVA_TOOL_OPTIONS` | (see Dockerfile) | JVM module access flags for filtered providers |
+| `JAVA_LIBRARY_PATH` | `/usr/lib/jni:/usr/local/lib` | Native library search path |
+| `LD_LIBRARY_PATH` | `/usr/lib/jni:/usr/local/lib` | System library search path |
+| `FIPS_CHECK` | `true` | Enable/disable FIPS validation on startup |
+| `WOLFJCE_DEBUG` | `false` | Enable wolfJCE debug logging |
+| `WOLFJSSE_DEBUG` | `false` | Enable wolfJSSE debug logging |
+| `WOLFJSSE_ENGINE_DEBUG` | `false` | Enable wolfJSSE SSLEngine debug logging |
+
+## Developer Integration
+
+### Using as Base Image
+
+```dockerfile
+FROM java:17-jammy-ubuntu-22.04-fips
+
+# Copy your application
+COPY target/myapp.jar /app/myapp.jar
+
+# Set entrypoint
+ENTRYPOINT ["java", "-cp", "/app/myapp.jar:/usr/share/java/*", "com.example.Main"]
+```
+
+### Code Examples
+
+The container includes comprehensive test suites demonstrating:
+- JCE cryptographic operations (MessageDigest, Cipher, Signature, Mac, KeyGenerator, etc.)
+- JSSE/TLS operations (SSLContext, TLS handshake, certificate validation)
+- Real-world scenarios (file encryption, data signing, HTTPS clients)
+
+See:
+- [diagnostics/test-images/basic-test-image/](diagnostics/test-images/basic-test-image/) - Comprehensive test application
+- [DEVELOPER-GUIDE.md](DEVELOPER-GUIDE.md) - Detailed developer guide with code examples
+- [EXAMPLES.md](EXAMPLES.md) - Practical code snippets
+
+### Quick Example: SHA-256 Hashing
+
+```java
+import java.security.MessageDigest;
+
+// Standard JCA API - automatically uses wolfJCE provider
+MessageDigest md = MessageDigest.getInstance("SHA-256");
+byte[] hash = md.digest("Hello FIPS".getBytes());
+
+// Verify provider
+System.out.println(md.getProvider().getName());  // Outputs: wolfJCE
+```
+
+### Quick Example: TLS Connection
+
+```java
+import javax.net.ssl.*;
+import java.net.*;
+
+// Standard JSSE API - automatically uses wolfJSSE provider
+SSLContext context = SSLContext.getInstance("TLS");
+context.init(null, null, null);  // Uses system WKS cacerts
+
+SSLSocketFactory factory = context.getSocketFactory();
+SSLSocket socket = (SSLSocket) factory.createSocket("www.example.com", 443);
+socket.startHandshake();  // FIPS-validated TLS handshake
 ```
 
 ## Diagnostics
@@ -119,7 +271,7 @@ docker run --rm --entrypoint="" java:17-jammy-ubuntu-22.04-fips \
 ./diagnostic.sh
 ```
 
-### Run Individual Diagnostic Tests
+### Individual Diagnostic Tests
 
 **Java Algorithm Enforcement:**
 ```bash
@@ -131,9 +283,9 @@ docker run --rm --entrypoint="" java:17-jammy-ubuntu-22.04-fips \
 ./diagnostic.sh test-java-fips-validation.sh
 ```
 
-**CLI Algorithm Enforcement:**
+**Java Algorithm Suite:**
 ```bash
-./diagnostic.sh test-openssl-cli-algorithms.sh
+./diagnostic.sh test-java-algorithms.sh
 ```
 
 **OS FIPS Status Check:**
@@ -141,16 +293,42 @@ docker run --rm --entrypoint="" java:17-jammy-ubuntu-22.04-fips \
 ./diagnostic.sh test-os-fips-status.sh
 ```
 
-### Advanced: Run Diagnostics Manually
-If you need more control, you can mount the diagnostics folder directly:
+## Verification
 
+### Check Provider Configuration
 ```bash
-docker run --rm \
-  -v $(pwd)/diagnostics:/diagnostics \
-  --entrypoint="" \
-  java:17-jammy-ubuntu-22.04-fips \
-  bash -c 'cd /diagnostics && ./run-all-tests.sh'
+docker run --rm java:17-jammy-ubuntu-22.04-fips bash -c \
+  "cat \$JAVA_HOME/conf/security/java.security | grep -E 'security.provider.[0-9]'"
 ```
+
+Expected output:
+```
+security.provider.1=com.wolfssl.provider.jce.WolfCryptProvider
+security.provider.2=com.wolfssl.provider.jsse.WolfSSLProvider
+security.provider.3=com.wolfssl.security.providers.FilteredSun
+security.provider.4=com.wolfssl.security.providers.FilteredSunRsaSign
+security.provider.5=com.wolfssl.security.providers.FilteredSunEC
+...
+```
+
+### Verify wolfSSL Library
+```bash
+docker run --rm java:17-jammy-ubuntu-22.04-fips bash -c \
+  "ldconfig -p | grep wolfssl"
+```
+
+Expected output:
+```
+libwolfssl.so.42 (libc6,x86-64) => /usr/local/lib/libwolfssl.so.42
+```
+
+### Verify WKS Cacerts
+```bash
+docker run --rm java:17-jammy-ubuntu-22.04-fips bash -c \
+  "file \$JAVA_HOME/lib/security/cacerts"
+```
+
+Expected: WKS format, not JKS
 
 ## FIPS POC Compliance
 
@@ -160,16 +338,18 @@ This image **fully satisfies all FIPS Proof of Concept (POC) criteria** for fede
 
 | Test Case | Status | Implementation |
 |-----------|--------|----------------|
-| **1. Algorithm Enforcement via CLI** | ✅ VERIFIED | `diagnostics/test-openssl-cli-algorithms.sh` |
-| **2. Java Cryptographic Validation** | ✅ VERIFIED | `diagnostics/test-java-algorithm-enforcement.sh`, `src/FipsDemoApp.java` |
+| **1. Algorithm Enforcement via Java API** | ✅ VERIFIED | `diagnostics/test-java-algorithms.sh` |
+| **2. Java Cryptographic Validation** | ✅ VERIFIED | `diagnostics/test-java-algorithm-enforcement.sh`, `src/main/FipsInitCheck.java` |
 | **3. OS FIPS Status Check** | ✅ VERIFIED | `diagnostics/test-os-fips-status.sh` |
 
 ### ✅ Success Criteria Met
 
-- ✅ Commands using FIPS-incompatible algorithms (MD5, SHA-1) return errors
-- ✅ Commands using FIPS-compatible algorithms (SHA-256+) execute successfully
-- ✅ MD5 and SHA-1 **removed from Java security providers** (NoSuchAlgorithmException thrown)
-- ✅ Audit trail visibility (`/var/log/fips-audit.log`)
+- ✅ FIPS 140-3 validated cryptography (wolfSSL Certificate #4718)
+- ✅ Provider-level enforcement (wolfJCE/wolfJSSE at priority 1 & 2)
+- ✅ WKS format for system CA certificates (FIPS-compliant keystore)
+- ✅ FIPS POST execution on startup
+- ✅ Algorithm availability verification (FIPS-approved algorithms only)
+- ✅ Audit trail visibility (`/var/log/fips-audit.log` - if configured)
 - ✅ VEX documentation (`compliance/generate-vex.sh`)
 - ✅ SBOM availability (`compliance/generate-sbom.sh`)
 - ✅ Artifact signing (`compliance/sign-image.sh`)
@@ -193,7 +373,7 @@ Validate all POC requirements with a single command:
 ./diagnostic.sh
 ```
 
-**Expected Result**: ✅ 4/4 test suites passed
+**Expected Result**: ✅ All test suites passed
 
 ## STIG / SCAP Compliance
 
@@ -247,231 +427,196 @@ All exclusions are documented with justifications in `STIG-Template.xml`.
 
 ## Contrast Test (FIPS Enabled vs Disabled)
 
-This image includes a contrast test that **proves FIPS enforcement is real** by demonstrating different behavior when FIPS is enabled vs disabled:
+This image includes a contrast test that **proves FIPS enforcement is real** by demonstrating different behavior when FIPS validation is enabled vs disabled:
 
 ### 🔬 Run Contrast Test
 
 ```bash
-# Execute contrast test
 ./diagnostic.sh test-contrast-fips-enabled-vs-disabled.sh
 ```
 
 ### 📊 Expected Results
 
-| Algorithm | FIPS Enabled | FIPS Disabled | Proof |
-|-----------|--------------|---------------|-------|
-| **MD5** | ❌ BLOCKED | ⚠️ AVAILABLE | Enforcement is real |
-| **SHA-1** | ❌ BLOCKED | ❌ BLOCKED* | Multi-layer defense |
-| **SHA-256** | ✅ PASS | ✅ PASS | Approved algorithm |
+| Scenario | FIPS Validation | Provider Configuration | Algorithm Availability |
+|----------|-----------------|------------------------|------------------------|
+| **FIPS Mode** | ✅ Enabled | wolfJCE/wolfJSSE priority 1 & 2 | FIPS-approved only |
+| **Non-FIPS Mode** | ❌ Disabled | Same (not modified) | FIPS-approved only* |
 
-*SHA-1 blocked at library level (wolfSSL --disable-sha) even when provider removal is skipped
+*The underlying providers remain the same; FIPS_CHECK only controls validation
 
 ### 📁 Contrast Test Evidence
 
 Results are documented in `Evidence/contrast-test-results.md` with:
 - Side-by-side output comparison
 - FIPS enabled vs disabled behavior analysis
-- Java Security Provider removal mechanism
+- Provider configuration verification
 - Compliance implications
-
-**Purpose:** This test satisfies Section 6 requirements to demonstrate that FIPS enforcement is **not superficial** - algorithms are genuinely blocked by removing them from Java security providers when FIPS is enabled.
-
-**Note:** Java enforcement uses a unique approach - algorithms are removed from security providers at application startup via a static block, making them unavailable throughout the JVM lifecycle.
-
-## Environment Variables
-
-| Variable | Value | Purpose |
-|----------|-------|---------|
-| `JAVA_HOME` | `/usr/lib/jvm/java-17-openjdk-amd64` | Java installation path |
-| `OPENSSL_CONF` | `/etc/ssl/openssl.cnf` | OpenSSL configuration with wolfProvider |
-| `LD_LIBRARY_PATH` | (multiple paths) | Include wolfSSL library path |
-
-## Verification
-
-### Check FIPS Provider Status
-```bash
-docker run --rm java:17-jammy-ubuntu-22.04-fips bash -c "openssl list -providers"
-```
-
-Expected output:
-```
-Providers:
-  fips
-    name: wolfSSL Provider FIPS
-    version: 1.1.0
-    status: active
-```
-
-### Test Java Crypto API
-```bash
-docker run --rm java:17-jammy-ubuntu-22.04-fips
-```
-
-Expected behavior:
-- ✅ MD5: **BLOCKED** (NoSuchAlgorithmException thrown)
-- ✅ SHA-1: **BLOCKED** (removed from security providers)
-- ✅ SHA-256/384/512: **AVAILABLE** (FIPS approved)
-
-### Verify wolfSSL Library
-```bash
-docker run --rm java:17-jammy-ubuntu-22.04-fips bash -c \
-  "ldconfig -p | grep wolfssl"
-```
 
 ## Directory Structure
 
 ```
 java/17-jammy-ubuntu-22.04-fips/
-├── Dockerfile                            # Multi-stage build
-├── build.sh                              # Build script
-├── diagnostic.sh                         # Diagnostic runner script
-├── entrypoint.sh                         # Container entrypoint
-├── openssl-wolfprov.cnf                 # OpenSSL provider config
-├── java.security.fips                   # Java security policy
-├── README.md                             # This file
-├── POC-VALIDATION-REPORT.md             # FIPS POC compliance report
-├── STIG-Template.xml                    # Container-adapted DISA STIG baseline
-├── SCAP-Results.xml                     # OpenSCAP scan results (machine-readable)
-├── SCAP-Results.html                    # OpenSCAP scan results (human-readable)
-├── SCAP-SUMMARY.md                      # SCAP compliance executive summary
+├── Dockerfile                          # Multi-stage build definition
+├── build.sh                            # Build script with password handling
+├── diagnostic.sh                       # Diagnostic runner script
+├── docker-entrypoint.sh                # Container entrypoint with FIPS checks
+├── wolfssl_password.txt                # wolfSSL commercial package password
+├── java.security                       # FIPS java.security configuration
+├── README.md                           # This file
+├── DEVELOPER-GUIDE.md                  # Comprehensive developer guide
+├── ARCHITECTURE.md                     # Technical architecture documentation
+├── KEYSTORE-TRUST-STORE-GUIDE.md       # Keystore and trust store guide
+├── FIPS-vs-NON-FIPS-MODES.md           # FIPS/non-FIPS mode comparison
+├── ATTESTATION.md                      # Compliance and attestation docs
+├── EXAMPLES.md                         # Practical code examples
+├── POC-VALIDATION-REPORT.md            # FIPS POC compliance report
+├── SCAP-SUMMARY.md                     # SCAP compliance executive summary
+├── STIG-Template.xml                   # Container-adapted DISA STIG baseline
+├── SCAP-Results.xml                    # OpenSCAP scan results (machine-readable)
+├── SCAP-Results.html                   # OpenSCAP scan results (human-readable)
 ├── src/
-│   ├── FipsDemoApp.java                 # Java FIPS demo (main application)
-│   ├── FipsSecurityProvider.java        # FIPS provider enforcement
-│   └── FipsMessageDigest.java           # Algorithm wrapper
+│   ├── main/
+│   │   └── FipsInitCheck.java          # FIPS validation and POST
+│   └── providers/
+│       ├── FilteredSun.java            # Filtered Sun provider (non-crypto only)
+│       ├── FilteredSunRsaSign.java     # Filtered SunRsaSign provider
+│       └── FilteredSunEC.java          # Filtered SunEC provider
+├── scripts/
+│   └── integrity-check.sh              # Library checksum verification
 ├── diagnostics/
-│   ├── test-java-algorithm-enforcement.sh # Java algorithm blocking tests
-│   ├── test-java-fips-validation.sh     # Java FIPS validation
-│   ├── test-openssl-cli-algorithms.sh   # CLI algorithm enforcement
-│   ├── test-os-fips-status.sh           # OS FIPS status check
-│   ├── test-contrast-fips-enabled-vs-disabled.sh # Contrast test (FIPS on/off)
-│   └── run-all-tests.sh                 # Master test runner (4 tests)
+│   ├── test-java-algorithm-enforcement.sh
+│   ├── test-java-fips-validation.sh
+│   ├── test-java-algorithms.sh
+│   ├── test-os-fips-status.sh
+│   ├── test-contrast-fips-enabled-vs-disabled.sh
+│   ├── run-all-tests.sh
+│   └── test-images/
+│       └── basic-test-image/           # Comprehensive test application
+│           ├── README.md               # Test application documentation
+│           ├── Dockerfile              # Test image build
+│           ├── build.sh                # Test image build script
+│           └── src/main/
+│               ├── FipsUserApplication.java # Main test application
+│               ├── CryptoTestSuite.java # JCE cryptographic tests
+│               └── TlsTestSuite.java   # JSSE/TLS connectivity tests
 ├── Evidence/
-│   ├── test-execution-summary.md        # Complete test execution summary
-│   ├── algorithm-enforcement-evidence.log # Test output logs
-│   ├── contrast-test-results.md         # FIPS enabled vs disabled comparison
-│   └── fips-validation-screenshots/     # Optional visual evidence
-├── compliance/
-│   ├── sbom-java-17-jammy-ubuntu-22.04-fips.spdx.json # Software Bill of Materials
-│   ├── vex-java-17-jammy-ubuntu-22.04-fips.json # Vulnerability Exploitability eXchange
-│   ├── slsa-provenance-java-17-jammy-ubuntu-22.04-fips.json # SLSA build provenance
-│   ├── generate-sbom.sh                 # SBOM generator (SPDX)
-│   ├── generate-vex.sh                  # VEX generator (OpenVEX)
-│   ├── generate-slsa-attestation.sh     # SLSA attestation generator
-│   ├── sign-image.sh                    # Image signing (Cosign)
-│   └── CHAIN-OF-CUSTODY.md              # Provenance documentation
+│   ├── test-execution-summary.md
+│   ├── algorithm-enforcement-evidence.log
+│   ├── contrast-test-results.md
+│   └── fips-validation-screenshots/
+└── compliance/
+    ├── sbom-java-17-jammy-ubuntu-22.04-fips.spdx.json
+    ├── vex-java-17-jammy-ubuntu-22.04-fips.json
+    ├── slsa-provenance-java-17-jammy-ubuntu-22.04-fips.json
+    ├── generate-sbom.sh
+    ├── generate-vex.sh
+    ├── generate-slsa-attestation.sh
+    ├── sign-image.sh
+    └── CHAIN-OF-CUSTODY.md
 ```
-
-## Java Crypto API Usage
-
-The Java application enforces FIPS by removing MD5 and SHA-1 from all security providers at startup:
-
-```java
-import java.security.*;
-
-// Static block in FipsDemoApp removes MD5/SHA-1 from all providers
-static {
-    for (Provider provider : Security.getProviders()) {
-        provider.remove("MessageDigest.MD5");
-        provider.remove("MessageDigest.SHA-1");
-        // ... and related algorithms
-    }
-}
-
-// SHA-256 and stronger algorithms route through OpenSSL → wolfProvider → wolfSSL FIPS
-MessageDigest md = MessageDigest.getInstance("SHA-256");
-byte[] hash = md.digest(data);  // ✅ Works
-
-// MD5 and SHA-1 throw NoSuchAlgorithmException
-MessageDigest md5 = MessageDigest.getInstance("MD5");  // ❌ Throws exception
-```
-
-**FIPS Enforcement**: MD5 and SHA-1 are **programmatically removed** from all security providers, ensuring NoSuchAlgorithmException is thrown for any attempt to use these deprecated algorithms.
 
 ## Troubleshooting
 
-### MD5/SHA-1 Still Available (Should Not Happen)
+### FIPS Validation Fails
 
-If MD5/SHA-1 are not blocked, verify:
-
-1. FIPS initialization occurred:
+Check library integrity:
 ```bash
-docker run --rm java:17-jammy-ubuntu-22.04-fips | grep "FIPS Initialization"
+docker run --rm java:17-jammy-ubuntu-22.04-fips \
+  /usr/local/bin/integrity-check.sh
 ```
 
-2. wolfSSL was built with `--disable-sha`:
-```bash
-docker image inspect java:17-jammy-ubuntu-22.04-fips
-```
+### Provider Not Found
 
-3. Check Java security provider configuration:
+Verify provider JARs:
 ```bash
 docker run --rm java:17-jammy-ubuntu-22.04-fips bash -c \
-  'cat $JAVA_HOME/conf/security/java.security | grep disabledAlgorithms'
+  "ls -la /usr/share/java/"
 ```
 
-### Provider Not Loaded
+Expected files:
+- `wolfcrypt-jni.jar`
+- `wolfssl-jsse.jar`
+- `filtered-providers.jar`
 
-Check OpenSSL configuration:
+### WKS Cacerts Not Found
+
+Verify WKS cacerts exists and is readable:
 ```bash
 docker run --rm java:17-jammy-ubuntu-22.04-fips bash -c \
-  'cat /etc/ssl/openssl.cnf'
+  "ls -l \$JAVA_HOME/lib/security/cacerts && file \$JAVA_HOME/lib/security/cacerts"
 ```
 
-Verify wolfProvider module exists:
+### Native Library Loading Fails
+
+Check library paths:
 ```bash
 docker run --rm java:17-jammy-ubuntu-22.04-fips bash -c \
-  'ls -la /usr/lib/*/ossl-modules/'
+  "echo LD_LIBRARY_PATH=\$LD_LIBRARY_PATH && ldconfig -p | grep wolf"
 ```
 
-### Java Demo Fails
+### Application Fails to Start
 
-Check Java runtime:
+Run with debug logging:
 ```bash
-docker run --rm java:17-jammy-ubuntu-22.04-fips bash -c \
-  'java -version'
-```
-
-Verify class file exists:
-```bash
-docker run --rm java:17-jammy-ubuntu-22.04-fips bash -c \
-  'ls -la /app/java/'
+docker run --rm \
+  -e WOLFJCE_DEBUG=true \
+  -e WOLFJSSE_DEBUG=true \
+  -e FIPS_CHECK=true \
+  java:17-jammy-ubuntu-22.04-fips
 ```
 
 ## Security Considerations
 
-1. **Strict Policy vs. FIPS Validation**: This image blocks SHA-1 completely, which is stricter than FIPS 140-3 but breaks certification compliance.
+1. **FIPS 140-3 Validation**: wolfSSL v5.8.2 is FIPS 140-3 validated (Certificate #4718). Modifications to build configuration may invalidate certification.
 
 2. **wolfSSL Commercial License**: Requires valid wolfSSL commercial FIPS package license.
 
-3. **Certificate #4718**: wolfSSL FIPS v5.8.2 is validated under FIPS 140-3, but modifications (--disable-sha) invalidate the certificate.
+3. **WKS Keystore**: System uses WKS format instead of JKS/PKCS12 because those formats use non-FIPS cryptography. Applications must use WKS for FIPS compliance.
 
-4. **Production Use**: For production environments requiring FIPS certification, consider using standard FIPS policy (SHA-1 allowed for approved uses).
+4. **Provider Priority**: wolfJCE and wolfJSSE must remain at priority 1 and 2 to ensure FIPS crypto is used. Changing provider order may bypass FIPS enforcement.
 
-5. **Java Security Providers**: This image relies on system OpenSSL integration. Custom security providers may bypass FIPS enforcement.
+5. **Filtered Providers**: FilteredSun* providers are critical for non-cryptographic services (CertificateFactory, KeyStore types). Do not remove them.
+
+6. **Native Library Integrity**: Container verifies SHA-256 checksums of all FIPS libraries on startup. Checksum mismatches terminate the container.
 
 ## Related Images
 
-- **golang**: Go-only FIPS image with golang-fips/go
-- **fips-reference-app**: Combined Go + Java reference implementation
+- **diagnostics/test-images/basic-test-image**: Comprehensive test application demonstrating JCE/JSSE usage
+- Other FIPS images: See repository root for additional FIPS-compliant images
+
+## Documentation
+
+- **[DEVELOPER-GUIDE.md](DEVELOPER-GUIDE.md)** - Comprehensive developer integration guide
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Technical architecture deep dive
+- **[KEYSTORE-TRUST-STORE-GUIDE.md](KEYSTORE-TRUST-STORE-GUIDE.md)** - Keystore and trust store usage
+- **[FIPS-vs-NON-FIPS-MODES.md](FIPS-vs-NON-FIPS-MODES.md)** - Operating mode comparison
+- **[ATTESTATION.md](ATTESTATION.md)** - Compliance and attestation documentation
+- **[EXAMPLES.md](EXAMPLES.md)** - Practical code examples
 
 ## License
 
 Components:
-- Ubuntu 22.04: Canonical License
-- OpenJDK 17: GPL v2 with Classpath Exception
+- Ubuntu/Debian: Canonical License
+- OpenJDK 19: GPL v2 with Classpath Exception
 - wolfSSL FIPS: Commercial License (required)
-- wolfProvider: GPL v3
+- wolfCrypt JNI: GPL v3
+- wolfSSL JNI: GPL v3
 
 ## Support
 
 For issues and questions:
 1. Review diagnostic output: `./diagnostic.sh`
 2. Check logs: `docker logs <container>`
-3. Verify environment: Run with `validate` command
+3. Verify environment: Run with `FIPS_CHECK=true` and debug logging enabled
+4. See troubleshooting guide above
+5. Consult developer guide: [DEVELOPER-GUIDE.md](DEVELOPER-GUIDE.md)
 
 ## References
 
 - [wolfSSL FIPS 140-3](https://www.wolfssl.com/products/wolfssl-fips/)
-- [OpenJDK 17](https://openjdk.org/projects/jdk/17/)
+- [OpenJDK 19](https://openjdk.org/projects/jdk/19/)
+- [wolfCrypt JNI](https://github.com/wolfSSL/wolfcrypt-jni)
+- [wolfSSL JNI](https://github.com/wolfSSL/wolfssljni)
 - [NIST FIPS 140-3](https://csrc.nist.gov/publications/detail/fips/140/3/final)
-- [Java Cryptography Architecture](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html)
+- [Java Cryptography Architecture (JCA)](https://docs.oracle.com/en/java/javase/19/security/java-cryptography-architecture-jca-reference-guide.html)
+- [Java Secure Socket Extension (JSSE)](https://docs.oracle.com/en/java/javase/19/security/java-secure-socket-extension-jsse-reference-guide.html)

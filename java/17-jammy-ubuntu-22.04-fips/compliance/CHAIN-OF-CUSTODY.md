@@ -16,52 +16,53 @@ This document establishes the chain of custody for the java container image, doc
 ## 1. Component Provenance
 
 ### 1.1 Base Image
-- **Component**: Ubuntu 22.04 LTS (Jammy Jellyfish)
-- **Source**: `docker.io/library/ubuntu:22.04`
-- **Verification**: Official Docker Hub repository
+- **Component**: Debian 12 (Bookworm) Slim with OpenJDK 19
+- **Source**: `rootpublic/openjdk:19-jdk-bookworm-slim`
+- **Verification**: Container registry verification
 - **SHA256**: Verified via Docker image manifest
-- **Purpose**: Operating system foundation
+- **Purpose**: Operating system foundation and Java runtime
 
 ### 1.2 wolfSSL FIPS Module
-- **Component**: wolfSSL FIPS v5.8.2
+- **Component**: wolfSSL FIPS v5.8.2 (bundled with FIPS v5.2.3)
 - **Source**: `https://www.wolfssl.com/comm/wolfssl/wolfssl-5.8.2-commercial-fips-v5.2.3.7z`
 - **FIPS Certificate**: #4718 (FIPS 140-3 validated)
-- **Verification**: Password-protected archive, FIPS hash verification via `fips-hash.sh`
-- **Build Configuration**: `--enable-fips=v5 --disable-sha` (strict policy)
-- **Purpose**: FIPS-validated cryptographic module
+- **Verification**: Password-protected archive (BuildKit secret), FIPS hash verification via `fips-hash.sh`
+- **Build Configuration**: `--enable-fips=v5 --enable-jni --disable-md5`
+- **Purpose**: FIPS-validated cryptographic module for JNI integration
 
-### 1.3 wolfProvider
-- **Component**: wolfProvider v1.1.0
-- **Source**: `https://github.com/wolfSSL/wolfProvider/releases/tag/v1.1.0`
-- **Git Commit**: Tagged release v1.1.0
-- **Verification**: GitHub official repository, GPG signatures (if available)
-- **Purpose**: OpenSSL 3.x provider routing to wolfSSL
+### 1.3 wolfCrypt JNI (JCE Provider)
+- **Component**: wolfcrypt-jni (from GitHub master branch)
+- **Source**: `https://github.com/wolfSSL/wolfcrypt-jni.git`
+- **Build**: Ant build system, JUnit 4 tests executed
+- **Artifacts**: libwolfcryptjni.so, wolfcrypt-jni.jar
+- **Purpose**: Java JCE provider (WolfCryptProvider) backed by wolfSSL FIPS
 
-### 1.4 OpenJDK 17
-- **Component**: OpenJDK 17 JRE Headless
-- **Source**: Ubuntu 22.04 official package repository
-- **Package**: `openjdk-17-jre-headless`
-- **Verification**: APT package manager, package signatures
-- **Purpose**: Java runtime environment
+### 1.4 wolfSSL JNI (JSSE Provider)
+- **Component**: wolfssljni (from GitHub master branch)
+- **Source**: `https://github.com/wolfSSL/wolfssljni.git`
+- **Build**: Ant build system, JUnit 4 tests executed
+- **Artifacts**: libwolfssljni.so, wolfssl-jsse.jar
+- **Purpose**: Java JSSE provider (WolfSSLProvider) for TLS/SSL
 
 ### 1.5 Java Security Policy
 - **Component**: Custom java.security configuration
-- **Source**: `java.security.fips` (included in repository)
+- **Source**: `java.security` (included in repository)
 - **Modifications**:
-  - `jdk.tls.disabledAlgorithms`: MD5, SHA1, weak ciphers blocked
-  - `jdk.certpath.disabledAlgorithms`: MD5, SHA1 blocked
-  - `jdk.jar.disabledAlgorithms`: MD5, SHA1 blocked
-  - `fips.mode=strict`
-  - `crypto.policy=unlimited`
+  - `security.provider.1`: com.wolfssl.provider.jce.WolfCryptProvider
+  - `security.provider.2`: com.wolfssl.provider.jsse.WolfSSLProvider
+  - `keystore.type`: WKS (WolfSSL KeyStore format)
+  - `jdk.tls.disabledAlgorithms`: MD5, SHA-1, DSA, RC4, DES, weak TLS versions blocked
+  - `jdk.certpath.disabledAlgorithms`: MD5, SHA-1, weak key sizes blocked
+  - `jdk.jar.disabledAlgorithms`: MD5, SHA-1 blocked for JAR signing
+  - `crypto.policy`: unlimited
 - **Purpose**: FIPS policy enforcement at JDK level
 
 ### 1.6 System Dependencies
-- **OpenSSL**: 3.0.19 (Compiled from source)
-- **Source**: https://www.openssl.org/source/openssl-3.0.19.tar.gz
-- **Verification**: SHA256 checksum verification, official OpenSSL website
-- **CA Certificates**: System trust store
-- **Build Tools**: gcc, g++, make, pkg-config, perl (Ubuntu packages)
-- **Source**: Ubuntu 22.04 official repositories
+- **JUnit/Hamcrest**: JUnit 4.13.2, Hamcrest 1.3 (for build-time testing)
+- **Source**: Maven Central Repository
+- **CA Certificates**: Converted from JKS to WKS format using wolfcrypt-jni
+- **Build Tools**: gcc, g++, make, automake, autoconf, libtool, git, ant, curl, p7zip-full
+- **Source**: Debian Bookworm official repositories
 - **Verification**: APT package manager, package signatures
 
 ---
@@ -69,44 +70,55 @@ This document establishes the chain of custody for the java container image, doc
 ## 2. Build Process
 
 ### 2.1 Build Environment
-- **Build System**: Docker multi-stage build
+- **Build System**: Docker multi-stage build with BuildKit
 - **Build File**: `Dockerfile` (committed to repository)
 - **Build Command**:
   ```bash
-  docker build -t java:17-jammy-ubuntu-22.04-fips \
-    --secret id=wolfssl_password,src=.wolfssl_password .
+  DOCKER_BUILDKIT=1 docker build -t java:17-jammy-ubuntu-22.04-fips \
+    --secret id=wolfssl_pw,src=.wolfssl_password .
   ```
 - **Build Stages**:
-  1. wolfssl-builder: Compiles wolfSSL FIPS
-  2. wolfprov-builder: Compiles wolfProvider
-  3. java-builder: Compiles Java demo application
-  4. Final: Runtime image with OpenJDK 17
+  1. builder: Base build environment with JDK and build tools
+  2. wolfssl-builder: Compiles wolfSSL FIPS v5.2.3 with JNI support
+  3. wolfjce-builder: Compiles wolfCrypt JNI (JCE provider)
+  4. wolfjsse-builder: Compiles wolfSSL JNI (JSSE provider)
+  5. java-compiler: Compiles Java application code (FipsInitCheck, filtered providers)
+  6. Runtime: Final minimal image with OpenJDK 19 and wolfSSL providers
 
 ### 2.2 Build Steps Verification
-1. **wolfSSL Compilation**:
-   - Source extracted from password-protected archive
-   - Configured with FIPS v5 and strict policy (`--disable-sha`)
-   - FIPS hash validation performed via `fips-hash.sh`
-   - Compiled twice (before and after hash verification)
-   - Installed to `/usr/local`
+1. **wolfSSL FIPS Compilation**:
+   - Source extracted from password-protected 7z archive using BuildKit secret
+   - Configured with `--enable-fips=v5 --enable-jni --disable-md5`
+   - FIPS in-core integrity hash set via `fips-hash.sh`
+   - Compiled twice (before and after hash update per FIPS requirements)
+   - wolfCrypt test suite executed (`testwolfcrypt`)
+   - Libraries installed to `/usr/local/lib`
 
-2. **wolfProvider Compilation**:
-   - Cloned from GitHub (tag v1.1.0)
-   - Architecture detection (x86_64/aarch64)
-   - Linked against wolfSSL and system OpenSSL
-   - Installed to architecture-specific path
+2. **wolfCrypt JNI Compilation**:
+   - Cloned from GitHub wolfcrypt-jni repository
+   - JUnit/Hamcrest dependencies downloaded from Maven Central
+   - Native library built using makefile.linux
+   - JAR built using Ant (build-jce-release target)
+   - JUnit tests executed (`ant test`)
+   - System CA certificates converted from JKS to WKS format
 
-3. **Java Application Compilation**:
-   - Source: `src/FipsDemoApp.java`
-   - Compiled with OpenJDK 17 compiler (`javac`)
-   - UTF-8 encoding enforced
-   - Class files generated
+3. **wolfSSL JNI Compilation**:
+   - Cloned from GitHub wolfssljni repository
+   - Native library and JAR built using Ant
+   - JUnit tests executed (`ant test`)
+   - TLS/SSL provider artifacts generated
 
-4. **Java Security Configuration**:
-   - Original `java.security` backed up
-   - Custom FIPS policy applied via sed replacements
-   - Properties added: `crypto.policy=unlimited`, `fips.mode=strict`
-   - Installed to `${JAVA_HOME}/conf/security/java.security`
+4. **Java Application Compilation**:
+   - Source: `src/main/FipsInitCheck.java`, `src/providers/*.java`
+   - Compiled with OpenJDK 19 compiler (`javac`)
+   - Classpath includes wolfcrypt-jni.jar and wolfssl-jsse.jar
+   - JAR created for filtered Sun providers
+
+5. **Java Security Configuration**:
+   - Original `java.security` backed up to java.security.backup
+   - Custom FIPS-compliant java.security installed
+   - WKS-format CA certificates (cacerts.wks) replace default JKS cacerts
+   - Installed to `${JAVA_HOME}/conf/security/` and `${JAVA_HOME}/lib/security/`
 
 ### 2.3 Build Artifacts
 - **Container Image**: `java:17-jammy-ubuntu-22.04-fips`
@@ -122,46 +134,66 @@ This document establishes the chain of custody for the java container image, doc
 ### 3.1 Component Integrity Verification
 ```bash
 # Verify wolfSSL FIPS library
-ls -la /usr/local/lib/libwolfssl.so
+ls -la /usr/local/lib/libwolfssl.so*
 
-# Verify wolfProvider installation
-ls -la /usr/lib/*/ossl-modules/libwolfprov.so
+# Verify wolfCrypt JNI and wolfSSL JNI
+ls -la /usr/lib/jni/libwolfcryptjni.so
+ls -la /usr/lib/jni/libwolfssljni.so
+
+# Verify JAR files
+ls -la /usr/share/java/wolfcrypt-jni.jar
+ls -la /usr/share/java/wolfssl-jsse.jar
+ls -la /usr/share/java/filtered-providers.jar
 
 # Verify Java runtime
 java -version
 
-# Verify OpenSSL provider
-openssl list -providers
+# Run integrity check script
+/usr/local/bin/integrity-check.sh
 ```
 
 ### 3.2 FIPS Mode Verification
 ```bash
-# Run validation tests
-cd /app/tests
-./run-all-tests.sh
+# Run entrypoint FIPS validation
+/docker-entrypoint.sh java -version
 
-# Verify Java security policy
-grep "fips.mode" ${JAVA_HOME}/conf/security/java.security
-grep "jdk.tls.disabledAlgorithms" ${JAVA_HOME}/conf/security/java.security
+# Run Java FIPS init check directly
+java -cp "/opt/wolfssl-fips/bin:/usr/share/java/*" FipsInitCheck
+
+# Verify Java security providers
+grep "security.provider" ${JAVA_HOME}/conf/security/java.security
+
+# Verify keystore type
+grep "keystore.type" ${JAVA_HOME}/conf/security/java.security
 ```
 
 ### 3.3 Algorithm Enforcement Verification
 ```bash
-# CLI algorithm tests
-./diagnostic.sh test-openssl-cli-algorithms.sh
+# Run Java algorithm enforcement tests
+./diagnostics/test-java-algorithm-enforcement.sh
 
-# Java algorithm tests
-cd /app/java && java FipsDemoApp
+# Run Java algorithm availability tests
+./diagnostics/test-java-algorithms.sh
+
+# Verify disabled algorithms in policy
+grep "jdk.tls.disabledAlgorithms" ${JAVA_HOME}/conf/security/java.security
+grep "jdk.certpath.disabledAlgorithms" ${JAVA_HOME}/conf/security/java.security
+grep "jdk.jar.disabledAlgorithms" ${JAVA_HOME}/conf/security/java.security
 ```
 
-### 3.4 Audit Log Verification
+### 3.4 Runtime Validation
 ```bash
-# View audit logs
-cat /var/log/fips-audit.log | jq .
+# View container startup logs
+docker logs <container-id>
 
-# Verify logged events
-grep "container_start" /var/log/fips-audit.log
-grep "java_runtime_check" /var/log/fips-audit.log
+# Verify integrity check passed
+docker logs <container-id> | grep "FIPS COMPONENTS INTEGRITY VERIFIED"
+
+# Verify FIPS validation passed
+docker logs <container-id> | grep "All Container Tests Passed"
+
+# Check for any validation failures
+docker logs <container-id> | grep "ERROR"
 ```
 
 ---
@@ -199,13 +231,16 @@ grep "java_runtime_check" /var/log/fips-audit.log
 - **Backup Policy**: Original java.security backed up before modification
 
 ### 5.2 Runtime Controls
-- **FIPS Enforcement**: Strict policy enabled (`fips.mode=strict`)
-- **Algorithm Blocking**:
-  - MD5, SHA-1 blocked via java.security
-  - Weak TLS versions blocked (TLS 1.0, TLS 1.1)
-  - Weak ciphers blocked (RC4, DES, 3DES)
-- **Audit Logging**: All FIPS operations logged to `/var/log/fips-audit.log`
-- **Provider Validation**: wolfProvider status checked on startup
+- **FIPS Enforcement**: Java Security providers enforced (WolfCryptProvider, WolfSSLProvider)
+- **Integrity Verification**: SHA-256 checksums validated on startup via integrity-check.sh
+- **Provider Validation**: FipsInitCheck.java validates providers on container startup
+- **Algorithm Blocking via java.security**:
+  - MD5, MD4, MD2, SHA-1 blocked for TLS/JAR/CertPath operations
+  - DSA, RC4, DES, DESede, Ed25519, Ed448 completely disabled
+  - Weak TLS versions blocked (SSLv3, TLS 1.0, TLS 1.1)
+  - Weak key sizes blocked (RSA < 2048, EC < 224, DH < 2048)
+- **Keystore Format**: WKS (WolfSSL KeyStore) - FIPS-compliant format only
+- **Container Termination**: Validation failures cause container to exit (fail-fast)
 
 ### 5.3 Access Controls
 - **Build Access**: Controlled access to build system
@@ -218,11 +253,14 @@ grep "java_runtime_check" /var/log/fips-audit.log
 ## 6. Compliance Attestations
 
 ### 6.1 FIPS 140-3 Compliance
-- **Certificate**: #4718 (wolfSSL FIPS v5.8.2)
+- **Certificate**: #4718 (wolfSSL FIPS v5.2.3)
 - **Validation**: CMVP (Cryptographic Module Validation Program)
-- **Algorithms**: SHA-256, SHA-384, SHA-512, AES, RSA, ECDSA
-- **Blocked Algorithms**: MD5, SHA-1
-- **Java Security**: fips.mode=strict, crypto.policy=unlimited
+- **JCE Provider**: WolfCryptProvider (com.wolfssl.provider.jce.WolfCryptProvider)
+- **JSSE Provider**: WolfSSLProvider (com.wolfssl.provider.jsse.WolfSSLProvider)
+- **Approved Algorithms**: SHA-256, SHA-384, SHA-512, AES, RSA (≥2048), ECDSA
+- **Blocked Algorithms**: MD5, MD4, MD2, SHA-1 (for most uses), DSA, RC4, DES, DESede
+- **Java Security**: crypto.policy=unlimited, keystore.type=WKS
+- **Provider Priority**: wolfJCE (#1), wolfJSSE (#2) take precedence over Sun providers
 
 ### 6.2 Supply Chain Security
 - **SBOM**: SPDX 2.3 format, all components documented
@@ -231,11 +269,18 @@ grep "java_runtime_check" /var/log/fips-audit.log
 - **Attestations**: SLSA Level 2 build provenance
 
 ### 6.3 Testing and Validation
-- **Test Suite**: 2 comprehensive test suites
-  1. Java FIPS validation
-  2. CLI algorithm enforcement
+- **Build-Time Tests**:
+  1. wolfCrypt native test suite (testwolfcrypt)
+  2. wolfCrypt JNI JUnit tests (ant test)
+  3. wolfSSL JNI JUnit tests (ant test)
+- **Runtime Tests**:
+  1. Library integrity verification (integrity-check.sh)
+  2. Java FIPS provider validation (FipsInitCheck.java)
+  3. Algorithm enforcement tests (test-java-algorithms.sh)
+  4. FIPS validation tests (test-java-fips-validation.sh)
 - **Coverage**: 100% of FIPS POC requirements
 - **Automation**: All tests automated and repeatable
+- **Fail-Fast**: Container exits if any validation fails
 
 ---
 
@@ -273,15 +318,17 @@ grep "java_runtime_check" /var/log/fips-audit.log
 - **Build Duration**: Logged for anomaly detection
 
 ### 8.2 Runtime Audit
-- **Audit Log Location**: `/var/log/fips-audit.log`
-- **Log Format**: JSON structured logging
+- **Entrypoint Logging**: docker-entrypoint.sh outputs to stdout/stderr
+- **Validation Output**: Visible in `docker logs <container-id>`
 - **Events Logged**:
   - Container startup
-  - FIPS validation
-  - Java runtime checks
-  - Provider status checks
+  - Library integrity verification (SHA-256)
+  - FIPS provider validation
+  - Java Security provider checks
+  - WKS keystore validation
   - Command execution
-- **Retention**: Configurable via volume mounts
+- **Fail-Fast Behavior**: Container exits with error code if validation fails
+- **Retention**: Container logs retained per Docker/Kubernetes log retention policy
 
 ### 8.3 Compliance Audit
 - **FIPS Validation**: Tested on every startup
@@ -322,18 +369,22 @@ See `build.sh` in repository
 See `diagnostics/` directory in repository
 
 ### Appendix C: Configuration Files
-- `Dockerfile`: Multi-stage build definition
-- `openssl-wolfprov.cnf`: wolfProvider configuration
-- `java.security.fips`: Java FIPS security policy
-- `entrypoint.sh`: Container entrypoint with validation
+- `Dockerfile`: Multi-stage build definition (6 stages)
+- `java.security`: Java FIPS security policy with wolfSSL providers
+- `docker-entrypoint.sh`: Container entrypoint with integrity and FIPS validation
+- `scripts/integrity-check.sh`: SHA-256 checksum verification script
+- `src/main/FipsInitCheck.java`: Java FIPS provider validation program
 
 ### Appendix D: Java Security Policy
 Key security settings applied:
-- `jdk.tls.disabledAlgorithms`: SSLv3, RC4, DES, MD5withRSA, TLS1.0, TLS1.1, MD5, SHA1
-- `jdk.certpath.disabledAlgorithms`: MD2, MD5, SHA1, weak key sizes
-- `jdk.jar.disabledAlgorithms`: MD2, MD5, SHA1, weak key sizes
+- `security.provider.1`: com.wolfssl.provider.jce.WolfCryptProvider
+- `security.provider.2`: com.wolfssl.provider.jsse.WolfSSLProvider
+- `keystore.type`: WKS (WolfSSL KeyStore format)
+- `jdk.tls.disabledAlgorithms`: SSLv3, TLS1.0, TLS1.1, RC4, DES, MD5withRSA, DSA, Ed25519, Ed448
+- `jdk.certpath.disabledAlgorithms`: MD2, MD4, MD5, RC4, DES, DESede, Ed25519, Ed448, EdDSA, DSA, RSA keySize < 1024
+- `jdk.jar.disabledAlgorithms`: MD2, MD4, MD5, RC4, DES, DESede, Ed25519, Ed448, EdDSA, DSA, RSA keySize < 2048
+- `jdk.tls.ephemeralDHKeySize`: 2048
 - `crypto.policy`: unlimited
-- `fips.mode`: strict
 
 ---
 

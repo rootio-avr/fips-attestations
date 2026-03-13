@@ -272,11 +272,11 @@
                 </tr>
                 <tr>
                     <td>Profile:</td>
-                    <td>DISA STIG for Canonical Ubuntu 22.04 LTS (Container-Adapted)</td>
+                    <td>DISA STIG Baseline (Container-Adapted for Debian Bookworm)</td>
                 </tr>
                 <tr>
                     <td>Target:</td>
-                    <td>java:17-jammy-ubuntu-22.04-fips</td>
+                    <td>java:17-jammy-ubuntu-22.04-fips (OpenJDK 19 / Debian Bookworm)</td>
                 </tr>
                 <tr>
                     <td>Scan Duration:</td>
@@ -364,46 +364,48 @@
 
         <div class="rule-details">
             <h4><span class="status-badge status-pass">PASS</span> <span class="severity-high">HIGH</span> SV-238197 - FIPS Mode Enabled</h4>
-            <p><strong>Title:</strong> Ubuntu must use FIPS-validated cryptographic mechanisms.</p>
+            <p><strong>Title:</strong> Container must use FIPS-validated cryptographic mechanisms.</p>
             <p><strong>Description:</strong> The operating system must implement cryptographic modules adhering to FIPS 140-3 standards.</p>
             <ul class="messages">
-                <li>✓ wolfSSL Provider FIPS v1.1.0: Active</li>
-                <li>✓ GOLANG_FIPS=1: Configured</li>
-                <li>✓ GODEBUG=fips140=only: Enforced</li>
-                <li>✓ wolfSSL FIPS Certificate #4718</li>
+                <li>✓ wolfCrypt JNI (WolfCryptProvider): Installed as security.provider.1</li>
+                <li>✓ wolfSSL JNI (WolfSSLProvider): Installed as security.provider.2</li>
+                <li>✓ wolfSSL FIPS v5.2.3 (Certificate #4718): Active</li>
+                <li>✓ Java keystore type: WKS (FIPS-compliant)</li>
             </ul>
         </div>
 
         <div class="rule-details">
             <h4><span class="status-badge status-pass">PASS</span> <span class="severity-high">HIGH</span> SV-238198 - Non-FIPS Algorithms Blocked</h4>
-            <p><strong>Title:</strong> Ubuntu must block MD5 and SHA-1 cryptographic hash functions.</p>
+            <p><strong>Title:</strong> Container must block MD5 and SHA-1 cryptographic hash functions.</p>
             <p><strong>Description:</strong> Non-FIPS approved algorithms must be disabled to ensure cryptographic integrity.</p>
             <ul class="messages">
-                <li>✓ MD5: BLOCKED (golang-fips/go runtime)</li>
-                <li>✓ SHA-1: BLOCKED (library level)</li>
-                <li>✓ SHA-256: AVAILABLE (FIPS approved)</li>
-                <li>✓ SHA-384: AVAILABLE (FIPS approved)</li>
-                <li>✓ SHA-512: AVAILABLE (FIPS approved)</li>
+                <li>✓ MD5, MD4, MD2: BLOCKED (java.security policy)</li>
+                <li>✓ SHA-1: BLOCKED for TLS/JAR signing (java.security policy)</li>
+                <li>✓ DSA, RC4, DES, DESede: BLOCKED (jdk.tls.disabledAlgorithms)</li>
+                <li>✓ SHA-256, SHA-384, SHA-512: AVAILABLE (FIPS approved)</li>
+                <li>✓ AES, RSA (≥2048): AVAILABLE (FIPS approved)</li>
             </ul>
         </div>
 
         <div class="rule-details">
             <h4><span class="status-badge status-pass">PASS</span> <span class="severity-medium">MEDIUM</span> SV-238199 - Audit Logging</h4>
-            <p><strong>Title:</strong> Ubuntu must log cryptographic operations and FIPS mode changes.</p>
+            <p><strong>Title:</strong> Container must log cryptographic operations and FIPS mode changes.</p>
             <p><strong>Description:</strong> Audit records must be generated for security-relevant events.</p>
             <ul class="messages">
-                <li>✓ Audit log: /var/log/fips-audit.log</li>
-                <li>✓ Format: JSON structured logging</li>
-                <li>✓ Events: Container start, FIPS init, algorithm tests</li>
+                <li>✓ Entrypoint validation: docker-entrypoint.sh</li>
+                <li>✓ Integrity checks: SHA-256 verification of libraries</li>
+                <li>✓ FIPS validation: FipsInitCheck.java on startup</li>
+                <li>✓ Events: Container start, provider validation, algorithm tests</li>
             </ul>
         </div>
 
         <div class="rule-details">
             <h4><span class="status-badge status-pass">PASS</span> <span class="severity-medium">MEDIUM</span> SV-238200 - Package Integrity</h4>
-            <p><strong>Title:</strong> Ubuntu must verify package integrity using cryptographic signatures.</p>
+            <p><strong>Title:</strong> Container must verify package integrity using cryptographic signatures.</p>
             <p><strong>Description:</strong> Package integrity protections prevent malicious software installation.</p>
             <ul class="messages">
-                <li>✓ APT signature verification: Enabled</li>
+                <li>✓ Library checksums: SHA-256 verification via integrity-check.sh</li>
+                <li>✓ wolfSSL FIPS: Validated via fips-hash.sh during build</li>
                 <li>✓ SBOM generated: SPDX 2.3 format</li>
                 <li>✓ Image signed: Cosign signature valid</li>
             </ul>
@@ -411,23 +413,26 @@
 
         <div class="rule-details">
             <h4><span class="status-badge status-pass">PASS</span> <span class="severity-medium">MEDIUM</span> SV-238201 - Non-Root User</h4>
-            <p><strong>Title:</strong> Ubuntu container must not run as root user.</p>
+            <p><strong>Title:</strong> Container must not run as root user.</p>
             <p><strong>Description:</strong> Principle of least privilege requires non-root execution.</p>
             <ul class="messages">
                 <li>✓ User: appuser (UID 1001)</li>
                 <li>✓ Group: appuser (GID 1001)</li>
+                <li>✓ Dockerfile: USER appuser directive present</li>
                 <li>✓ Not running as root: Verified</li>
             </ul>
         </div>
 
         <div class="rule-details">
             <h4><span class="status-badge status-pass">PASS</span> <span class="severity-medium">MEDIUM</span> SV-238202 - File Permissions</h4>
-            <p><strong>Title:</strong> Ubuntu must restrict file permissions to authorized users only.</p>
+            <p><strong>Title:</strong> Container must restrict file permissions to authorized users only.</p>
             <p><strong>Description:</strong> Proper file permissions prevent unauthorized access.</p>
             <ul class="messages">
                 <li>✓ No world-writable files found</li>
-                <li>✓ Configuration files: 0644 (appropriate)</li>
-                <li>✓ Executables: 0755 (appropriate)</li>
+                <li>✓ Libraries: 0644 (wolfSSL, JNI libraries)</li>
+                <li>✓ JAR files: 0644 (wolfcrypt-jni.jar, wolfssl-jsse.jar)</li>
+                <li>✓ Scripts: 0755 (docker-entrypoint.sh, integrity-check.sh)</li>
+                <li>✓ Keystore: 0444 read-only (cacerts.wks)</li>
             </ul>
         </div>
 

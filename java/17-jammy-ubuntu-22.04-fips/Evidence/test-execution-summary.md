@@ -82,7 +82,7 @@ to validate FIPS compliance and security requirements.
 
 **Execution:**
 ```bash
-./diagnostic.sh test-openssl-cli-algorithms.sh
+./diagnostic.sh test-java-algorithms.sh
 ```
 
 **Results:**
@@ -121,7 +121,7 @@ to validate FIPS compliance and security requirements.
 
 **Execution:**
 ```bash
-./diagnostic.sh test-openssl-cli-algorithms.sh
+./diagnostic.sh test-java-algorithms.sh
 ```
 
 **Results:**

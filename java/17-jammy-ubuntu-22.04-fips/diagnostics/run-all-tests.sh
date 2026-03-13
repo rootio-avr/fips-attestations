@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -40,10 +39,10 @@ else
 fi
 echo ""
 
-# Test 3: CLI Algorithm Enforcement (FIPS POC Requirement)
-echo "Running Test 3/4: CLI Algorithm Enforcement (POC Requirement)..."
+# Test 3: Java Algorithm Enforcement (FIPS POC Requirement)
+echo "Running Test 3/4: Java Algorithm Enforcement (POC Requirement)..."
 echo "--------------------------------------------------------------------------------"
-if bash test-openssl-cli-algorithms.sh; then
+if bash test-java-algorithms.sh; then
     TESTS_PASSED=$((TESTS_PASSED + 1))
     echo -e "${GREEN}✓ Test 3 PASSED${NC}"
 else

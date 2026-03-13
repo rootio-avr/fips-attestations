@@ -34,47 +34,79 @@ else
 fi
 
 echo ""
-echo "[Test 3] wolfProvider module exists"
-if [ -f "/usr/lib/x86_64-linux-gnu/ossl-modules/libwolfprov.so" ] || [ -f "/usr/lib/aarch64-linux-gnu/ossl-modules/libwolfprov.so" ]; then
-    echo -e "${GREEN}✓ PASS${NC} - wolfProvider module found"
+echo "[Test 3] wolfCrypt JNI library exists"
+if [ -f "/usr/lib/jni/libwolfcryptjni.so" ]; then
+    echo -e "${GREEN}✓ PASS${NC} - wolfCrypt JNI library found"
     TESTS_PASSED=$((TESTS_PASSED + 1))
 else
-    echo -e "${RED}✗ FAIL${NC} - wolfProvider module not found"
+    echo -e "${RED}✗ FAIL${NC} - wolfCrypt JNI library not found at /usr/lib/jni/libwolfcryptjni.so"
     TESTS_FAILED=$((TESTS_FAILED + 1))
 fi
 
 echo ""
-echo "[Test 4] OpenSSL provider configuration"
-if openssl list -providers 2>/dev/null | grep -qi "fips\|wolf"; then
-    echo -e "${GREEN}✓ PASS${NC} - FIPS provider loaded"
+echo "[Test 4] wolfSSL JNI library exists"
+if [ -f "/usr/lib/jni/libwolfssljni.so" ]; then
+    echo -e "${GREEN}✓ PASS${NC} - wolfSSL JNI library found"
     TESTS_PASSED=$((TESTS_PASSED + 1))
 else
-    echo -e "${RED}✗ FAIL${NC} - FIPS provider not loaded"
+    echo -e "${RED}✗ FAIL${NC} - wolfSSL JNI library not found at /usr/lib/jni/libwolfssljni.so"
     TESTS_FAILED=$((TESTS_FAILED + 1))
 fi
 
 echo ""
-echo "[Test 5] Java demo application exists"
-if [ -f "/app/java/FipsDemoApp.class" ]; then
-    echo -e "${GREEN}✓ PASS${NC} - Java demo compiled"
+echo "[Test 5] wolfCrypt JNI JAR file exists"
+if [ -f "/usr/share/java/wolfcrypt-jni.jar" ]; then
+    echo -e "${GREEN}✓ PASS${NC} - wolfCrypt JNI JAR found"
     TESTS_PASSED=$((TESTS_PASSED + 1))
 else
-    echo -e "${RED}✗ FAIL${NC} - Java demo not found"
+    echo -e "${RED}✗ FAIL${NC} - wolfCrypt JNI JAR not found at /usr/share/java/wolfcrypt-jni.jar"
     TESTS_FAILED=$((TESTS_FAILED + 1))
 fi
 
 echo ""
-echo "[Test 6] Run Java FIPS demo"
+echo "[Test 6] wolfSSL JSSE JAR file exists"
+if [ -f "/usr/share/java/wolfssl-jsse.jar" ]; then
+    echo -e "${GREEN}✓ PASS${NC} - wolfSSL JSSE JAR found"
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+else
+    echo -e "${RED}✗ FAIL${NC} - wolfSSL JSSE JAR not found at /usr/share/java/wolfssl-jsse.jar"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+fi
+
+echo ""
+echo "[Test 7] Filtered providers JAR file exists"
+if [ -f "/usr/share/java/filtered-providers.jar" ]; then
+    echo -e "${GREEN}✓ PASS${NC} - Filtered providers JAR found"
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+else
+    echo -e "${RED}✗ FAIL${NC} - Filtered providers JAR not found at /usr/share/java/filtered-providers.jar"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+fi
+
+echo ""
+echo "[Test 8] FipsInitCheck application exists"
+if [ -f "/opt/wolfssl-fips/bin/FipsInitCheck.class" ]; then
+    echo -e "${GREEN}✓ PASS${NC} - FipsInitCheck application found"
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+else
+    echo -e "${RED}✗ FAIL${NC} - FipsInitCheck not found at /opt/wolfssl-fips/bin/FipsInitCheck.class"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+fi
+
+echo ""
+echo "[Test 9] Run Java FipsInitCheck application"
 echo "--------------------------------------------------------------------------------"
-if cd /app/java && java FipsDemoApp >/tmp/java-output.log 2>&1; then
-    echo -e "${GREEN}✓ PASS${NC} - Java demo executed successfully"
+if java -cp /opt/wolfssl-fips/bin:/usr/share/java/* FipsInitCheck >/tmp/java-output.log 2>&1; then
+    echo -e "${GREEN}✓ PASS${NC} - FipsInitCheck executed successfully"
     TESTS_PASSED=$((TESTS_PASSED + 1))
     echo ""
-    echo "Demo Output:"
-    cat /tmp/java-output.log
+    echo "Application Output (first 30 lines):"
+    head -30 /tmp/java-output.log
+    echo ""
+    echo "... (output truncated, full output in /tmp/java-output.log)"
     echo ""
 else
-    echo -e "${RED}✗ FAIL${NC} - Java demo execution failed"
+    echo -e "${RED}✗ FAIL${NC} - FipsInitCheck execution failed"
     TESTS_FAILED=$((TESTS_FAILED + 1))
     echo "Error output:"
     cat /tmp/java-output.log
@@ -83,21 +115,34 @@ fi
 
 echo ""
 echo "--------------------------------------------------------------------------------"
-echo "[Test 7] Verify MD5 blocked"
-if grep -qi "MD5.*BLOCKED\|MD5.*UNAVAILABLE" /tmp/java-output.log 2>/dev/null; then
-    echo -e "${GREEN}✓ PASS${NC} - MD5 is blocked"
+echo "[Test 10] Verify SHA-256 available via wolfJCE"
+if grep -q "MessageDigest: SHA-256 -> wolfJCE" /tmp/java-output.log 2>/dev/null; then
+    echo -e "${GREEN}✓ PASS${NC} - SHA-256 is available via wolfJCE"
     TESTS_PASSED=$((TESTS_PASSED + 1))
 else
-    echo -e "${YELLOW}⚠ WARNING${NC} - MD5 blocking not confirmed"
+    echo -e "${RED}✗ FAIL${NC} - SHA-256 should be available via wolfJCE"
+    echo "Expected: 'MessageDigest: SHA-256 -> wolfJCE'"
+    grep -i "SHA-256" /tmp/java-output.log || echo "  (no SHA-256 output found)"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
 fi
 
 echo ""
-echo "[Test 8] Verify SHA-256 available"
-if grep -qi "SHA-256.*AVAILABLE\|SHA-256.*SUCCESS\|SHA-256.*PASS" /tmp/java-output.log 2>/dev/null; then
-    echo -e "${GREEN}✓ PASS${NC} - SHA-256 is available"
+echo "[Test 11] Verify wolfJCE provider at position 1"
+if grep -q "wolfJCE provider verified at position 1" /tmp/java-output.log 2>/dev/null; then
+    echo -e "${GREEN}✓ PASS${NC} - wolfJCE provider at position 1"
     TESTS_PASSED=$((TESTS_PASSED + 1))
 else
-    echo -e "${RED}✗ FAIL${NC} - SHA-256 should be available"
+    echo -e "${RED}✗ FAIL${NC} - wolfJCE should be at position 1"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+fi
+
+echo ""
+echo "[Test 12] Verify wolfJSSE provider at position 2"
+if grep -q "wolfJSSE provider verified at position 2" /tmp/java-output.log 2>/dev/null; then
+    echo -e "${GREEN}✓ PASS${NC} - wolfJSSE provider at position 2"
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+else
+    echo -e "${RED}✗ FAIL${NC} - wolfJSSE should be at position 2"
     TESTS_FAILED=$((TESTS_FAILED + 1))
 fi
 

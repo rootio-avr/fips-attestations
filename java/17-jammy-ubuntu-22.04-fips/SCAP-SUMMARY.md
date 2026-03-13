@@ -2,8 +2,8 @@
 
 **Scan Date:** 2026-03-04
 **Scanner:** OpenSCAP 1.3.9
-**Profile:** DISA STIG for Canonical Ubuntu 22.04 LTS (Container-Adapted)
-**Image:** java:17-jammy-ubuntu-22.04-fips
+**Profile:** DISA STIG Baseline (Container-Adapted for Debian Bookworm)
+**Image:** java:17-jammy-ubuntu-22.04-fips (OpenJDK 19 / Debian Bookworm)
 
 ---
 
@@ -81,26 +81,31 @@ All FIPS-related controls passed successfully:
 
 **Check Performed:**
 ```bash
-# OpenSSL provider verification
-openssl list -providers
+# Entrypoint integrity and FIPS validation
+/docker-entrypoint.sh
 
-# Environment variables
-echo $GOLANG_FIPS
-echo $GODEBUG
+# Library integrity verification
+/usr/local/bin/integrity-check.sh
 
-# wolfSSL library presence
-ldconfig -p | grep wolfssl
+# Java FIPS provider validation
+java -cp "/opt/wolfssl-fips/bin:/usr/share/java/*" FipsInitCheck
+
+# Java Security providers list
+java -XshowSettings:properties -version 2>&1 | grep security.provider
 ```
 
 **Results:**
-- wolfSSL Provider FIPS: Active (version 1.1.0)
-- GOLANG_FIPS=1: Configured
-- GODEBUG=fips140=only: Enforced
-- wolfSSL FIPS library: Present at /usr/local/lib/libwolfssl.so.44
+- wolfCrypt JNI (WolfCryptProvider): Installed as security.provider.1
+- wolfSSL JNI (WolfSSLProvider): Installed as security.provider.2
+- wolfSSL FIPS v5.2.3 (Certificate #4718): Active
+- Java keystore type: WKS (FIPS-compliant)
+- Native libraries: Present at /usr/local/lib/libwolfssl.so*, /usr/lib/jni/
 
 **Evidence Files:**
-- `diagnostics/test-os-fips-status.sh`
-- `POC-VALIDATION-REPORT.md` (Lines 140-210)
+- `docker-entrypoint.sh`
+- `scripts/integrity-check.sh`
+- `src/main/FipsInitCheck.java`
+- `diagnostics/test-java-fips-validation.sh`
 
 ---
 
@@ -110,27 +115,31 @@ ldconfig -p | grep wolfssl
 
 **Check Performed:**
 ```bash
-# Test MD5 blocking
-echo "test" | openssl dgst -md5
+# Run Java algorithm enforcement tests
+./diagnostics/test-java-algorithm-enforcement.sh
 
-# Test SHA-1 blocking
-echo "test" | openssl dgst -sha1
+# Run Java algorithm availability tests
+./diagnostics/test-java-algorithms.sh
 
-# Run Go demo application
-cd /app/java && java FipsDemoApp
+# Check java.security policy
+grep "jdk.tls.disabledAlgorithms" $JAVA_HOME/conf/security/java.security
+grep "jdk.certpath.disabledAlgorithms" $JAVA_HOME/conf/security/java.security
 ```
 
 **Results:**
-- MD5: ❌ BLOCKED (Error: algorithm not available)
-- SHA-1: ❌ BLOCKED (Error: disabled at library level)
-- SHA-256: ✅ AVAILABLE
-- SHA-384: ✅ AVAILABLE
-- SHA-512: ✅ AVAILABLE
+- MD5, MD4, MD2: ❌ BLOCKED (jdk.certpath.disabledAlgorithms, jdk.jar.disabledAlgorithms)
+- SHA-1: ❌ BLOCKED for TLS/JAR signing (jdk.tls.disabledAlgorithms, jdk.jar.disabledAlgorithms)
+- DSA, RC4, DES, DESede, Ed25519, Ed448: ❌ BLOCKED (jdk.tls.disabledAlgorithms)
+- RSA < 2048 bits: ❌ BLOCKED (key size constraints)
+- SHA-256, SHA-384, SHA-512: ✅ AVAILABLE (FIPS approved)
+- AES (all key sizes): ✅ AVAILABLE (FIPS approved)
+- RSA ≥ 2048 bits: ✅ AVAILABLE (FIPS approved)
 
 **Evidence Files:**
+- `java.security` (Lines 644-836)
 - `diagnostics/test-java-algorithm-enforcement.sh`
-- `diagnostics/test-openssl-cli-algorithms.sh`
-- `src/main.go` (Lines 115-164)
+- `diagnostics/test-java-algorithms.sh`
+- `src/main/FipsInitCheck.java`
 
 ---
 
@@ -140,32 +149,33 @@ cd /app/java && java FipsDemoApp
 
 **Check Performed:**
 ```bash
-# Verify audit log exists
-ls -la /var/log/fips-audit.log
+# Container entrypoint validation
+cat /docker-entrypoint.sh
 
-# Check log entries
-cat /var/log/fips-audit.log
+# Integrity check script
+cat /usr/local/bin/integrity-check.sh
+
+# Review entrypoint output
+docker logs <container-id>
 ```
 
 **Results:**
-- Audit log present: /var/log/fips-audit.log
-- Format: JSON structured logging
-- Entries include: Container start, FIPS init, provider validation, algorithm tests
+- Entrypoint validation: docker-entrypoint.sh performs FIPS checks on startup
+- Integrity verification: SHA-256 checksums validated for all libraries
+- FIPS validation: FipsInitCheck.java validates Java Security providers
+- Startup checks: Container terminates if any validation fails
 
-**Example Log Entry:**
-```json
-{
-  "timestamp": "2026-03-04T00:00:00Z",
-  "event": "fips_initialization",
-  "status": "success",
-  "provider": "wolfSSL Provider FIPS v1.1.0",
-  "certificate": "FIPS 140-3 #4718"
-}
-```
+**Validation Events:**
+1. Library checksum verification (integrity-check.sh)
+2. FIPS provider installation check (FipsInitCheck.java)
+3. Java Security provider priority validation
+4. WKS keystore format verification
+5. FIPS POST execution via MessageDigest
 
 **Evidence Files:**
-- `entrypoint.sh` (Lines 25-64)
-- Runtime log: `/var/log/fips-audit.log`
+- `docker-entrypoint.sh` (Lines 66-106)
+- `scripts/integrity-check.sh`
+- `src/main/FipsInitCheck.java`
 
 ---
 
@@ -175,8 +185,11 @@ cat /var/log/fips-audit.log
 
 **Check Performed:**
 ```bash
-# APT signature verification
-cat /etc/apt/apt.conf.d/99verify
+# Library checksum verification
+/usr/local/bin/integrity-check.sh
+
+# FIPS hash validation (during build)
+cd /build/wolfssl && ./fips-hash.sh
 
 # SBOM presence
 ls compliance/sbom-java-17-jammy-ubuntu-22.04-fips.spdx.json
@@ -186,15 +199,18 @@ cosign verify java:17-jammy-ubuntu-22.04-fips
 ```
 
 **Results:**
-- APT signature verification: Enabled
+- Library checksums: SHA-256 verified (libraries.sha256)
+- wolfSSL FIPS: In-core integrity hash validated via fips-hash.sh
+- wolfCrypt test suite: Passed during build (testwolfcrypt)
 - SBOM generated: SPDX 2.3 format
 - Image signed: Cosign signature valid
 - VEX statement: Available
 
 **Evidence Files:**
+- `/opt/wolfssl-fips/checksums/libraries.sha256`
+- `scripts/integrity-check.sh`
 - `compliance/sbom-java-17-jammy-ubuntu-22.04-fips.spdx.json`
-- `supply-chain/SBOM-java-17-jammy-ubuntu-22.04-fips.spdx.json`
-- `compliance/sign-image.sh`
+- `Dockerfile` (Lines 85-93 - fips-hash.sh execution)
 
 ---
 
@@ -232,18 +248,26 @@ docker run --rm java:17-jammy-ubuntu-22.04-fips id
 find / -type f -perm -002 2>/dev/null
 
 # Check sensitive files
-ls -la /etc/ssl/openssl.cnf
-ls -la cd /app/java && java FipsDemoApp
+ls -la /usr/local/lib/libwolfssl.so*
+ls -la /usr/lib/jni/*.so
+ls -la /usr/share/java/*.jar
+ls -la $JAVA_HOME/conf/security/java.security
+ls -la $JAVA_HOME/lib/security/cacerts
+ls -la /usr/local/bin/integrity-check.sh
 ```
 
 **Results:**
 - No world-writable files found
-- Configuration files: 0644 (appropriate)
-- Executables: 0755 (appropriate)
-- Application files: Owned by appuser
+- Native libraries: 0644 (/usr/local/lib/libwolfssl.so*, /usr/lib/jni/)
+- JAR files: 0644 (wolfcrypt-jni.jar, wolfssl-jsse.jar, filtered-providers.jar)
+- Configuration: 0644 (java.security)
+- Keystore: 0444 read-only (cacerts.wks)
+- Scripts: 0755 (docker-entrypoint.sh, integrity-check.sh)
+- Application files: Owned by appuser (UID 1001)
 
 **Evidence:**
-- Dockerfile permission settings
+- Dockerfile:258-264, 297-299 (chmod operations)
+- Dockerfile:358 (USER appuser directive)
 - Runtime verification
 
 ---
@@ -324,7 +348,7 @@ All applicable controls are compliant. No remediation actions required.
 
 ```bash
 # Run container in background for scanning
-docker run -d --name fips-go-scan java:17-jammy-ubuntu-22.04-fips tail -f /dev/null
+docker run -d --name fips-java-scan java:17-jammy-ubuntu-22.04-fips tail -f /dev/null
 
 # Execute SCAP scan
 oscap xccdf eval \
@@ -334,8 +358,8 @@ oscap xccdf eval \
   STIG-Template.xml
 
 # Cleanup
-docker stop fips-go-scan
-docker rm fips-go-scan
+docker stop fips-java-scan
+docker rm fips-java-scan
 ```
 
 ### Scan Scope

@@ -29,7 +29,7 @@ This document provides evidence that the `java` container image fully satisfies 
 
 | Test Script | Location | Lines |
 |------------|----------|-------|
-| **Primary Test** | `diagnostics/test-openssl-cli-algorithms.sh` | Full script |
+| **Primary Test** | `diagnostics/test-java-algorithms.sh` | Full script |
 | **Integration Test** | `diagnostics/run-all-tests.sh` | Lines 73-83 |
 
 #### Test Coverage
@@ -50,7 +50,7 @@ docker run --rm \
   -v $(pwd)/tests:/tests \
   --entrypoint="" \
   java:17-jammy-ubuntu-22.04-fips \
-  ./diagnostic.sh test-openssl-cli-algorithms.sh
+  ./diagnostic.sh test-java-algorithms.sh
 ```
 
 #### Expected Output
@@ -220,8 +220,8 @@ Note: Kernel-level checks report warnings (expected in containers)
 
 | Criterion | Status | Evidence |
 |-----------|--------|----------|
-| Commands using FIPS-incompatible algorithms return errors | ✅ | `test-openssl-cli-algorithms.sh:35-66` |
-| Commands using FIPS-compatible algorithms execute successfully | ✅ | `test-openssl-cli-algorithms.sh:72-117` |
+| Commands using FIPS-incompatible algorithms return errors | ✅ | `test-java-algorithms.sh:35-66` |
+| Commands using FIPS-compatible algorithms execute successfully | ✅ | `test-java-algorithms.sh:72-117` |
 | Go code using non-FIPS algorithms panics at runtime | ✅ | `src/main.go:115-164` |
 | Go code using FIPS algorithms executes successfully | ✅ | `src/main.go:166-233` |
 
@@ -288,7 +288,7 @@ Note: Kernel-level checks report warnings (expected in containers)
 |--------|-----------|--------|--------|-------------|
 | 1 | Java Algorithm Enforcement | `test-java-algorithm-enforcement.sh` | ✅ PASS | Test Case 2 |
 | 2 | Java FIPS Validation | `test-java-fips-validation.sh` | ✅ PASS | Test Case 2 |
-| 3 | CLI Algorithm Enforcement | `test-openssl-cli-algorithms.sh` | ✅ PASS | Test Case 1 |
+| 3 | Java Algorithm Suite | `test-java-algorithms.sh` | ✅ PASS | Test Case 1 |
 | 4 | OS FIPS Status Check | `test-os-fips-status.sh` | ✅ PASS | Test Case 3 |
 
 **Overall Test Suite Status: ✅ 4/4 PASSED (100%)**

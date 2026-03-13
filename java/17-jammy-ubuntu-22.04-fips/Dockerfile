@@ -1,373 +1,365 @@
-# Ubuntu FIPS Java Image
-#
-# Purpose: Java-only FIPS-140-3 image with strict policy (MD5 and SHA-1 blocked)
-#
-# Components:
-#   - Ubuntu 22.04 (System OpenSSL 3.0.19)
-#   - wolfSSL FIPS v5.8.2 (Certificate #4718) with --disable-sha
-#   - wolfProvider v1.1.0 (OpenSSL provider)
-#   - OpenJDK 17 (Java runtime)
-#
-# FIPS Architecture:
-#   Java App → Java Crypto API → System OpenSSL 3.0.19 → wolfProvider → wolfSSL FIPS v5
-#
-# Strict Policy:
-#   - MD5: Blocked by wolfSSL/OpenSSL
-#   - SHA-1: Blocked at wolfSSL library level (--disable-sha)
-#   - SHA-256+: Allowed (FIPS approved)
-#
-# Build: docker build -t ubuntu-fips-java:v1.0.0-ubuntu-22.04 --secret id=wolfssl_password,src=.wolfssl_password .
-# Run: docker run --rm ubuntu-fips-java:v1.0.0-ubuntu-22.04
+# syntax=docker/dockerfile:1.7
 
-################################################################################
-# Stage 1: Build wolfSSL FIPS v5
-################################################################################
-FROM ubuntu:22.04 AS wolfssl-builder
+# Multi-stage Dockerfile for FIPS-compliant Java container with wolfSSL
+# Base image: Root.io OpenJDK 19 on Debian Bookworm Slim
 
-ENV DEBIAN_FRONTEND=noninteractive
+# BuildKit secret used for wolfSSL commercial FIPS package password
+# Note: This is passed via --secret and does not appear in build history
+# The password is not persisted in the final image or build logs
 
-# wolfSSL Configuration
-ENV WOLFSSL_URL=https://www.wolfssl.com/comm/wolfssl/wolfssl-5.8.2-commercial-fips-v5.2.3.7z
-ENV WOLFSSL_PREFIX=/usr/local
+# Optional local directories for wolfcrypt-jni and wolfssljni development
+# If specified, these will be copied instead of cloning from GitHub
+ARG WOLFCRYPT_JNI_LOCAL=""
+ARG WOLFSSL_JNI_LOCAL=""
 
-# Install build dependencies (no libssl-dev - we build OpenSSL 3.0.19 from source)
-# Security: Explicitly install gzip and xz-utils to get CVE-2022-1271 fixes
-RUN set -eux; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends \
-        build-essential \
-        ca-certificates \
-        curl \
-        git \
-        autoconf \
-        automake \
-        libtool \
-        p7zip-full \
-        pkg-config \
-        perl \
-        gzip \
-        xz-utils \
-    ; \
-    rm -rf /var/lib/apt/lists/*
+# Repository and branch configuration for wolfcrypt-jni and wolfssljni
+# These allow building from custom repositories or branches
+ARG WOLFCRYPT_JNI_REPO="https://github.com/wolfSSL/wolfcrypt-jni.git"
+ARG WOLFCRYPT_JNI_BRANCH="master"
+ARG WOLFSSL_JNI_REPO="https://github.com/wolfSSL/wolfssljni.git"
+ARG WOLFSSL_JNI_BRANCH="master"
 
-# Build OpenSSL 3.0.19 from source (replaces Ubuntu's 3.0.2)
-RUN set -eux; \
-    ARCH=$(uname -m); \
-    if [ "$ARCH" = "x86_64" ]; then \
-        MULTIARCH="x86_64-linux-gnu"; \
-    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
-        MULTIARCH="aarch64-linux-gnu"; \
-    else \
-        MULTIARCH="x86_64-linux-gnu"; \
-    fi; \
-    echo "Building OpenSSL 3.0.19 for architecture: $ARCH ($MULTIARCH)"; \
-    curl -fsSL https://www.openssl.org/source/openssl-3.0.19.tar.gz -o /tmp/openssl.tar.gz; \
-    tar -xzf /tmp/openssl.tar.gz -C /tmp; \
-    cd /tmp/openssl-3.0.19; \
-    ./Configure \
-        --prefix=/usr \
-        --openssldir=/etc/ssl \
-        --libdir=lib/${MULTIARCH} \
-        shared \
-        no-ssl3 \
-        no-weak-ssl-ciphers; \
-    make -j"$(nproc)"; \
-    make install; \
-    ldconfig; \
-    cd /; \
-    rm -rf /tmp/openssl*; \
-    openssl version; \
-    echo "✓ OpenSSL 3.0.19 installed successfully"
+# ------------------------------------------------------------------------------
+# Stage 1: Build Environment
+# ------------------------------------------------------------------------------
+FROM rootpublic/openjdk:19-jdk-bookworm-slim AS builder
 
-# Download and build wolfSSL FIPS v5
-RUN --mount=type=secret,id=wolfssl_password,required=true \
-    set -eux; \
-    mkdir -p /usr/src; \
-    curl -fsSL "${WOLFSSL_URL}" -o /tmp/wolfssl.7z; \
-    PASSWORD=$(cat /run/secrets/wolfssl_password | tr -d '\n\r'); \
-    7z x /tmp/wolfssl.7z -o/usr/src -p"${PASSWORD}"; \
-    rm /tmp/wolfssl.7z; \
-    find /usr/src -maxdepth 1 -type d -name "wolfssl*" -exec mv {} /usr/src/wolfssl \;; \
-    cd /usr/src/wolfssl; \
-    # STRICT POLICY: --disable-sha blocks SHA-1 at library level
-    ./configure \
-        --prefix=${WOLFSSL_PREFIX} \
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    automake \
+    autoconf \
+    libtool \
+    git \
+    ant \
+    curl \
+    p7zip-full \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up environment
+ENV JAVA_HOME=/usr/local/openjdk-19
+ENV PATH=$JAVA_HOME/bin:$PATH
+
+# Create build directory
+WORKDIR /build
+
+# Download JUnit and Hamcrest for JUnit4 tests (ant test)
+# wolfssljni and wolfcrypt-jni currently require these specific versions
+RUN mkdir -p /build/junit \
+    && curl -L -o /build/junit/junit-4.13.2.jar https://repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar \
+    && curl -L -o /build/junit/hamcrest-core-1.3.jar https://repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
+
+# Set up JUnit environment, JUNIT_HOME is required for wolfssljni and
+# wolfcrypt-jni ant test to find JUnit JARS
+ENV JUNIT_HOME=/build/junit
+ENV CLASSPATH=$JUNIT_HOME/junit-4.13.2.jar:$JUNIT_HOME/hamcrest-core-1.3.jar
+
+# ------------------------------------------------------------------------------
+# Stage 2: Build Native wolfSSL FIPS 140-3 library
+# ------------------------------------------------------------------------------
+FROM builder AS wolfssl-builder
+
+# Download and extract wolfSSL commercial FIPS source using BuildKit secret.
+# This bundle name can change depending on wolfCrypt FIPS OE
+RUN --mount=type=secret,id=wolfssl_pw \
+    PW="$(cat /run/secrets/wolfssl_pw)" \
+    && curl -fLso /tmp/wolfssl-commercial.7z "https://www.wolfssl.com/comm/wolfssl/wolfssl-5.8.2-commercial-fips-v5.2.3.7z" \
+    && 7z x /tmp/wolfssl-commercial.7z -p"$PW" -o/build \
+    && rm -f /tmp/wolfssl-commercial.7z \
+    && ls -la /build/ \
+    && find /build -maxdepth 1 -type d -name "*wolfssl*" -exec mv {} /build/wolfssl \;
+
+# Build wolfSSL v5.2.3 (cert 4718) with JNI support enabled.
+# Running ./fips-hash.sh sets the in-core integrity check hash, after which
+# make needs to be run again to incorporate the updated hash value.
+# We run the wolfCrypt test app to verify native crypto is working after
+# library build.
+# Disabling MD5 since is not a FIPS validated algorithm in cert 4718.
+WORKDIR /build/wolfssl
+RUN ./configure \
         --enable-fips=v5 \
-        --enable-opensslcoexist \
-        --enable-cmac \
-        --enable-keygen \
-        --enable-aesctr \
-        --disable-sha \
-        --enable-aesccm \
-        --enable-x963kdf \
-        --enable-compkey \
-        --enable-certgen \
-        --enable-aeskeywrap \
-        --enable-enckeys \
-        --enable-base16 \
-        --with-eccminsz=192 \
-        CPPFLAGS="-DHAVE_AES_ECB -DWOLFSSL_AES_DIRECT -DWC_RSA_NO_PADDING -DWOLFSSL_PUBLIC_MP -DHAVE_PUBLIC_FFDHE -DWOLFSSL_DH_EXTRA -DWOLFSSL_PSS_LONG_SALT -DWOLFSSL_PSS_SALT_LEN_DISCOVER -DRSA_MIN_SIZE=2048" \
-    ; \
-    make -j"$(nproc)"; \
-    ./fips-hash.sh; \
-    make -j"$(nproc)"; \
-    make install; \
-    ldconfig; \
-    cd /; \
-    rm -rf /usr/src/wolfssl; \
-    echo "wolfSSL FIPS v5 installed successfully (SHA-1 disabled)"
-
-################################################################################
-# Stage 2: Build wolfProvider
-################################################################################
-FROM ubuntu:22.04 AS wolfprov-builder
-
-ENV DEBIAN_FRONTEND=noninteractive
-ENV WOLFSSL_PREFIX=/usr/local
-
-# Install build dependencies (no libssl-dev - we copy OpenSSL 3.0.19 from previous stage)
-RUN set -eux; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends \
-        build-essential \
-        ca-certificates \
-        git \
-        autoconf \
-        automake \
-        libtool \
-        pkg-config \
-    ; \
-    rm -rf /var/lib/apt/lists/*
-
-# Copy OpenSSL 3.0.19 from wolfssl-builder stage
-COPY --from=wolfssl-builder /usr/lib/*/libssl.* /tmp/openssl-libs/
-COPY --from=wolfssl-builder /usr/lib/*/libcrypto.* /tmp/openssl-libs/
-COPY --from=wolfssl-builder /usr/include/openssl /usr/include/openssl
-COPY --from=wolfssl-builder /usr/bin/openssl /usr/bin/openssl
-
-RUN set -eux; \
-    ARCH=$(uname -m); \
-    if [ "$ARCH" = "x86_64" ]; then \
-        MULTIARCH="x86_64-linux-gnu"; \
-    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
-        MULTIARCH="aarch64-linux-gnu"; \
-    else \
-        MULTIARCH="x86_64-linux-gnu"; \
-    fi; \
-    mkdir -p /usr/lib/${MULTIARCH}; \
-    cp -v /tmp/openssl-libs/* /usr/lib/${MULTIARCH}/; \
-    rm -rf /tmp/openssl-libs; \
-    ldconfig; \
-    openssl version; \
-    echo "✓ OpenSSL 3.0.19 copied successfully"
-
-# Copy wolfSSL from wolfssl-builder stage
-COPY --from=wolfssl-builder ${WOLFSSL_PREFIX}/include/wolfssl ${WOLFSSL_PREFIX}/include/wolfssl
-COPY --from=wolfssl-builder ${WOLFSSL_PREFIX}/lib/libwolfssl.* ${WOLFSSL_PREFIX}/lib/
-
-# Register wolfSSL libraries
-RUN echo "/usr/local/lib" > /etc/ld.so.conf.d/wolfssl.conf && ldconfig
-
-# Build wolfProvider v1.1.0
-RUN set -eux; \
-    git clone --depth 1 --branch v1.1.0 \
-        https://github.com/wolfSSL/wolfProvider.git /tmp/wolfProvider; \
-    cd /tmp/wolfProvider; \
-    # Detect architecture for multi-arch support
-    ARCH=$(uname -m); \
-    echo "Building wolfProvider for architecture: $ARCH"; \
-    if [ "$ARCH" = "x86_64" ]; then \
-        MULTIARCH="x86_64-linux-gnu"; \
-    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
-        MULTIARCH="aarch64-linux-gnu"; \
-    else \
-        MULTIARCH="x86_64-linux-gnu"; \
-    fi; \
-    echo "Using multiarch path: $MULTIARCH"; \
-    ./autogen.sh; \
-    ./configure \
-        --with-openssl=/usr \
-        --with-wolfssl=${WOLFSSL_PREFIX} \
+        --enable-jni \
+        --disable-md5 \
         --prefix=/usr/local \
-        LDFLAGS="-L${WOLFSSL_PREFIX}/lib -L/usr/lib/${MULTIARCH}"; \
-    make -j"$(nproc)"; \
-    make install; \
-    mkdir -p /usr/lib/${MULTIARCH}/ossl-modules; \
-    if [ -f ".libs/libwolfprov.so" ]; then \
-        cp -v .libs/libwolfprov.so* /usr/lib/${MULTIARCH}/ossl-modules/; \
-    elif [ -f "src/.libs/libwolfprov.so" ]; then \
-        cp -v src/.libs/libwolfprov.so* /usr/lib/${MULTIARCH}/ossl-modules/; \
-    fi; \
-    ls -la /usr/lib/${MULTIARCH}/ossl-modules/; \
-    cd /; \
-    rm -rf /tmp/wolfProvider; \
-    echo "wolfProvider v1.1.0 installed successfully for $ARCH"
+    && make -j$(nproc) \
+    && echo "Updating FIPS in-core integrity check hash..." \
+    && ./fips-hash.sh \
+    && if [ $? -ne 0 ]; then echo "ERROR: fips-hash.sh failed!"; exit 1; fi \
+    && echo "FIPS hash update completed successfully" \
+    && echo "Rebuilding with updated FIPS hash..." \
+    && make -j$(nproc) \
+    && ./wolfcrypt/test/testwolfcrypt \
+    && if [ $? -ne 0 ]; then echo "ERROR: wolfcrypt tests failed!"; exit 1; fi \
+    && make install
 
-# Verify wolfProvider was built
-RUN set -eux; \
-    ARCH=$(uname -m); \
-    if [ "$ARCH" = "x86_64" ]; then MULTIARCH="x86_64-linux-gnu"; \
-    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then MULTIARCH="aarch64-linux-gnu"; \
-    else MULTIARCH="x86_64-linux-gnu"; fi; \
-    ls -la /usr/lib/${MULTIARCH}/ossl-modules/; \
-    if [ -f "/usr/lib/${MULTIARCH}/ossl-modules/libwolfprov.so" ]; then \
-        echo "✓ wolfProvider built successfully"; \
+# ------------------------------------------------------------------------------
+# Stage 3: Build wolfCrypt JNI (JCE Provider)
+# ------------------------------------------------------------------------------
+FROM builder AS wolfjce-builder
+
+# Copy wolfSSL libraries from previous stage
+COPY --from=wolfssl-builder /usr/local /usr/local
+
+# Update library cache
+RUN ldconfig
+
+# Get build args for repository configuration
+ARG WOLFCRYPT_JNI_LOCAL
+ARG WOLFCRYPT_JNI_REPO
+ARG WOLFCRYPT_JNI_BRANCH
+
+# Setup wolfcrypt-jni source
+RUN if [ -n "$WOLFCRYPT_JNI_LOCAL" ]; then \
+        echo "Local wolfcrypt-jni will be copied from build context"; \
+        mkdir -p /build/wolfcrypt-jni; \
     else \
-        echo "✗ ERROR: wolfProvider not found!"; \
-        exit 1; \
+        echo "Cloning wolfcrypt-jni from $WOLFCRYPT_JNI_REPO (branch: $WOLFCRYPT_JNI_BRANCH)"; \
+        git clone --branch $WOLFCRYPT_JNI_BRANCH $WOLFCRYPT_JNI_REPO /build/wolfcrypt-jni; \
     fi
 
-################################################################################
-# Stage 3: Build Java Application
-################################################################################
-FROM ubuntu:22.04 AS java-builder
+# Copy local wolfcrypt-jni if provided
+COPY wolfcrypt-jni-local/ /build/wolfcrypt-jni-temp/
+RUN if [ -n "$WOLFCRYPT_JNI_LOCAL" ] && [ -d /build/wolfcrypt-jni-temp ]; then \
+        echo "Copying local wolfcrypt-jni source"; \
+        cp -r /build/wolfcrypt-jni-temp/* /build/wolfcrypt-jni/ 2>/dev/null || true; \
+        cp -r /build/wolfcrypt-jni-temp/.* /build/wolfcrypt-jni/ 2>/dev/null || true; \
+    fi && \
+    rm -rf /build/wolfcrypt-jni-temp
 
-ENV DEBIAN_FRONTEND=noninteractive
+WORKDIR /build/wolfcrypt-jni
 
-# Install OpenJDK 17 for compilation
-RUN apt-get update && \
-    apt-get install -y openjdk-17-jdk && \
-    rm -rf /var/lib/apt/lists/*
+# Build native JNI library and Java JAR
+RUN cp makefile.linux makefile \
+    && make \
+    && ant build-jce-release
 
-# Copy Java source
-COPY src/FipsDemoApp.java /app/java/
-COPY src/FipsSecurityProvider.java /app/java/
-COPY src/FipsMessageDigest.java /app/java/
+# Run Junit tests as build sanity check
+RUN echo "Running wolfcrypt-jni tests..." \
+    && export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH \
+    && ant test
 
-# Compile Java application
-RUN cd /app/java && \
-    javac -encoding UTF-8 FipsMessageDigest.java FipsSecurityProvider.java FipsDemoApp.java
+# Convert system CA certificates from JKS to WKS format for FIPS compliance
+# Use the official wolfcrypt-jni script, running from the wolfcrypt-jni directory
+# JKS (and PKCS12) KeyStore formats from Sun uses non-validated cryptography.
+RUN echo "Converting system CA certificates from JKS to WKS format using wolfcrypt-jni script..." \
+    && export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH \
+    && chmod +x examples/certs/systemcerts/system-cacerts-to-wks.sh \
+    && cd examples/certs/systemcerts \
+    && ./system-cacerts-to-wks.sh ../../../lib/wolfcrypt-jni.jar \
+    && if [ ! -f cacerts.wks ]; then echo "ERROR: Failed to convert cacerts to WKS format"; exit 1; fi \
+    && cp cacerts.wks /build/cacerts.wks \
+    && echo "Successfully converted system CA certificates to WKS format"
 
-################################################################################
-# Final Stage: Ubuntu FIPS Java Runtime
-################################################################################
-FROM ubuntu:22.04
+# Copy artifacts
+RUN mkdir -p /build/artifacts/lib /build/artifacts/jar /build/artifacts/certs \
+    && cp lib/libwolfcryptjni.so /build/artifacts/lib/ \
+    && cp lib/wolfcrypt-jni.jar /build/artifacts/jar/wolfcrypt-jni.jar \
+    && cp /build/cacerts.wks /build/artifacts/certs/cacerts.wks
 
-ENV DEBIAN_FRONTEND=noninteractive
+# ------------------------------------------------------------------------------
+# Stage 4: Build wolfSSL JNI (JSSE Provider)
+# ------------------------------------------------------------------------------
+FROM builder AS wolfjsse-builder
 
-# Install dependencies first (while apt works), then remove PAM packages to avoid layer scanning
-# This prevents CVE-2025-8941 false positives from vulnerability scanners
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        openjdk-17-jre-headless \
-        ca-certificates \
-    && rm -rf /var/lib/apt/lists/* \
-    && dpkg --force-all --purge login passwd util-linux \
-    && dpkg --force-all --purge libpam-modules libpam-modules-bin libpam-runtime libpam0g
+# Copy wolfSSL libraries from previous stage
+COPY --from=wolfssl-builder /usr/local /usr/local
 
-# Copy OpenSSL 3.0.19 runtime libraries and binaries from wolfssl-builder
-COPY --from=wolfssl-builder /usr/lib/*/libssl.* /tmp/openssl-libs/
-COPY --from=wolfssl-builder /usr/lib/*/libcrypto.* /tmp/openssl-libs/
-COPY --from=wolfssl-builder /usr/bin/openssl /usr/bin/openssl
+# Update library cache
+RUN ldconfig
 
-RUN set -eux; \
-    ARCH=$(uname -m); \
-    if [ "$ARCH" = "x86_64" ]; then \
-        MULTIARCH="x86_64-linux-gnu"; \
-    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
-        MULTIARCH="aarch64-linux-gnu"; \
+# Get build args for repository configuration
+ARG WOLFSSL_JNI_LOCAL
+ARG WOLFSSL_JNI_REPO
+ARG WOLFSSL_JNI_BRANCH
+
+# Setup wolfssljni source
+RUN if [ -n "$WOLFSSL_JNI_LOCAL" ]; then \
+        echo "Local wolfssljni will be copied from build context"; \
+        mkdir -p /build/wolfssljni; \
     else \
-        MULTIARCH="x86_64-linux-gnu"; \
-    fi; \
-    mkdir -p /usr/lib/${MULTIARCH}; \
-    cp -v /tmp/openssl-libs/* /usr/lib/${MULTIARCH}/; \
-    rm -rf /tmp/openssl-libs; \
-    ldconfig; \
-    dpkg --remove --force-depends libssl3 || true; \
-    openssl version; \
-    echo "✓ OpenSSL 3.0.19 runtime installed (libssl3 3.0.2 package metadata removed)"
+        echo "Cloning wolfssljni from $WOLFSSL_JNI_REPO (branch: $WOLFSSL_JNI_BRANCH)"; \
+        git clone --branch $WOLFSSL_JNI_BRANCH $WOLFSSL_JNI_REPO /build/wolfssljni; \
+    fi
 
-# Set Java environment
-ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
+# Copy local wolfssljni if provided
+COPY wolfssl-jni-local/ /build/wolfssljni-temp/
+RUN if [ -n "$WOLFSSL_JNI_LOCAL" ] && [ -d /build/wolfssljni-temp ]; then \
+        echo "Copying local wolfssljni source"; \
+        cp -r /build/wolfssljni-temp/* /build/wolfssljni/ 2>/dev/null || true; \
+        cp -r /build/wolfssljni-temp/.* /build/wolfssljni/ 2>/dev/null || true; \
+    fi && \
+    rm -rf /build/wolfssljni-temp
 
-# Copy wolfSSL runtime libraries (no headers needed)
-COPY --from=wolfssl-builder /usr/local/lib/libwolfssl.* /usr/local/lib/
+WORKDIR /build/wolfssljni
 
-# Copy compiled Java application
-COPY --from=java-builder /app/java/*.class /app/java/
+# Build native JNI library and Java JAR
+RUN ./java.sh /usr/local \
+    && ant
 
-# Register wolfSSL libraries
-RUN echo "/usr/local/lib" > /etc/ld.so.conf.d/wolfssl.conf && ldconfig
+# Run JUnit tests as build sanity check
+RUN echo "Running wolfssljni tests..." \
+    && export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH \
+    && ant test
 
-# Copy wolfProvider (uses wildcard for architecture flexibility)
-COPY --from=wolfprov-builder /usr/lib/*/ossl-modules/libwolfprov.so* /tmp/wolfprov/
+# Copy artifacts
+RUN mkdir -p /build/artifacts/lib /build/artifacts/jar \
+    && cp lib/libwolfssljni.so /build/artifacts/lib/ \
+    && cp lib/wolfssl-jsse.jar /build/artifacts/jar/wolfssl-jsse.jar
 
-RUN set -eux; \
-    ARCH=$(uname -m); \
-    if [ "$ARCH" = "x86_64" ]; then MULTIARCH="x86_64-linux-gnu"; \
-    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then MULTIARCH="aarch64-linux-gnu"; \
-    else MULTIARCH="x86_64-linux-gnu"; fi; \
-    mkdir -p /usr/lib/${MULTIARCH}/ossl-modules; \
-    cp -v /tmp/wolfprov/* /usr/lib/${MULTIARCH}/ossl-modules/; \
-    rm -rf /tmp/wolfprov; \
-    ls -la /usr/lib/${MULTIARCH}/ossl-modules/
+# ------------------------------------------------------------------------------
+# Stage 5: Java Compilation
+# ------------------------------------------------------------------------------
+FROM builder AS java-compiler
 
-# Configure OpenSSL to use wolfProvider
-COPY openssl-wolfprov.cnf /tmp/openssl-wolfprov.cnf
+# Copy JAR files for compilation
+COPY --from=wolfjce-builder /build/artifacts/jar/wolfcrypt-jni.jar /usr/share/java/
+COPY --from=wolfjsse-builder /build/artifacts/jar/wolfssl-jsse.jar /usr/share/java/
 
-RUN set -eux; \
-    ARCH=$(uname -m); \
-    if [ "$ARCH" = "x86_64" ]; then MULTIARCH="x86_64-linux-gnu"; \
-    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then MULTIARCH="aarch64-linux-gnu"; \
-    else MULTIARCH="x86_64-linux-gnu"; fi; \
-    cp /etc/ssl/openssl.cnf /etc/ssl/openssl.cnf.backup; \
-    sed "s|/usr/lib/x86_64-linux-gnu/|/usr/lib/${MULTIARCH}/|g" /tmp/openssl-wolfprov.cnf > /etc/ssl/openssl.cnf; \
-    rm /tmp/openssl-wolfprov.cnf; \
-    echo "OpenSSL configured to use wolfProvider from openssl-wolfprov.cnf"
+# Copy and compile Java source files
+COPY src/main/FipsInitCheck.java /build/src/main/
+COPY src/providers/*.java /build/src/providers/
 
-# Set OpenSSL configuration
-ENV OPENSSL_CONF=/etc/ssl/openssl.cnf
-ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/usr/lib/aarch64-linux-gnu:/usr/local/lib:/usr/lib
+# Compile main application and filtered providers
+RUN mkdir -p /build/classes \
+    && javac -cp "/usr/share/java/*" -d /build/classes /build/src/main/FipsInitCheck.java \
+    && javac -cp "/usr/share/java/*" -d /build/classes /build/src/providers/*.java \
+    && jar cvf /build/filtered-providers.jar -C /build/classes com
 
-# Configure Java Security Policy for FIPS Mode
-COPY java.security.fips /tmp/java.security.fips
+# ------------------------------------------------------------------------------
+# Stage 6: Runtime Image
+# ------------------------------------------------------------------------------
+FROM rootpublic/openjdk:19-jdk-bookworm-slim
 
-RUN set -eux; \
-    JAVA_SECURITY_FILE="${JAVA_HOME}/conf/security/java.security"; \
-    if [ ! -f "${JAVA_SECURITY_FILE}" ]; then \
-        echo "ERROR: Java security file not found at ${JAVA_SECURITY_FILE}"; \
-        exit 1; \
-    fi; \
-    cp "${JAVA_SECURITY_FILE}" "${JAVA_SECURITY_FILE}.backup"; \
-    \
-    sed -i 's/^jdk.tls.disabledAlgorithms=.*/jdk.tls.disabledAlgorithms=SSLv3, RC4, DES, MD5withRSA, DH keySize < 2048, EC keySize < 224, 3DES_EDE_CBC, anon, NULL, TLS1.0, TLS1.1, MD5, SHA1/' "${JAVA_SECURITY_FILE}"; \
-    sed -i 's/^jdk.certpath.disabledAlgorithms=.*/jdk.certpath.disabledAlgorithms=MD2, MD5, SHA1, RSA keySize < 2048, DSA keySize < 2048, EC keySize < 224/' "${JAVA_SECURITY_FILE}"; \
-    sed -i 's/^jdk.jar.disabledAlgorithms=.*/jdk.jar.disabledAlgorithms=MD2, MD5, SHA1, RSA keySize < 1024, DSA keySize < 1024/' "${JAVA_SECURITY_FILE}"; \
-    \
-    echo "" >> "${JAVA_SECURITY_FILE}"; \
-    echo "# FIPS Mode Configuration" >> "${JAVA_SECURITY_FILE}"; \
-    echo "crypto.policy=unlimited" >> "${JAVA_SECURITY_FILE}"; \
-    echo "fips.mode=strict" >> "${JAVA_SECURITY_FILE}"; \
-    \
-    rm /tmp/java.security.fips; \
-    echo "Java security policy configured for FIPS mode"; \
-    echo "Disabled algorithms: MD5, SHA1 (strict policy)"
+# Create non-root user for security (STIG SV-238201)
+RUN groupadd -g 1001 appuser \
+    && useradd -r -u 1001 -g appuser -m -d /home/appuser -s /bin/bash appuser
 
-# Copy entrypoint script
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+# No additional runtime dependencies needed
 
-WORKDIR /app
+# Copy native wolfSSL library from wolfssl-builder stage
+COPY --from=wolfssl-builder /usr/local/lib/libwolfssl.so* /usr/local/lib/
 
-# Harden: remove vulnerable packages not needed at runtime, then wipe package manager
-# Security: Removing packages to eliminate CVEs from runtime:
-#   - gzip, xz-utils: CVE-2022-1271
-# Note: login, passwd, util-linux (CVE-2021-3995) already removed in first RUN command
-# Note: libpam-* (CVE-2025-8941) already removed in first RUN command
-RUN dpkg --force-all --purge \
-        tar gpgv \
-        gzip xz-utils \
-        libavahi-client3 libavahi-common3 libavahi-common-data \
-        libdbus-1-3 dbus libexpat1 \
-        libncurses6 libncursesw6 ncurses-base ncurses-bin \
-        libgcrypt20 libzstd1 \
-        libsystemd0 libudev1 \
-    || true \
-    && sed -i '/^Package: \(gzip\|xz-utils\)/,/^$/d' /var/lib/dpkg/status 2>/dev/null || true \
-    && rm -rf /var/lib/dpkg /var/log/dpkg.log /var/lib/apt /usr/bin/dpkg /usr/bin/apt*
+# Copy native JNI libraries to temporary location from builder stages
+COPY --from=wolfjce-builder /build/artifacts/lib/libwolfcryptjni.so /usr/lib/jni/
+COPY --from=wolfjsse-builder /build/artifacts/lib/libwolfssljni.so /usr/lib/jni/
 
-USER 1001
+# Copy JAR files to /usr/share/java
+RUN mkdir -p /usr/share/java
+COPY --from=wolfjce-builder /build/artifacts/jar/wolfcrypt-jni.jar /usr/share/java/
+COPY --from=wolfjsse-builder /build/artifacts/jar/wolfssl-jsse.jar /usr/share/java/
+COPY --from=java-compiler /build/filtered-providers.jar /usr/share/java/
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD []
+# Set up environment
+ENV JAVA_HOME=/usr/local/openjdk-19
+ENV PATH=$JAVA_HOME/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/lib:/usr/lib/jni
+ENV JAVA_LIBRARY_PATH=/usr/lib/jni:/usr/local/lib
+
+# Copy converted WKS CA certificates file for FIPS compliance
+# Replace the default JKS cacerts with WKS format required by wolfJSSE
+COPY --from=wolfjce-builder /build/artifacts/certs/cacerts.wks $JAVA_HOME/lib/security/cacerts
+RUN ldconfig \
+    && chmod 644 /usr/local/lib/libwolfssl.so* \
+    && find /usr/lib -name "libwolf*.so" -exec chmod 644 {} \; \
+    && chmod 644 /usr/share/java/wolfcrypt-jni.jar \
+    && chmod 644 /usr/share/java/wolfssl-jsse.jar \
+    && chmod 644 /usr/share/java/filtered-providers.jar \
+    && chmod 444 $JAVA_HOME/lib/security/cacerts \
+    && echo "WKS cacerts file set to read-only"
+
+# Create directory structure and generate integrity checksums for all
+# library files.
+RUN mkdir -p /opt/wolfssl-fips/bin \
+    && mkdir -p /opt/wolfssl-fips/checksums \
+    && { \
+        sha256sum /usr/local/lib/libwolfssl.so*; \
+        sha256sum /usr/lib/libwolfcryptjni.so; \
+        sha256sum /usr/lib/libwolfssljni.so; \
+        sha256sum /usr/share/java/wolfcrypt-jni.jar; \
+        sha256sum /usr/share/java/wolfssl-jsse.jar; \
+        sha256sum /usr/share/java/filtered-providers.jar; \
+    } > /opt/wolfssl-fips/checksums/libraries.sha256 \
+    && chmod 644 /opt/wolfssl-fips/checksums/*.sha256
+
+# Copy pre-compiled Java classes to /opt/wolfssl-fips/bin.
+COPY --from=java-compiler /build/classes /opt/wolfssl-fips/bin/
+
+# Copy pre-defined FIPS 140-3 compliant java.security configuration.
+# This replaces the base image java.security with our FIPS-compliant version.
+# Save original file backup in image for inspection if needed.
+RUN cp $JAVA_HOME/conf/security/java.security $JAVA_HOME/conf/security/java.security.backup
+COPY java.security $JAVA_HOME/conf/security/java.security
+RUN chmod 644 $JAVA_HOME/conf/security/java.security
+
+# Copy scripts and set permissions
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+COPY scripts/integrity-check.sh /usr/local/bin/integrity-check.sh
+RUN chmod 755 /docker-entrypoint.sh \
+    && chmod 755 /usr/local/bin/integrity-check.sh \
+    && find /opt/wolfssl-fips/bin -name "*.class" -exec chmod 644 {} \;
+
+# Environment variables with defaults
+ENV JAVA_OPTS="-Xmx512m"
+ENV WOLFJCE_DEBUG=false
+ENV WOLFJSSE_DEBUG=false
+ENV WOLFJSSE_ENGINE_DEBUG=false
+ENV FIPS_CHECK=true
+
+# JVM flags for the filtered providerw which wrap Sun providers for non-crypto
+# services. These flags are required because FilteredSun* providers use
+# reflection to access internal Sun provider classes and copy some service
+# definitions.
+#
+# --add-modules=jdk.crypto.ec
+#       Required for: Loading the EC crypto module containing SunEC provider
+#       Used by: FilteredSunEC.java - ClassLoader.getPlatformClassLoader()
+#           to load sun.security.ec.SunEC class
+#
+# --add-exports=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED
+#       Required for: Exporting sun.security.ec package classes for access
+#       Used by: FilteredSunEC.java - Class.forName("sun.security.ec.SunEC")
+#           to instantiate the original SunEC provider
+#
+# --add-opens=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED
+#       Required for: Reflection access to SunEC provider internals
+#       Used by: FilteredSunEC.java - originalService.newInstance()
+#           delegation for EC KeyFactory and AlgorithmParameters
+#
+# --add-opens=java.base/java.security=ALL-UNNAMED
+#       Required for: Reflection access to Provider.Service private fields
+#       Used by: All FilteredSun*.java - accessing private fields:
+#           className, aliases, attributes via getDeclaredField()
+#
+# --add-opens=java.base/sun.security.provider=ALL-UNNAMED
+#       Required for: Access to internal Sun provider classes
+#       Used by: FilteredSun.java - Class.forName("sun.security.provider.Sun")
+#           to load and instantiate original SUN provider
+#
+# --add-opens=java.base/sun.security.util=ALL-UNNAMED
+#       Required for: Access to UString class used in service attribute keys
+#       Used by: All FilteredSun*.java - stringField.get(key)
+#           to extract string values from UString attribute keys
+#
+# --add-opens=java.base/sun.security.rsa=ALL-UNNAMED
+#       Required for: Access to internal SunRsaSign provider classes
+#       Used by: FilteredSunRsaSign.java - Class.forName("sun.security.rsa.SunRsaSign")
+#                to load and instantiate original SunRsaSign provider
+ENV JAVA_TOOL_OPTIONS="\
+--add-modules=jdk.crypto.ec \
+--add-exports=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED \
+--add-opens=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED \
+--add-opens=java.base/java.security=ALL-UNNAMED \
+--add-opens=java.base/sun.security.provider=ALL-UNNAMED \
+--add-opens=java.base/sun.security.util=ALL-UNNAMED \
+--add-opens=java.base/sun.security.rsa=ALL-UNNAMED \
+-Djava.library.path=/usr/lib/jni:/usr/local/lib"
+
+# Switch to non-root user for runtime (STIG SV-238201)
+USER appuser
+
+# Set entrypoint
+ENTRYPOINT ["/docker-entrypoint.sh"]
+
+# Default command for testing
+CMD ["java", "-version"]
+

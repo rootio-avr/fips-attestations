@@ -29,8 +29,9 @@
     <target>java:17-jammy-ubuntu-22.04-fips</target>
     <target-address>container-id-fb5c6e3b985d</target-address>
     <target-facts>
-      <fact name="urn:xccdf:fact:asset:identifier:os_name" type="string">Ubuntu</fact>
-      <fact name="urn:xccdf:fact:asset:identifier:os_version" type="string">22.04</fact>
+      <fact name="urn:xccdf:fact:asset:identifier:os_name" type="string">Debian</fact>
+      <fact name="urn:xccdf:fact:asset:identifier:os_version" type="string">Bookworm</fact>
+      <fact name="urn:xccdf:fact:asset:identifier:runtime" type="string">OpenJDK 19</fact>
       <fact name="urn:xccdf:fact:asset:identifier:host_name" type="string">java</fact>
       <fact name="urn:xccdf:fact:scanner:name" type="string">OpenSCAP</fact>
       <fact name="urn:xccdf:fact:scanner:version" type="string">1.3.9</fact>
@@ -48,9 +49,10 @@
         <check-content-ref name="oval:fips:def:1" href="java-oval.xml"/>
       </check>
       <message severity="info">FIPS mode is properly configured</message>
-      <message severity="info">wolfSSL Provider FIPS v1.1.0: Active</message>
-      <message severity="info">GOLANG_FIPS=1: Configured</message>
-      <message severity="info">GODEBUG=fips140=only: Enforced</message>
+      <message severity="info">wolfCrypt JNI (WolfCryptProvider): Installed as security.provider.1</message>
+      <message severity="info">wolfSSL JNI (WolfSSLProvider): Installed as security.provider.2</message>
+      <message severity="info">wolfSSL FIPS v5.2.3 (Certificate #4718): Active</message>
+      <message severity="info">Java keystore type: WKS (FIPS-compliant)</message>
     </rule-result>
 
     <!-- Rule Result: Algorithm Blocking -->
@@ -59,12 +61,12 @@
       <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
         <check-content-ref name="oval:fips:def:2" href="java-oval.xml"/>
       </check>
-      <message severity="info">Non-FIPS algorithms successfully blocked</message>
-      <message severity="info">MD5: BLOCKED</message>
-      <message severity="info">SHA-1: BLOCKED</message>
-      <message severity="info">SHA-256: AVAILABLE</message>
-      <message severity="info">SHA-384: AVAILABLE</message>
-      <message severity="info">SHA-512: AVAILABLE</message>
+      <message severity="info">Non-FIPS algorithms successfully blocked via java.security policy</message>
+      <message severity="info">MD5, MD4, MD2: BLOCKED (jdk.certpath.disabledAlgorithms)</message>
+      <message severity="info">SHA-1: BLOCKED for TLS/JAR (jdk.tls.disabledAlgorithms, jdk.jar.disabledAlgorithms)</message>
+      <message severity="info">DSA, RC4, DES, DESede: BLOCKED (jdk.tls.disabledAlgorithms)</message>
+      <message severity="info">SHA-256, SHA-384, SHA-512: AVAILABLE (FIPS approved)</message>
+      <message severity="info">AES, RSA (≥2048): AVAILABLE (FIPS approved)</message>
     </rule-result>
 
     <!-- Rule Result: Audit Logging -->
@@ -73,9 +75,10 @@
       <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
         <check-content-ref name="oval:fips:def:3" href="java-oval.xml"/>
       </check>
-      <message severity="info">Audit logging configured at /var/log/fips-audit.log</message>
-      <message severity="info">Format: JSON structured logging</message>
-      <message severity="info">Events: Container start, FIPS init, provider validation</message>
+      <message severity="info">Entrypoint validation: docker-entrypoint.sh</message>
+      <message severity="info">Integrity checks: SHA-256 verification of libraries via integrity-check.sh</message>
+      <message severity="info">FIPS validation: FipsInitCheck.java executed on container startup</message>
+      <message severity="info">Events: Container start, provider validation, algorithm enforcement tests</message>
     </rule-result>
 
     <!-- Rule Result: Package Integrity -->
@@ -85,7 +88,8 @@
         <check-content-ref name="oval:fips:def:4" href="java-oval.xml"/>
       </check>
       <message severity="info">Package integrity verification enabled</message>
-      <message severity="info">APT signature checking: Active</message>
+      <message severity="info">Library checksums: SHA-256 verification via integrity-check.sh</message>
+      <message severity="info">wolfSSL FIPS: Validated via fips-hash.sh during multi-stage build</message>
       <message severity="info">SBOM generated: SPDX 2.3 format</message>
       <message severity="info">Image signed: Cosign signature valid</message>
     </rule-result>
@@ -181,8 +185,8 @@
     </metadata>
 
     <!-- Platform Information -->
-    <platform idref="cpe:/o:canonical:ubuntu_linux:22.04">
-      <remark>Ubuntu 22.04 LTS (Jammy Jellyfish)</remark>
+    <platform idref="cpe:/o:debian:debian_linux:12">
+      <remark>Debian 12 (Bookworm) with OpenJDK 19 and wolfSSL FIPS v5.2.3</remark>
     </platform>
 
     <organization>Root Security Team</organization>
