@@ -2,14 +2,6 @@
 
 This directory contains a Docker image that extends the base FIPS Java image with pre-compiled demonstration applications.
 
-## Overview
-
-The demos-image builds a separate Docker image FROM the base FIPS Java image, similar to how `diagnostics/test-images/basic-test-image` is structured. This approach:
-
-- ✅ Keeps the base image lean and production-ready
-- ✅ Separates demo/test code from production code
-- ✅ Allows independent versioning and updates
-- ✅ Follows Docker best practices (separation of concerns)
 
 ## Documentation
 
