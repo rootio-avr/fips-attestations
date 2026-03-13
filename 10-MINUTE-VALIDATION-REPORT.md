@@ -22,10 +22,6 @@ docker images | grep -E "^(golang|java)"
 ```
 
 **Result:** ✅ **PASSED**
-```
-java    17-jammy-ubuntu-22.04-fips    72c9baf1238f   20 hours ago   349MB
-golang      1.25-jammy-ubuntu-22.04-fips    fb5c6e3b985d   22 hours ago   679MB
-```
 
 **Verification:** Both images are available and ready for testing.
 
@@ -50,15 +46,335 @@ docker run --rm golang:1.25-jammy-ubuntu-22.04-fips validate
 
 **Command:**
 ```bash
-docker run --rm java:17-jammy-ubuntu-22.04-fips validate
+docker run --rm cr.root.io/java:19-jdk-bookworm-slim-fips
 ```
 
 **Result:** ✅ **PASSED**
-- OpenSSL 3.0.19: ✓
-- wolfProvider FIPS: ✓ ACTIVE
-- Java Runtime: ✓ AVAILABLE (OpenJDK 17.0.18)
-- wolfSSL FIPS Integrity: ✓
+```
+Digest: sha256:73047fef8b4f7345504ef0478682edbce7f69150dbfd88eafcc22ffb264a29e9
+Status: Downloaded newer image for cr.root.io/java:19-jdk-bookworm-slim-fips
+WARNING: The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
 
+================================================================================
+|                       Library Checksum Verification                          |
+================================================================================
+
+Verifying all wolfSSL library files (libwolfssl.so, libwolfcryptjni.so, libwolfssljni.so, wolfcrypt-jni.jar, wolfssl-jsse.jar)...
+   libwolfssl.so
+   libwolfssl.so.44
+   libwolfssl.so.44.0.0
+   wolfcrypt-jni.jar
+   wolfssl-jsse.jar
+   filtered-providers.jar
+
+ALL FIPS COMPONENTS INTEGRITY VERIFIED
+
+================================================================================
+|                        FIPS Container Verification                           |
+================================================================================
+
+JAVA_TOOL_OPTIONS: --add-modules=jdk.crypto.ec --add-exports=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED --add-opens=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/sun.security.provider=ALL-UNNAMED --add-opens=java.base/sun.security.util=ALL-UNNAMED --add-opens=java.base/sun.security.rsa=ALL-UNNAMED -Djava.library.path=/usr/lib/jni:/usr/local/lib
+Picked up JAVA_TOOL_OPTIONS: --add-modules=jdk.crypto.ec --add-exports=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED --add-opens=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/sun.security.provider=ALL-UNNAMED --add-opens=java.base/sun.security.util=ALL-UNNAMED --add-opens=java.base/sun.security.rsa=ALL-UNNAMED -Djava.library.path=/usr/lib/jni:/usr/local/lib
+
+Security Manager: None
+Loading original SUN...
+Original SUN loaded. Services available: 53
+Copying CertPathBuilder.PKIX with class: sun.security.provider.certpath.SunCertPathBuilder, attributes: null
+Copying Configuration.JavaLoginConfig with class: sun.security.provider.ConfigFile$Spi, attributes: null
+Copying CertStore.Collection with class: sun.security.provider.certpath.CollectionCertStore, attributes: null
+Copying CertificateFactory.X.509 with class: sun.security.provider.X509Factory, attributes: null
+Copying CertStore.com.sun.security.IndexedCollection with class: sun.security.provider.certpath.IndexedCollectionCertStore, attributes: null
+Copying Policy.JavaPolicy with class: sun.security.provider.PolicySpiFile, attributes: null
+FilteredSun initialized successfully with 6 services.
+Loading original SunRsaSign...
+Original SunRsaSign loaded. Services available: 19
+Copying KeyFactory.RSASSA-PSS with class: sun.security.rsa.RSAKeyFactory$PSS, attributes: java.security.interfaces.RSAPublicKey|java.security.interfaces.RSAPrivateKey
+Copying KeyFactory.RSA with class: sun.security.rsa.RSAKeyFactory$Legacy, attributes: null
+FilteredSunRsaSign initialized successfully with 2 services.
+Loading original SunEC...
+Original SunEC loaded. Services available: 42
+Copying KeyFactory.EC with class: sun.security.ec.ECKeyFactory, attributes: java.security.interfaces.ECPublicKey|java.security.interfaces.ECPrivateKey
+Copying AlgorithmParameters.EC with class: sun.security.util.ECParameters, attributes: java.security.interfaces.ECPublicKey|java.security.interfaces.ECPrivateKey
+FilteredSunEC initialized successfully with 2 services.
+
+Currently loaded security providers:
+	1. wolfJCE v1.9 - wolfCrypt JCE Provider
+	2. wolfJSSE v1.16 - wolfSSL JSSE Provider
+	3. FilteredSun v1.0 - Filtered SUN for non-crypto ops
+	4. FilteredSunRsaSign v1.0 - Filtered SunRsaSign for non-crypto ops
+	5. FilteredSunEC v1.0 - Filtered SunEC for non-crypto ops
+	6. SunJGSS v19.0 - Sun (Kerberos v5, SPNEGO)
+	7. SunSASL v19.0 - Sun SASL provider(implements client mechanisms for: DIGEST-MD5, EXTERNAL, PLAIN, CRAM-MD5, NTLM; server mechanisms for: DIGEST-MD5, CRAM-MD5, NTLM)
+	8. XMLDSig v19.0 - XMLDSig (DOM XMLSignatureFactory; DOM KeyInfoFactory; C14N 1.0, C14N 1.1, Exclusive C14N, Base64, Enveloped, XPath, XPath2, XSLT TransformServices)
+	9. JdkLDAP v19.0 - JdkLDAP Provider (implements LDAP CertStore)
+	10. JdkSASL v19.0 - JDK SASL provider(implements client and server mechanisms for GSSAPI)
+
+Verifying wolfSSL providers are registered...
+	wolfJCE provider verified at position 1
+	wolfJSSE provider verified at position 2
+
+Verifying system CA certs are in WKS format...
+	Checking cacerts file: /usr/local/openjdk-19/lib/security/cacerts
+	Successfully loaded 140 certificates from WKS format cacerts
+	System CA certificates verified as WKS format
+
+Forcing FIPS POST via MessageDigest invocation
+	FIPS POST test completed successfully
+
+Running sanity checks on java.security
+	Reading from: /usr/local/openjdk-19/conf/security/java.security
+	Active security providers (from java.security file):
+	 1. com.wolfssl.provider.jce.WolfCryptProvider                     [Expected / FIPS]
+	 2. com.wolfssl.provider.jsse.WolfSSLProvider                      [Expected / FIPS]
+	 3. com.wolfssl.security.providers.FilteredSun                     [Expected / filtered Sun provider]
+	 4. com.wolfssl.security.providers.FilteredSunRsaSign              [Expected / filtered SunRsaSign provider]
+	 5. com.wolfssl.security.providers.FilteredSunEC                   [Expected / filtered SunEC provider]
+	 6. SunJGSS                                                        [GSS-API/Kerberos, delgates to JCE]
+	 7. SunSASL                                                        [SASL, delgates to JCE]
+	 8. XMLDSig                                                        [XML Digital Signature, delgates to JCE]
+	 9. JdkLDAP                                                        [JDK LDAP, delegates to JSSE for LDAPS]
+	10. JdkSASL                                                        [JDK SASL, delegates to JCE]
+
+	Commented/disabled security providers (from java.security file):
+	No disabled security providers found.
+
+Testing wolfSSL algorithm class instantiation...
+	MessageDigest: SHA-1 -> wolfJCE
+	MessageDigest: SHA-224 -> wolfJCE
+	MessageDigest: SHA-256 -> wolfJCE
+	MessageDigest: SHA-384 -> wolfJCE
+	MessageDigest: SHA-512 -> wolfJCE
+	MessageDigest: SHA3-224 -> wolfJCE
+	MessageDigest: SHA3-256 -> wolfJCE
+	MessageDigest: SHA3-384 -> wolfJCE
+	MessageDigest: SHA3-512 -> wolfJCE
+	MessageDigest: MD5 -> UNAVAILABLE (correctly not available in FIPS mode)
+	Mac: HmacSHA1 -> wolfJCE
+	Mac: HmacSHA224 -> wolfJCE
+	Mac: HmacSHA256 -> wolfJCE
+	Mac: HmacSHA384 -> wolfJCE
+	Mac: HmacSHA512 -> wolfJCE
+	Mac: HmacSHA3-224 -> wolfJCE
+	Mac: HmacSHA3-256 -> wolfJCE
+	Mac: HmacSHA3-384 -> wolfJCE
+	Mac: HmacSHA3-512 -> wolfJCE
+	Mac: AESCMAC -> wolfJCE
+	Mac: AES-CMAC -> wolfJCE
+	Mac: AESGMAC -> wolfJCE
+	Mac: AES-GMAC -> wolfJCE
+	Mac: HmacMD5 -> UNAVAILABLE (correctly not available in FIPS mode)
+	Cipher: AES/CBC/NoPadding -> wolfJCE
+	Cipher: AES/CBC/PKCS5Padding -> wolfJCE
+	Cipher: AES/ECB/NoPadding -> wolfJCE
+	Cipher: AES/ECB/PKCS5Padding -> wolfJCE
+	Cipher: AES/CTR/NoPadding -> wolfJCE
+	Cipher: AES/OFB/NoPadding -> wolfJCE
+	Cipher: AES/GCM/NoPadding -> wolfJCE
+	Cipher: AES/CCM/NoPadding -> wolfJCE
+	Cipher: RSA -> wolfJCE
+	Cipher: RSA/ECB/PKCS1Padding -> wolfJCE
+	Cipher: DES/CBC/NoPadding -> UNAVAILABLE (correctly not available in FIPS mode)
+	Cipher: DESede/CBC/NoPadding -> UNAVAILABLE (correctly not available in FIPS mode)
+	Cipher: DESede/ECB/NoPadding -> UNAVAILABLE (correctly not available in FIPS mode)
+	Signature: SHA1withRSA -> wolfJCE
+	Signature: SHA224withRSA -> wolfJCE
+	Signature: SHA256withRSA -> wolfJCE
+	Signature: SHA384withRSA -> wolfJCE
+	Signature: SHA512withRSA -> wolfJCE
+	Signature: SHA1withECDSA -> wolfJCE
+	Signature: SHA224withECDSA -> wolfJCE
+	Signature: SHA256withECDSA -> wolfJCE
+	Signature: SHA384withECDSA -> wolfJCE
+	Signature: SHA512withECDSA -> wolfJCE
+	Signature: SHA3-224withRSA -> wolfJCE
+	Signature: SHA3-256withRSA -> wolfJCE
+	Signature: SHA3-384withRSA -> wolfJCE
+	Signature: SHA3-512withRSA -> wolfJCE
+	Signature: SHA3-224withECDSA -> wolfJCE
+	Signature: SHA3-256withECDSA -> wolfJCE
+	Signature: SHA3-384withECDSA -> wolfJCE
+	Signature: SHA3-512withECDSA -> wolfJCE
+	Signature: RSASSA-PSS -> wolfJCE
+	Signature: SHA224withRSA/PSS -> wolfJCE
+	Signature: SHA256withRSA/PSS -> wolfJCE
+	Signature: SHA384withRSA/PSS -> wolfJCE
+	Signature: SHA512withRSA/PSS -> wolfJCE
+	Signature: MD5withRSA -> UNAVAILABLE (correctly not available in FIPS mode)
+	SSLContext: DEFAULT -> wolfJSSE
+	SSLContext: SSL -> wolfJSSE
+	SSLContext: TLS -> wolfJSSE
+	SSLContext: TLSv1.2 -> wolfJSSE
+	SSLContext: TLSv1.3 -> wolfJSSE
+	KeyManagerFactory: PKIX -> wolfJSSE
+	KeyManagerFactory: X509 -> wolfJSSE
+	KeyManagerFactory: SunX509 -> wolfJSSE
+	TrustManagerFactory: PKIX -> wolfJSSE
+	TrustManagerFactory: X509 -> wolfJSSE
+	TrustManagerFactory: SunX509 -> wolfJSSE
+
+	Algorithm class instantiation results:
+		Tests passed: 72/72
+	All expected FIPS algorithm classes instantiated successfully with correct providers
+
+Verifying all JCA algorithms use wolfSSL providers...
+	MessageDigest algorithms (12 found):
+		SHA3-512 -> wolfJCE
+		SHA1 -> wolfJCE
+		SHA-1 -> wolfJCE
+		SHA-384 -> wolfJCE
+		SHA3-384 -> wolfJCE
+		SHA-224 -> wolfJCE
+		SHA-256 -> wolfJCE
+		SHA3-256 -> wolfJCE
+		SHA -> wolfJCE
+		SHA-512 -> wolfJCE
+		MD5 -> wolfJCE
+		SHA3-224 -> wolfJCE
+	Mac algorithms (11 found):
+		HMACSHA3-384 -> wolfJCE
+		AESGMAC -> wolfJCE
+		HMACSHA512 -> wolfJCE
+		HMACSHA3-256 -> wolfJCE
+		HMACSHA3-224 -> wolfJCE
+		HMACSHA3-512 -> wolfJCE
+		HMACSHA384 -> wolfJCE
+		HMACSHA1 -> wolfJCE
+		HMACSHA256 -> wolfJCE
+		HMACSHA224 -> wolfJCE
+		AESCMAC -> wolfJCE
+	Cipher algorithms (14 found):
+		AES/CCM/NOPADDING -> wolfJCE
+		RSA -> wolfJCE
+		AES/ECB/NOPADDING -> wolfJCE
+		AES/GCM/NOPADDING -> wolfJCE
+		AES/CBC/NOPADDING -> wolfJCE
+		AES/CBC/PKCS5PADDING -> wolfJCE
+		RSA/ECB/OAEPWITHSHA-256ANDMGF1PADDING -> wolfJCE
+		RSA/ECB/PKCS1PADDING -> wolfJCE
+		AES -> wolfJCE
+		AES/CTR/NOPADDING -> wolfJCE
+		AES/ECB/PKCS5PADDING -> wolfJCE
+		AES/CTS/NOPADDING -> wolfJCE
+		AES/OFB/NOPADDING -> wolfJCE
+		RSA/ECB/OAEPWITHSHA-1ANDMGF1PADDING -> wolfJCE
+	Signature algorithms (30 found):
+		SHA384WITHECDSA -> wolfJCE
+		SHA3-512WITHECDSAINP1363FORMAT -> wolfJCE
+		SHA256WITHECDSAINP1363FORMAT -> wolfJCE
+		SHA384WITHRSA/PSS -> wolfJCE
+		SHA3-512WITHECDSA -> wolfJCE
+		SHA1WITHRSA -> wolfJCE
+		SHA3-384WITHECDSAINP1363FORMAT -> wolfJCE
+		SHA512WITHRSA -> wolfJCE
+		SHA512WITHRSA/PSS -> wolfJCE
+		SHA3-512WITHRSA -> wolfJCE
+		SHA384WITHECDSAINP1363FORMAT -> wolfJCE
+		SHA256WITHECDSA -> wolfJCE
+		SHA224WITHECDSA -> wolfJCE
+		SHA512WITHECDSA -> wolfJCE
+		SHA224WITHRSA/PSS -> wolfJCE
+		SHA256WITHRSA -> wolfJCE
+		MD5WITHRSA -> wolfJCE
+		SHA3-224WITHRSA -> wolfJCE
+		SHA256WITHRSA/PSS -> wolfJCE
+		SHA3-384WITHECDSA -> wolfJCE
+		SHA1WITHECDSA -> wolfJCE
+		SHA224WITHRSA -> wolfJCE
+		RSASSA-PSS -> wolfJCE
+		SHA3-256WITHRSA -> wolfJCE
+		SHA3-384WITHRSA -> wolfJCE
+		SHA3-224WITHECDSA -> wolfJCE
+		SHA3-256WITHECDSA -> wolfJCE
+		SHA384WITHRSA -> wolfJCE
+		SHA3-256WITHECDSAINP1363FORMAT -> wolfJCE
+		SHA512WITHECDSAINP1363FORMAT -> wolfJCE
+	KeyGenerator algorithms (10 found):
+		HMACSHA3-384 -> wolfJCE
+		HMACSHA512 -> wolfJCE
+		HMACSHA3-256 -> wolfJCE
+		HMACSHA3-224 -> wolfJCE
+		HMACSHA3-512 -> wolfJCE
+		HMACSHA384 -> wolfJCE
+		HMACSHA1 -> wolfJCE
+		HMACSHA256 -> wolfJCE
+		HMACSHA224 -> wolfJCE
+		AES -> wolfJCE
+	KeyPairGenerator algorithms (4 found):
+		RSA -> wolfJCE
+		DH -> wolfJCE
+		RSASSA-PSS -> wolfJCE
+		EC -> wolfJCE
+	KeyAgreement algorithms (2 found):
+		ECDH -> wolfJCE
+		DIFFIEHELLMAN -> wolfJCE
+	AlgorithmParameterGenerator algorithms (1 found):
+		DH -> wolfJCE
+	SecureRandom algorithms (4 found):
+		HASHDRBG -> wolfJCE
+		DRBG -> wolfJCE
+		HASH_DRBG -> wolfJCE
+		DEFAULT -> wolfJCE
+	SSLContext algorithms (6 found):
+		DTLSV1.3 -> wolfJSSE
+		TLS -> wolfJSSE
+		SSL -> wolfJSSE
+		TLSV1.3 -> wolfJSSE
+		DEFAULT -> wolfJSSE
+		TLSV1.2 -> wolfJSSE
+	KeyManagerFactory algorithms (3 found):
+		SUNX509 -> wolfJSSE
+		X509 -> wolfJSSE
+		PKIX -> wolfJSSE
+	TrustManagerFactory algorithms (3 found):
+		SUNX509 -> wolfJSSE
+		X509 -> wolfJSSE
+		PKIX -> wolfJSSE
+	AlgorithmParameters algorithms (5 found):
+		GCM -> wolfJCE
+		DH -> wolfJCE
+		RSASSA-PSS -> wolfJCE
+		EC -> FilteredSunEC
+		AES -> wolfJCE
+	CertificateFactory algorithms (1 found):
+		X.509 -> FilteredSun
+	CertPathBuilder algorithms (1 found):
+		PKIX -> wolfJCE
+	CertPathValidator algorithms (1 found):
+		PKIX -> wolfJCE
+	CertStore algorithms (3 found):
+		COLLECTION -> FilteredSun
+		LDAP -> JdkLDAP
+		COM.SUN.SECURITY.INDEXEDCOLLECTION -> FilteredSun
+	KeyStore algorithms (1 found):
+		WKS -> wolfJCE
+	KeyFactory algorithms (4 found):
+		RSA -> wolfJCE
+		DH -> wolfJCE
+		RSASSA-PSS -> FilteredSunRsaSign
+		EC -> wolfJCE
+	Policy algorithms (1 found):
+		JAVAPOLICY -> FilteredSun
+	Configuration algorithms (1 found):
+		JAVALOGINCONFIG -> FilteredSun
+	Service type verification results:
+		Service types checked: 21
+		Violations found: 0
+	All JCA algorithms verified to use wolfSSL providers
+
+Running additional FIPS security compliance tests...
+	SecureRandom.getInstanceStrong() -> wolfJCE
+	SSLContext.getDefault() -> wolfJSSE
+	Banned cipher suite TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA -> UNAVAILABLE
+	Banned cipher suite TLS_RSA_WITH_3DES_EDE_CBC_SHA -> UNAVAILABLE
+	Banned cipher suite SSL_RSA_WITH_3DES_EDE_CBC_SHA -> UNAVAILABLE
+	Restricted algorithm X25519 -> UNAVAILABLE
+	Restricted algorithm X448 -> UNAVAILABLE
+	All additional FIPS security tests passed
+
+================================================================================
+|                         All Container Tests Passed                           |
+================================================================================
+```
 ---
 
 ### Step 3: Algorithm Enforcement Testing
@@ -88,7 +404,7 @@ docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
 **Command:**
 ```bash
 docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
-  java:17-jammy-ubuntu-22.04-fips \
+  cr.root.io/java:19-jdk-bookworm-slim-fips \
   bash /tests/test-java-algorithm-enforcement.sh
 ```
 
@@ -132,7 +448,7 @@ docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
 **Command:**
 ```bash
 docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
-  java:17-jammy-ubuntu-22.04-fips \
+  java:19-jdk-bookworm-slim-fips \
   bash -c 'cd /tests && ./run-all-tests.sh'
 ```
 
@@ -168,8 +484,8 @@ ls -lh golang/1.25-jammy-ubuntu-22.04-fips/SCAP-*.* \
 
 **Files Verified:**
 ```bash
-ls -lh java/17-jammy-ubuntu-22.04-fips/SCAP-*.* \
-       java/17-jammy-ubuntu-22.04-fips/STIG-Template.xml
+ls -lh java/19-jdk-bookworm-slim-fips/SCAP-*.* \
+       java/19-jdk-bookworm-slim-fips/STIG-Template.xml
 ```
 
 **Result:** ✅ **PRESENT**
@@ -204,7 +520,7 @@ ls -lh golang/1.25-jammy-ubuntu-22.04-fips/Evidence/
 
 **Files Verified:**
 ```bash
-ls -lh java/17-jammy-ubuntu-22.04-fips/Evidence/
+ls -lh java/19-jdk-bookworm-slim-fips/Evidence/
 ```
 
 **Result:** ✅ **COMPLETE**
@@ -225,9 +541,9 @@ ls -lh supply-chain/
 **Result:** ✅ **COMPLETE**
 - Cosign-Verification-Instructions.md (9.8K)
 - SBOM-golang-1.25-jammy-ubuntu-22.04-fips.spdx.json (7.7K)
-- SBOM-java-17-jammy-ubuntu-22.04-fips.spdx.json (8.2K)
+- SBOM-java-19-jdk-bookworm-slim-fips.spdx.json (8.2K)
 - VEX-golang-1.25-jammy-ubuntu-22.04-fips.json (3.0K)
-- VEX-java-17-jammy-ubuntu-22.04-fips.json (3.5K)
+- VEX-java-19-jdk-bookworm-slim-fips.json (3.5K)
 - verify-all.sh (4.4K, executable)
 
 **Artifacts Verified:**
@@ -262,7 +578,7 @@ ls -lh supply-chain/
 
 #### Java Image Contrast Test
 
-**File:** `java/17-jammy-ubuntu-22.04-fips/Evidence/contrast-test-results.md`
+**File:** `java/19-jdk-bookworm-slim-fips/Evidence/contrast-test-results.md`
 
 **Result:** ✅ **DOCUMENTED**
 

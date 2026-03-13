@@ -29,7 +29,7 @@ This POC uses **wolfSSL FIPS v5.8.2 (Certificate #4718)** as the cryptographic f
 | Image | Base | Runtime | FIPS Module | Tag |
 |-------|------|---------|-------------|-----|
 | **golang** | Ubuntu 22.04 LTS | golang-fips/go v1.25 | wolfSSL FIPS v5.8.2 | 1.25-jammy-ubuntu-22.04-fips |
-| **java** | Ubuntu 22.04 LTS | OpenJDK 17 | wolfSSL FIPS v5.8.2 | 17-jammy-ubuntu-22.04-fips |
+| **java** | Ubuntu 22.04 LTS | OpenJDK 17 | wolfSSL FIPS v5.8.2 | 19-jdk-bookworm-slim-fips |
 
 Each image provides:
 - ✅ Lean and hardened Ubuntu base
@@ -78,10 +78,10 @@ docker --version
 
 ```bash
 # Pull Go FIPS image
-docker pull localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
+docker pull cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Pull Java FIPS image
-docker pull localhost:5000/java:17-jammy-ubuntu-22.04-fips
+docker pull cr.root.io/java:19-jdk-bookworm-slim-fips
 ```
 
 **Note:** Replace `localhost:5000` with your registry:
@@ -93,10 +93,10 @@ docker pull localhost:5000/java:17-jammy-ubuntu-22.04-fips
 
 ```bash
 # Verify Go image signature
-cosign verify localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
+cosign verify cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Verify Java image signature
-cosign verify localhost:5000/java:17-jammy-ubuntu-22.04-fips
+cosign verify cr.root.io/java:19-jdk-bookworm-slim-fips
 ```
 
 See [supply-chain/Cosign-Verification-Instructions.md](supply-chain/Cosign-Verification-Instructions.md) for detailed verification steps.
@@ -128,7 +128,7 @@ docker run --rm \
 
 ```bash
 # Run default FIPS demo (algorithm enforcement)
-docker run --rm localhost:5000/java:17-jammy-ubuntu-22.04-fips
+docker run --rm cr.root.io/java:19-jdk-bookworm-slim-fips
 
 # Expected output:
 # ✅ MD5: BLOCKED (NoSuchAlgorithmException)
@@ -139,9 +139,9 @@ docker run --rm localhost:5000/java:17-jammy-ubuntu-22.04-fips
 ```bash
 # Run complete test suite (4 tests)
 docker run --rm \
-  -v $(pwd)/java/17-jammy-ubuntu-22.04-fips/tests:/tests \
+  -v $(pwd)/java/19-jdk-bookworm-slim-fips/tests:/tests \
   --entrypoint="" \
-  localhost:5000/java:17-jammy-ubuntu-22.04-fips \
+  cr.root.io/java:19-jdk-bookworm-slim-fips \
   bash -c 'cd /tests && ./run-all-tests.sh'
 
 # Expected: ✅ 4/4 test suites passed
@@ -154,15 +154,15 @@ docker run --rm \
 cat golang/1.25-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md
 
 # View Java POC validation report
-cat java/17-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md
+cat java/19-jdk-bookworm-slim-fips/POC-VALIDATION-REPORT.md
 
 # View SCAP scan results (HTML)
 firefox golang/1.25-jammy-ubuntu-22.04-fips/SCAP-Results.html
-firefox java/17-jammy-ubuntu-22.04-fips/SCAP-Results.html
+firefox java/19-jdk-bookworm-slim-fips/SCAP-Results.html
 
 # View contrast test evidence
 cat golang/1.25-jammy-ubuntu-22.04-fips/Evidence/contrast-test-results.md
-cat java/17-jammy-ubuntu-22.04-fips/Evidence/contrast-test-results.md
+cat java/19-jdk-bookworm-slim-fips/Evidence/contrast-test-results.md
 ```
 
 **Total Time:** ~10 minutes
@@ -215,7 +215,7 @@ golang/1.25-jammy-ubuntu-22.04-fips/
 ### Java Image (java)
 
 ```
-java/17-jammy-ubuntu-22.04-fips/
+java/19-jdk-bookworm-slim-fips/
 ├── README.md                          # Complete image documentation
 ├── POC-VALIDATION-REPORT.md           # Detailed compliance report
 ├── STIG-Template.xml                  # Container-adapted Ubuntu STIG
@@ -240,9 +240,9 @@ java/17-jammy-ubuntu-22.04-fips/
 │   ├── test-execution-summary.md
 │   └── fips-validation-screenshots/
 ├── compliance/
-│   ├── sbom-java-17-jammy-ubuntu-22.04-fips.spdx.json
-│   ├── vex-java-17-jammy-ubuntu-22.04-fips.json
-│   ├── slsa-provenance-java-17-jammy-ubuntu-22.04-fips.json
+│   ├── sbom-java-19-jdk-bookworm-slim-fips.spdx.json
+│   ├── vex-java-19-jdk-bookworm-slim-fips.json
+│   ├── slsa-provenance-java-19-jdk-bookworm-slim-fips.json
 │   ├── CHAIN-OF-CUSTODY.md
 │   ├── generate-sbom.sh
 │   ├── generate-vex.sh
@@ -260,9 +260,9 @@ java/17-jammy-ubuntu-22.04-fips/
 supply-chain/
 ├── Cosign-Verification-Instructions.md # Complete verification guide
 ├── SBOM-golang-1.25-jammy-ubuntu-22.04-fips.spdx.json      # Go image SBOM (SPDX 2.3)
-├── SBOM-java-17-jammy-ubuntu-22.04-fips.spdx.json    # Java image SBOM (SPDX 2.3)
+├── SBOM-java-19-jdk-bookworm-slim-fips.spdx.json    # Java image SBOM (SPDX 2.3)
 ├── VEX-golang-1.25-jammy-ubuntu-22.04-fips.json            # Go image VEX (OpenVEX v0.2.0)
-├── VEX-java-17-jammy-ubuntu-22.04-fips.json          # Java image VEX (OpenVEX v0.2.0)
+├── VEX-java-19-jdk-bookworm-slim-fips.json          # Java image VEX (OpenVEX v0.2.0)
 └── verify-all.sh                      # Automated verification script
 ```
 
@@ -299,11 +299,11 @@ cosign verify-attestation \
 
 ```bash
 # Image reference
-Image: localhost:5000/java:17-jammy-ubuntu-22.04-fips
+Image: cr.root.io/java:19-jdk-bookworm-slim-fips
 
 # Get image digest
 docker inspect --format='{{index .RepoDigests 0}}' \
-  localhost:5000/java:17-jammy-ubuntu-22.04-fips
+  cr.root.io/java:19-jdk-bookworm-slim-fips
 
 # Pull by digest (immutable reference)
 docker pull localhost:5000/java@sha256:<digest>
@@ -311,13 +311,13 @@ docker pull localhost:5000/java@sha256:<digest>
 # Verify signature
 cosign verify \
   --key cosign.pub \
-  localhost:5000/java:17-jammy-ubuntu-22.04-fips
+  cr.root.io/java:19-jdk-bookworm-slim-fips
 
 # Verify SLSA attestation
 cosign verify-attestation \
   --type slsaprovenance \
   --key cosign.pub \
-  localhost:5000/java:17-jammy-ubuntu-22.04-fips
+  cr.root.io/java:19-jdk-bookworm-slim-fips
 ```
 
 See [supply-chain/Cosign-Verification-Instructions.md](supply-chain/Cosign-Verification-Instructions.md) for complete verification workflows.
@@ -407,8 +407,8 @@ This is **validation-level evidence** suitable for POC evaluation and procuremen
 ```bash
 # Create wolfSSL password file (required for commercial FIPS package)
 echo 'your-wolfssl-password' > golang/1.25-jammy-ubuntu-22.04-fips/.wolfssl_password
-echo 'your-wolfssl-password' > java/17-jammy-ubuntu-22.04-fips/.wolfssl_password
-chmod 600 golang/1.25-jammy-ubuntu-22.04-fips/.wolfssl_password java/17-jammy-ubuntu-22.04-fips/.wolfssl_password
+echo 'your-wolfssl-password' > java/19-jdk-bookworm-slim-fips/.wolfssl_password
+chmod 600 golang/1.25-jammy-ubuntu-22.04-fips/.wolfssl_password java/19-jdk-bookworm-slim-fips/.wolfssl_password
 ```
 
 ### Build Go Image
@@ -427,13 +427,13 @@ docker build \
 ### Build Java Image
 
 ```bash
-cd java/17-jammy-ubuntu-22.04-fips
+cd java/19-jdk-bookworm-slim-fips
 ./build.sh
 
 # Or manual build
 docker build \
   --secret id=wolfssl_password,src=.wolfssl_password \
-  -t localhost:5000/java:17-jammy-ubuntu-22.04-fips \
+  -t cr.root.io/java:19-jdk-bookworm-slim-fips \
   .
 ```
 
@@ -443,12 +443,12 @@ docker build \
 
 ### Image-Specific Documentation
 - [Go Image README](golang/1.25-jammy-ubuntu-22.04-fips/README.md)
-- [Java Image README](java/17-jammy-ubuntu-22.04-fips/README.md)
+- [Java Image README](java/19-jdk-bookworm-slim-fips/README.md)
 
 ### Compliance Documentation
 - [Section 6 Checklist Mapping](SECTION-6-CHECKLIST.md)
 - [Go POC Validation Report](golang/1.25-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md)
-- [Java POC Validation Report](java/17-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md)
+- [Java POC Validation Report](java/19-jdk-bookworm-slim-fips/POC-VALIDATION-REPORT.md)
 
 ### Supply Chain Security
 - [Cosign Verification Instructions](supply-chain/Cosign-Verification-Instructions.md)

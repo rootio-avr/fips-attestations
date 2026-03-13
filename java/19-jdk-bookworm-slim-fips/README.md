@@ -264,11 +264,170 @@ SSLSocket socket = (SSLSocket) factory.createSocket("www.example.com", 443);
 socket.startHandshake();  // FIPS-validated TLS handshake
 ```
 
+## Demos
+
+The `demos-image` extends the base image with four runnable demonstration applications that prove FIPS enforcement at the JCE/JSSE layer.
+
+### Build the Demos Image
+
+```bash
+cd demos-image
+./build.sh
+# Or with a custom base image:
+./build.sh -b cr.root.io/java:19-jdk-bookworm-slim-fips
+```
+
+### Demo 1: WolfJceBlockingDemo — JCE Algorithm Enforcement
+
+Demonstrates which algorithms are blocked and which are available via wolfJCE.
+
+```bash
+docker run --rm java-19-jdk-bookworm-slim-fips-demos:latest \
+  java -cp "/app/demos:/opt/wolfssl-fips/bin:/usr/share/java/*" WolfJceBlockingDemo
+```
+
+**Expected output:**
+```
+Non-FIPS algorithms blocked:       3
+Legacy algorithms (allowed):       3
+FIPS algorithms available:         15
+
+✓ SUCCESS: FIPS enforcement is working correctly!
+  - Cipher-level non-FIPS algorithms (DES/3DES/RC4) are blocked
+  - Legacy digest algorithms (MD5/SHA-1) allowed for legacy support
+  - FIPS-approved algorithms are available
+```
+
+**What it proves:**
+- DES, DESede, RC4 (Cipher) — hard-blocked (`NoSuchAlgorithmException`)
+- MD5, SHA-1 — marked `LEGACY ALLOWED`; available for backward compatibility but excluded from TLS, certificate validation, and JAR signing by `java.security` policy
+- SHA-256/384/512, SHA3-256/384/512, AES-128/256 (ECB/CBC/GCM), HmacSHA256/384/512, RSA-2048, EC-256 — all available via wolfJCE
+
+---
+
+### Demo 2: WolfJsseBlockingDemo — TLS Protocol and Cipher Enforcement
+
+Demonstrates FIPS-enforced TLS configuration and makes a live outbound HTTPS connection.
+
+```bash
+docker run --rm java-19-jdk-bookworm-slim-fips-demos:latest \
+  java -cp "/app/demos:/opt/wolfssl-fips/bin:/usr/share/java/*" WolfJsseBlockingDemo
+```
+
+**Expected output:**
+```
+Non-FIPS configurations blocked: 6
+FIPS configurations available:   5
+
+✓ SUCCESS: FIPS TLS enforcement is working correctly!
+  - Non-FIPS protocols and cipher suites are properly blocked
+  - FIPS-approved TLS configurations are available
+```
+
+**What it proves:**
+- SSLv2, SSLv3, TLSv1, TLSv1.0, TLSv1.1 — blocked
+- TLS, TLSv1.2, TLSv1.3 — available via wolfJSSE; enabled protocols: `[TLSv1.3, TLSv1.2]`
+- 6 FIPS-approved cipher suites present (including `TLS_AES_256_GCM_SHA384`, `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`)
+- No weak (MD5/RC4-based) cipher suites enabled
+- Live HTTPS connection to `httpbin.org:443` succeeds with `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`
+
+> **Note:** This demo requires outbound network access.
+
+---
+
+### Demo 3: MD5AvailabilityDemo — MD5 Policy Explanation
+
+Explains why MD5 is available at the `MessageDigest` API level but blocked in all security-sensitive contexts.
+
+```bash
+docker run --rm java-19-jdk-bookworm-slim-fips-demos:latest \
+  java -cp "/app/demos:/opt/wolfssl-fips/bin:/usr/share/java/*" MD5AvailabilityDemo
+```
+
+**Expected output:**
+```
+Tests passed: 4
+Tests failed: 0
+
+✓ SUCCESS: MD5 is correctly configured for FIPS mode
+  - MD5 is blocked where it matters (TLS, certificates, signatures)
+  - MD5 is available for non-security uses (backward compatibility)
+  - This follows wolfSSL FIPS 140-3 Certificate #4718 specifications
+```
+
+**What it proves:**
+- `MessageDigest.getInstance("MD5")` succeeds (wolfJCE exposes it for legacy compatibility per Certificate #4718)
+- No MD5-based TLS cipher suites are enabled (`jdk.tls.disabledAlgorithms`)
+- MD5 is listed in `jdk.certpath.disabledAlgorithms` — MD5-signed certificates are rejected
+- MD5 is listed in `jdk.jar.disabledAlgorithms` — MD5-signed JARs are rejected
+- This is correct FIPS behavior: MD5 is available for non-security checksums, blocked where it matters
+
+---
+
+### Demo 4: KeyStoreFormatDemo — WKS vs JKS Keystore
+
+Demonstrates why WKS (WolfSSL KeyStore) is required in FIPS mode and proves the system CA certificates are in WKS format.
+
+```bash
+docker run --rm java-19-jdk-bookworm-slim-fips-demos:latest \
+  java -cp "/app/demos:/opt/wolfssl-fips/bin:/usr/share/java/*" KeyStoreFormatDemo
+```
+
+**Expected output:**
+```
+Tests passed: 3
+Tests failed: 0
+
+✓ SUCCESS: WKS keystore format is correctly configured
+  - System CA certificates are in WKS format
+  - WKS operations work correctly in FIPS mode
+  - TLS connections can use WKS CA certificates
+```
+
+**What it proves:**
+- JKS and PKCS12 are unavailable (`NOT AVAILABLE`) — they use MD5/SHA-1 for integrity, which is non-FIPS
+- WKS is the only available keystore type (via wolfJCE)
+- System `cacerts` file contains 140 CA certificates in WKS format (verified by loading as WKS and confirming it cannot be loaded as JKS)
+- WKS RSA-2048 key pair generation succeeds
+- Live HTTPS connection using WKS trust store succeeds (`TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`, HTTP 200)
+
+> **Note:** This demo requires outbound network access.
+
+---
+
 ## Diagnostics
 
 ### Run All Diagnostics
+
+`./diagnostic.sh` runs the **4 in-container diagnostic scripts** via `diagnostics/run-all-tests.sh`. Expected result: `Test Suites Passed: 4/4` and `ALL TESTS PASSED`.
+
 ```bash
 ./diagnostic.sh
+```
+
+To run the **complete test suite** including application-layer TLS and cryptographic tests, two steps are required:
+
+**Step 1 — In-container diagnostics (4 scripts):**
+```bash
+./diagnostic.sh
+```
+Expected: `Test Suites Passed: 4/4`, `ALL TESTS PASSED`, exit 0.
+
+**Step 2 — Application-layer tests (TLS, JCA crypto, real-world scenarios):**
+```bash
+# Build the test image first (requires base image to be present)
+cd diagnostics/test-images/basic-test-image && ./build.sh && cd -
+
+# Run the test image
+docker run --rm java-19-jdk-bookworm-slim-fips-test-image:latest
+```
+Expected: `All JCA Cryptographic Tests PASSED`, `All SSL/TLS Tests PASSED`, `FIPS Tests COMPLETED SUCCESSFULLY`, exit 0.
+
+> **Note:** The test image requires network access for TLS tests (connects to www.google.com:443, www.wolfssl.com:443, httpbin.org:443).
+
+**Contrast test** (run separately from the host, not part of `run-all-tests.sh`):
+```bash
+bash diagnostics/test-contrast-fips-enabled-vs-disabled.sh
 ```
 
 ### Individual Diagnostic Tests
@@ -581,7 +740,8 @@ docker run --rm \
 
 ## Related Images
 
-- **diagnostics/test-images/basic-test-image**: Comprehensive test application demonstrating JCE/JSSE usage
+- **[demos-image/](demos-image/)**: Four runnable demos proving JCE/JSSE FIPS enforcement — see [Demos](#demos) section above
+- **diagnostics/test-images/basic-test-image**: Application-layer test image (`FipsUserApplication`) — TLS handshakes, JCA crypto, real-world scenarios
 - Other FIPS images: See repository root for additional FIPS-compliant images
 
 ## Documentation

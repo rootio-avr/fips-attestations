@@ -1,7 +1,7 @@
 # Section 6 (FIPS / STIG Verification) - Requirements Checklist
 
-**Version:** 1.0
-**Date:** 2026-03-04
+**Version:** 1.1
+**Date:** 2026-03-13
 **POC Status:** ✅ **100% COMPLETE**
 
 ---
@@ -42,23 +42,32 @@ docker run --rm localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
 ### Java Image Evidence
 
-| Evidence Type | File Path | Line Numbers | Status |
-|--------------|-----------|--------------|--------|
-| **Test Script** | `java/17-jammy-ubuntu-22.04-fips/tests/test-java-algorithm-enforcement.sh` | Lines 35-80 | ✅ |
-| **Demo Application** | `java/17-jammy-ubuntu-22.04-fips/src/FipsDemoApp.java` | Lines 110-148 | ✅ |
-| **CLI Test** | `java/17-jammy-ubuntu-22.04-fips/tests/test-openssl-cli-algorithms.sh` | Lines 35-66 | ✅ |
-| **Evidence Bundle** | `java/17-jammy-ubuntu-22.04-fips/Evidence/algorithm-enforcement-evidence.log` | MD5/SHA-1 blocks | ✅ |
-| **Validation Report** | `java/17-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md` | Lines 35-44 | ✅ |
+| Evidence Type | File Path | Description | Status |
+|--------------|-----------|-------------|--------|
+| **Algorithm Enforcement Test** | `java/19-jdk-bookworm-slim-fips/diagnostics/test-java-algorithm-enforcement.sh` | Verifies DES/RC4 blocked; SHA-256+ available via wolfJCE | ✅ |
+| **Algorithm Suite Test** | `java/19-jdk-bookworm-slim-fips/diagnostics/test-java-algorithms.sh` | SHA-256/384/512 via Java API | ✅ |
+| **WolfJceBlockingDemo** | `java/19-jdk-bookworm-slim-fips/demos-image/src/WolfJceBlockingDemo.java` | Interactive demo: DES/DESede/RC4 BLOCKED; MD5/SHA-1 LEGACY ALLOWED | ✅ |
+| **MD5AvailabilityDemo** | `java/19-jdk-bookworm-slim-fips/demos-image/src/MD5AvailabilityDemo.java` | Proves MD5 blocked in TLS/cert/JAR by java.security policy | ✅ |
+| **Diagnostic Results** | `java/19-jdk-bookworm-slim-fips/Evidence/diagnostic_results.txt` | Full run-all-tests.sh output (4/4 passed, 2026-03-13) | ✅ |
+| **Validation Report** | `java/19-jdk-bookworm-slim-fips/POC-VALIDATION-REPORT.md` | Compliance report | ✅ |
 
 **Verification Command:**
 ```bash
-docker run --rm localhost:5000/java:17-jammy-ubuntu-22.04-fips
-# Expected: MD5 BLOCKED (NoSuchAlgorithmException), SHA-1 BLOCKED
+# Run all diagnostics (4/4 tests)
+cd java/19-jdk-bookworm-slim-fips
+./diagnostic.sh
+
+# Run WolfJceBlockingDemo for interactive algorithm enforcement proof
+docker run --rm java-19-jdk-bookworm-slim-fips-demos:latest \
+  java -cp "/app/demos:/opt/wolfssl-fips/bin:/usr/share/java/*" WolfJceBlockingDemo
 ```
 
-**Expected Behavior:**
-- MD5: `java.security.NoSuchAlgorithmException: MD5 MessageDigest not available`
-- SHA-1: `java.security.NoSuchAlgorithmException: SHA-1 MessageDigest not available`
+**Expected Behavior (Java / JNI architecture):**
+- DES, DESede, RC4 (Cipher): `NoSuchAlgorithmException` — hard-blocked by wolfJCE ✅
+- MD5, SHA-1 (MessageDigest): `LEGACY ALLOWED` — wolfJCE exposes for backward compatibility per FIPS 140-3 Certificate #4718; blocked in TLS cipher suites, certificate path validation, and JAR signing via `java.security` policy ✅
+- SHA-256/384/512: `AVAILABLE` via wolfJCE provider ✅
+
+> **Note:** Java enforcement is at the JCA provider level (wolfJCE/wolfJSSE via JNI), not at the OpenSSL CLI level.
 
 **Status:** ✅ **VERIFIED**
 
@@ -91,24 +100,23 @@ docker run --rm localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
 ### Java Image Evidence
 
-| Evidence Type | File Path | Line Numbers | Status |
-|--------------|-----------|--------------|--------|
-| **Test Script** | `java/17-jammy-ubuntu-22.04-fips/tests/test-java-algorithm-enforcement.sh` | Lines 85-140 | ✅ |
-| **Demo Application** | `java/17-jammy-ubuntu-22.04-fips/src/FipsDemoApp.java` | Lines 150-213 | ✅ |
-| **CLI Test** | `java/17-jammy-ubuntu-22.04-fips/tests/test-openssl-cli-algorithms.sh` | Lines 72-117 | ✅ |
-| **Evidence Bundle** | `java/17-jammy-ubuntu-22.04-fips/Evidence/algorithm-enforcement-evidence.log` | SHA-256+ success | ✅ |
-| **Validation Report** | `java/17-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md` | Lines 171-180 | ✅ |
+| Evidence Type | File Path | Description | Status |
+|--------------|-----------|-------------|--------|
+| **Algorithm Suite Test** | `java/19-jdk-bookworm-slim-fips/diagnostics/test-java-algorithms.sh` | SHA-256/384/512 AVAILABLE via wolfJCE | ✅ |
+| **FIPS Validation Test** | `java/19-jdk-bookworm-slim-fips/diagnostics/test-java-fips-validation.sh` | 12/12 sub-tests including SHA-256 availability | ✅ |
+| **Diagnostic Results** | `java/19-jdk-bookworm-slim-fips/Evidence/diagnostic_results.txt` | Full output with hashes (2026-03-13) | ✅ |
+| **Validation Report** | `java/19-jdk-bookworm-slim-fips/POC-VALIDATION-REPORT.md` | Compliance report | ✅ |
 
 **Verification Command:**
 ```bash
-docker run --rm localhost:5000/java:17-jammy-ubuntu-22.04-fips
-# Expected: SHA-256 PASS, SHA-384 PASS, SHA-512 PASS
+cd java/19-jdk-bookworm-slim-fips
+./diagnostic.sh test-java-algorithms.sh
 ```
 
-**Expected Behavior:**
-- SHA-256: `PASS (hash: 5f8d5f84...)`
-- SHA-384: `PASS (hash: 9a7e3c12...)`
-- SHA-512: `PASS (hash: 2c3f8a91...)`
+**Expected Behavior (from verified run 2026-03-13):**
+- SHA-256: `AVAILABLE via wolfJCE` (hash: `d28f392dc5c4c961e58bc298635fde78be11955f44ccdd737c929740686e6a8e`)
+- SHA-384: `AVAILABLE via wolfJCE` (hash: `f59dd4a9bd26439fd88f32817e243d5eaf809219e96aa1cf6ce048912a7c0ec862c7b559e2a01bac40666dbea531c0d4`)
+- SHA-512: `AVAILABLE via wolfJCE` (hash: `feb85f44bb0947c8b492ba002706f161eec59fe2f42cca952fe2c61b0ad169c21ee58269947ddc097b41014fe5a6d95e8075314208ffa96e9325d679a5f90e8f`)
 
 **Status:** ✅ **VERIFIED**
 
@@ -148,23 +156,27 @@ docker run --rm \
 
 ### Java Image Evidence
 
-| Evidence Type | File Path | Line Numbers | Status |
-|--------------|-----------|--------------|--------|
-| **OS Status Test** | `java/17-jammy-ubuntu-22.04-fips/tests/test-os-fips-status.sh` | Lines 21-258 | ✅ |
-| **Provider Check** | `java/17-jammy-ubuntu-22.04-fips/tests/test-os-fips-status.sh` | Lines 118-135 | ✅ |
-| **Environment Validation** | `java/17-jammy-ubuntu-22.04-fips/tests/test-os-fips-status.sh` | Lines 141-184 | ✅ |
-| **wolfSSL Verification** | `java/17-jammy-ubuntu-22.04-fips/tests/test-os-fips-status.sh` | Lines 190-219 | ✅ |
-| **Entrypoint Audit Log** | `java/17-jammy-ubuntu-22.04-fips/entrypoint.sh` | Lines 25-64 | ✅ |
-| **Validation Report** | `java/17-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md` | Lines 143-214 | ✅ |
+| Evidence Type | File Path | Description | Status |
+|--------------|-----------|-------------|--------|
+| **OS Status Test** | `java/19-jdk-bookworm-slim-fips/diagnostics/test-os-fips-status.sh` | 4/4 passed, 3 expected container warnings | ✅ |
+| **Diagnostic Results** | `java/19-jdk-bookworm-slim-fips/Evidence/diagnostic_results.txt` | Full test 4/4 output (2026-03-13) | ✅ |
+| **Entrypoint Audit Log** | `java/19-jdk-bookworm-slim-fips/entrypoint.sh` | FipsInitCheck at startup | ✅ |
+| **Validation Report** | `java/19-jdk-bookworm-slim-fips/POC-VALIDATION-REPORT.md` | Compliance report | ✅ |
 
 **Verification Command:**
 ```bash
-docker run --rm \
-  -v $(pwd)/java/17-jammy-ubuntu-22.04-fips/tests:/tests \
-  --entrypoint="" \
-  localhost:5000/java:17-jammy-ubuntu-22.04-fips \
-  bash /tests/test-os-fips-status.sh
+cd java/19-jdk-bookworm-slim-fips
+./diagnostic.sh test-os-fips-status.sh
 ```
+
+**Expected Results (JNI architecture):**
+- ✅ All Java FIPS provider components present (wolfCrypt JNI, wolfSSL JNI, JARs)
+- ✅ FIPS environment variables configured (`JAVA_HOME`, `LD_LIBRARY_PATH`, `JAVA_LIBRARY_PATH`, `java.security`)
+- ✅ wolfSSL FIPS library registered with ldconfig (`libwolfssl.so.44`)
+- ✅ Runtime algorithm enforcement: SHA-256 available via wolfJCE
+- ⚠️ `/proc/sys/crypto/fips_enabled` not found — expected in containers; FIPS enforced at application layer
+- ⚠️ Kernel not booted with `fips=1` — expected; host kernel responsibility
+- ⚠️ `/etc/crypto-policies` not found — Debian-based image; RHEL-specific
 
 **Status:** ✅ **VERIFIED**
 
@@ -204,9 +216,9 @@ cat golang/1.25-jammy-ubuntu-22.04-fips/STIG-Template.xml
 
 | Evidence Type | File Path | Description | Status |
 |--------------|-----------|-------------|--------|
-| **STIG Template** | `java/17-jammy-ubuntu-22.04-fips/STIG-Template.xml` | Container-adapted STIG baseline | ✅ |
-| **Exclusions Doc** | `java/17-jammy-ubuntu-22.04-fips/STIG-Template.xml` | Lines 50-150 (comments) | ✅ |
-| **README Section** | `java/17-jammy-ubuntu-22.04-fips/README.md` | STIG baseline section | ✅ |
+| **STIG Template** | `java/19-jdk-bookworm-slim-fips/STIG-Template.xml` | Container-adapted STIG baseline | ✅ |
+| **Exclusions Doc** | `java/19-jdk-bookworm-slim-fips/STIG-Template.xml` | Lines 50-150 (comments) | ✅ |
+| **README Section** | `java/19-jdk-bookworm-slim-fips/README.md` | STIG baseline section | ✅ |
 
 **Status:** ✅ **VERIFIED**
 
@@ -241,9 +253,9 @@ cat golang/1.25-jammy-ubuntu-22.04-fips/SCAP-SUMMARY.md
 
 | Evidence Type | File Path | Description | Status |
 |--------------|-----------|-------------|--------|
-| **SCAP XML** | `java/17-jammy-ubuntu-22.04-fips/SCAP-Results.xml` | Raw OpenSCAP output | ✅ |
-| **SCAP HTML** | `java/17-jammy-ubuntu-22.04-fips/SCAP-Results.html` | Human-readable report | ✅ |
-| **SCAP Summary** | `java/17-jammy-ubuntu-22.04-fips/SCAP-SUMMARY.md` | Results summary | ✅ |
+| **SCAP XML** | `java/19-jdk-bookworm-slim-fips/SCAP-Results.xml` | Raw OpenSCAP output | ✅ |
+| **SCAP HTML** | `java/19-jdk-bookworm-slim-fips/SCAP-Results.html` | Human-readable report | ✅ |
+| **SCAP Summary** | `java/19-jdk-bookworm-slim-fips/SCAP-SUMMARY.md` | Results summary | ✅ |
 
 **Status:** ✅ **VERIFIED**
 
@@ -259,7 +271,7 @@ cat golang/1.25-jammy-ubuntu-22.04-fips/SCAP-SUMMARY.md
 |--------------|-----------|-------------|--------|
 | **Signing Instructions** | `supply-chain/Cosign-Verification-Instructions.md` | Complete verification guide | ✅ |
 | **Go Signing Script** | `golang/1.25-jammy-ubuntu-22.04-fips/compliance/sign-image.sh` | Image signing automation | ✅ |
-| **Java Signing Script** | `java/17-jammy-ubuntu-22.04-fips/compliance/sign-image.sh` | Image signing automation | ✅ |
+| **Java Signing Script** | `java/19-jdk-bookworm-slim-fips/compliance/sign-image.sh` | Image signing automation | ✅ |
 | **Verification Script** | `supply-chain/verify-all.sh` | Automated verification | ✅ |
 
 **Verification:**
@@ -268,7 +280,7 @@ cat golang/1.25-jammy-ubuntu-22.04-fips/SCAP-SUMMARY.md
 cosign verify --key cosign.pub localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Verify Java image signature
-cosign verify --key cosign.pub localhost:5000/java:17-jammy-ubuntu-22.04-fips
+cosign verify --key cosign.pub cr.root.io/java:19-jdk-bookworm-slim-fips
 
 # Or use automated script
 ./supply-chain/verify-all.sh
@@ -291,13 +303,13 @@ cosign verify --key cosign.pub localhost:5000/java:17-jammy-ubuntu-22.04-fips
 | Evidence Type | File Path | Description | Status |
 |--------------|-----------|-------------|--------|
 | **Go SLSA Provenance** | `supply-chain/slsa-provenance-golang-1.25-jammy-ubuntu-22.04-fips.json` | Build provenance (SLSA v1.0) | ✅ |
-| **Java SLSA Provenance** | `supply-chain/slsa-provenance-java-17-jammy-ubuntu-22.04-fips.json` | Build provenance (SLSA v1.0) | ✅ |
+| **Java SLSA Provenance** | `supply-chain/slsa-provenance-java-19-jdk-bookworm-slim-fips.json` | Build provenance (SLSA v1.0) | ✅ |
 | **Go SBOM** | `supply-chain/SBOM-golang-1.25-jammy-ubuntu-22.04-fips.spdx.json` | Software bill of materials (SPDX 2.3) | ✅ |
-| **Java SBOM** | `supply-chain/SBOM-java-17-jammy-ubuntu-22.04-fips.spdx.json` | Software bill of materials (SPDX 2.3) | ✅ |
+| **Java SBOM** | `supply-chain/SBOM-java-19-jdk-bookworm-slim-fips.spdx.json` | Software bill of materials (SPDX 2.3) | ✅ |
 | **Go VEX** | `supply-chain/VEX-golang-1.25-jammy-ubuntu-22.04-fips.json` | Vulnerability exploitability (OpenVEX) | ✅ |
-| **Java VEX** | `supply-chain/VEX-java-17-jammy-ubuntu-22.04-fips.json` | Vulnerability exploitability (OpenVEX) | ✅ |
+| **Java VEX** | `supply-chain/VEX-java-19-jdk-bookworm-slim-fips.json` | Vulnerability exploitability (OpenVEX) | ✅ |
 | **Go Chain of Custody** | `golang/1.25-jammy-ubuntu-22.04-fips/compliance/CHAIN-OF-CUSTODY.md` | Provenance documentation | ✅ |
-| **Java Chain of Custody** | `java/17-jammy-ubuntu-22.04-fips/compliance/CHAIN-OF-CUSTODY.md` | Provenance documentation | ✅ |
+| **Java Chain of Custody** | `java/19-jdk-bookworm-slim-fips/compliance/CHAIN-OF-CUSTODY.md` | Provenance documentation | ✅ |
 
 **Verification:**
 ```bash
@@ -311,7 +323,7 @@ cosign verify-attestation \
 cosign verify-attestation \
   --type spdx \
   --key cosign.pub \
-  localhost:5000/java:17-jammy-ubuntu-22.04-fips
+  cr.root.io/java:19-jdk-bookworm-slim-fips
 ```
 
 **SLSA Level:** Level 2 (Build provenance, version control, ephemeral environment)
@@ -353,19 +365,19 @@ docker run --rm \
 
 | Evidence Type | File Path | Description | Status |
 |--------------|-----------|-------------|--------|
-| **Contrast Test Script** | `java/17-jammy-ubuntu-22.04-fips/tests/test-contrast-fips-enabled-vs-disabled.sh` | Automated contrast test | ✅ |
-| **Contrast Results** | `java/17-jammy-ubuntu-22.04-fips/Evidence/contrast-test-results.md` | Side-by-side comparison | ✅ |
-| **README Section** | `java/17-jammy-ubuntu-22.04-fips/README.md` | Contrast test documentation | ✅ |
+| **Contrast Test Script** | `java/19-jdk-bookworm-slim-fips/diagnostics/test-contrast-fips-enabled-vs-disabled.sh` | Host-side script; invokes docker run twice | ✅ |
+| **Contrast Results** | `java/19-jdk-bookworm-slim-fips/Evidence/contrast-test-results.md` | Side-by-side comparison | ✅ |
+| **MD5AvailabilityDemo** | `java/19-jdk-bookworm-slim-fips/demos-image/src/MD5AvailabilityDemo.java` | Contextual enforcement proof (TLS/cert/JAR blocked) | ✅ |
+| **README Section** | `java/19-jdk-bookworm-slim-fips/README.md` | Contrast test and Demos documentation | ✅ |
 
 **Verification:**
 ```bash
-# Run contrast test
-docker run --rm \
-  -v $(pwd)/java/17-jammy-ubuntu-22.04-fips/tests:/tests \
-  --entrypoint="" \
-  localhost:5000/java:17-jammy-ubuntu-22.04-fips \
-  bash /tests/test-contrast-fips-enabled-vs-disabled.sh
+# Run contrast test (from host — script invokes docker run twice internally)
+cd java/19-jdk-bookworm-slim-fips
+bash diagnostics/test-contrast-fips-enabled-vs-disabled.sh
 ```
+
+> **Note:** The contrast test script runs from the host and manages its own `docker run` invocations. Do not mount it as a volume inside the container.
 
 **Status:** ✅ **VERIFIED**
 
@@ -413,7 +425,7 @@ git clone <repository-url> && cd fips-poc
 
 # 2. Pull images
 docker pull localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
-docker pull localhost:5000/java:17-jammy-ubuntu-22.04-fips
+docker pull cr.root.io/java:19-jdk-bookworm-slim-fips
 
 # 3. Verify signatures
 ./supply-chain/verify-all.sh
@@ -422,7 +434,7 @@ docker pull localhost:5000/java:17-jammy-ubuntu-22.04-fips
 docker run --rm localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
 
 # 5. Run Java tests
-docker run --rm localhost:5000/java:17-jammy-ubuntu-22.04-fips
+docker run --rm cr.root.io/java:19-jdk-bookworm-slim-fips
 
 # 6. Review evidence
 cat golang/1.25-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md
@@ -440,8 +452,8 @@ Run complete test suites, review all evidence bundles, inspect STIG templates, a
 - **Author:** Root Security Team
 - **Classification:** PUBLIC
 - **Distribution:** UNLIMITED
-- **Version:** 1.0
-- **Last Updated:** 2026-03-04
+- **Version:** 1.1
+- **Last Updated:** 2026-03-13
 - **Related Documents:**
   - Root FIPS/STIG POC Execution Plan
   - Root README.md
