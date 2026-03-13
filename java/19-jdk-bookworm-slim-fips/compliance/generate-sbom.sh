@@ -1,335 +1,148 @@
 #!/bin/bash
 ################################################################################
-# SBOM Generator for java (SPDX Format)
+# SBOM Generator for java (CycloneDX Format via Trivy)
 #
-# Purpose: Generate Software Bill of Materials in SPDX 2.3 JSON format
+# Purpose: Generate Software Bill of Materials in CycloneDX JSON format by
+#          scanning the built container image with Trivy.
+#
+# Usage:
+#   ./generate-sbom.sh [IMAGE_REF]
+#
+#   IMAGE_REF   Full image reference to scan (default: java:19-jdk-bookworm-slim-fips)
+#               Can also be set via IMAGE_REF environment variable.
+#
+# Output:
+#   compliance/SBOM-java-19-jdk-bookworm-slim-fips.cdx.json  (local copy)
+#   supply-chain/SBOM-java-19-jdk-bookworm-slim-fips.cdx.json (consolidated copy)
 ################################################################################
 
-set -e
+set -euo pipefail
 
-# Configuration
+# ── Configuration ─────────────────────────────────────────────────────────────
+
 IMAGE_NAME="java"
 IMAGE_VERSION="19-jdk-bookworm-slim-fips"
-SBOM_OUTPUT="sbom-java-19-jdk-bookworm-slim-fips.spdx.json"
+IMAGE_REF="${1:-${IMAGE_REF:-${IMAGE_NAME}:${IMAGE_VERSION}}}"
+
+SBOM_FILENAME="SBOM-${IMAGE_NAME}-${IMAGE_VERSION}.cdx.json"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+
+LOCAL_OUTPUT="${SCRIPT_DIR}/${SBOM_FILENAME}"
+SUPPLY_CHAIN_OUTPUT="${REPO_ROOT}/supply-chain/${SBOM_FILENAME}"
+
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-DOCUMENT_NAMESPACE="https://Root.com/sbom/${IMAGE_NAME}/${IMAGE_VERSION}/${TIMESTAMP}"
 
 echo "================================================================================"
-echo "Generating SBOM for ${IMAGE_NAME}:${IMAGE_VERSION}"
+echo "Generating CycloneDX SBOM for ${IMAGE_REF}"
+echo "Started: ${TIMESTAMP}"
 echo "================================================================================"
 echo ""
 
-# Create SBOM in SPDX 2.3 JSON format
-cat > "$SBOM_OUTPUT" <<EOF
-{
-  "spdxVersion": "SPDX-2.3",
-  "dataLicense": "CC0-1.0",
-  "SPDXID": "SPDXRef-DOCUMENT",
-  "name": "${IMAGE_NAME}-${IMAGE_VERSION}",
-  "documentNamespace": "${DOCUMENT_NAMESPACE}",
-  "creationInfo": {
-    "created": "${TIMESTAMP}",
-    "creators": [
-      "Tool: Root-sbom-generator-1.0",
-      "Organization: Root"
-    ],
-    "licenseListVersion": "3.21"
-  },
-  "packages": [
-    {
-      "SPDXID": "SPDXRef-Package-Container",
-      "name": "${IMAGE_NAME}",
-      "versionInfo": "${IMAGE_VERSION}",
-      "supplier": "Organization: Root",
-      "downloadLocation": "NOASSERTION",
-      "filesAnalyzed": false,
-      "licenseConcluded": "NOASSERTION",
-      "licenseDeclared": "NOASSERTION",
-      "copyrightText": "NOASSERTION",
-      "description": "Debian FIPS Java Image with OpenJDK 19 and wolfSSL FIPS v5 backend",
-      "comment": "FIPS 140-3 compliant Java runtime with strict policy (MD5 and SHA-1 blocked)"
-    },
-    {
-      "SPDXID": "SPDXRef-Package-Debian",
-      "name": "ubuntu",
-      "versionInfo": "22.04",
-      "supplier": "Organization: Canonical Ltd.",
-      "downloadLocation": "https://hub.docker.com/_/ubuntu",
-      "filesAnalyzed": false,
-      "licenseConcluded": "NOASSERTION",
-      "licenseDeclared": "Various",
-      "copyrightText": "Copyright (c) Canonical Ltd.",
-      "description": "Debian 12 Bookworm (Bookworm) base operating system",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:docker/ubuntu@22.04"
-        }
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-Package-OpenSSL",
-      "name": "openssl",
-      "versionInfo": "3.0.19",
-      "supplier": "Organization: OpenSSL Project",
-      "downloadLocation": "https://www.openssl.org/source/openssl-3.0.19.tar.gz",
-      "filesAnalyzed": false,
-      "licenseConcluded": "Apache-2.0",
-      "licenseDeclared": "Apache-2.0",
-      "copyrightText": "Copyright (c) The OpenSSL Project",
-      "description": "OpenSSL 3.0.19 cryptographic library (compiled from source)",
-      "externalRefs": [
-        {
-          "referenceCategory": "SECURITY",
-          "referenceType": "cpe23Type",
-          "referenceLocator": "cpe:2.3:a:openssl:openssl:3.0.19:*:*:*:*:*:*:*"
-        }
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-Package-wolfSSL",
-      "name": "wolfssl",
-      "versionInfo": "5.8.2-fips",
-      "supplier": "Organization: root.io Inc.",
-      "downloadLocation": "https://www.wolfssl.com/comm/wolfssl/",
-      "filesAnalyzed": false,
-      "licenseConcluded": "NOASSERTION",
-      "licenseDeclared": "Commercial",
-      "copyrightText": "Copyright (c) root.io Inc.",
-      "description": "wolfSSL FIPS 140-3 Cryptographic Module v5.2.3 (Certificate #4718) - Library version 5.8.2",
-      "comment": "Built with --disable-sha to block SHA-1 at library level. FIPS 140-3 validated.",
-      "externalRefs": [
-        {
-          "referenceCategory": "SECURITY",
-          "referenceType": "url",
-          "referenceLocator": "https://csrc.nist.gov/projects/cryptographic-module-validation-program/certificate/4718"
-        }
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-Package-wolfCryptJNI",
-      "name": "wolfcrypt-jni",
-      "versionInfo": "1.1.0",
-      "supplier": "Organization: root.io Inc.",
-      "downloadLocation": "https://github.com/wolfSSL/wolfcrypt-jni",
-      "filesAnalyzed": false,
-      "licenseConcluded": "GPL-2.0",
-      "licenseDeclared": "GPL-2.0",
-      "copyrightText": "Copyright (c) root.io Inc.",
-      "description": "JCE provider (WolfCryptProvider) with JNI bindings to wolfSSL FIPS",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:github/wolfSSL/wolfcrypt-jni@master"
-        }
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-Package-wolfSSLJNI",
-      "name": "wolfssljni",
-      "versionInfo": "1.13.0",
-      "supplier": "Organization: root.io Inc.",
-      "downloadLocation": "https://github.com/wolfSSL/wolfssljni",
-      "filesAnalyzed": false,
-      "licenseConcluded": "GPL-2.0",
-      "licenseDeclared": "GPL-2.0",
-      "copyrightText": "Copyright (c) root.io Inc.",
-      "description": "JSSE provider (WolfSSLProvider) with JNI bindings to wolfSSL FIPS for TLS/SSL",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:github/wolfSSL/wolfssljni@master"
-        }
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-Package-OpenJDK",
-      "name": "openjdk",
-      "versionInfo": "17",
-      "supplier": "Organization: Oracle / OpenJDK Community",
-      "downloadLocation": "https://openjdk.java.net/",
-      "filesAnalyzed": false,
-      "licenseConcluded": "GPL-2.0-with-classpath-exception",
-      "licenseDeclared": "GPL-2.0-with-classpath-exception",
-      "copyrightText": "Copyright (c) Oracle and/or its affiliates",
-      "description": "OpenJDK 19 Java Runtime Environment with FIPS security policy",
-      "comment": "Configured with java.security policy to disable MD5 and SHA-1 algorithms",
-      "externalRefs": [
-        {
-          "referenceCategory": "SECURITY",
-          "referenceType": "cpe23Type",
-          "referenceLocator": "cpe:2.3:a:oracle:openjdk:19:*:*:*:*:*:*:*"
-        },
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:deb/debian/openjdk-19-jdk-headless@19"
-        }
-      ]
-    },
-    {
-      "SPDXID": "SPDXRef-Package-JavaSecurityPolicy",
-      "name": "java-security-fips-policy",
-      "versionInfo": "1.0.0",
-      "supplier": "Organization: Root",
-      "downloadLocation": "NOASSERTION",
-      "filesAnalyzed": false,
-      "licenseConcluded": "NOASSERTION",
-      "licenseDeclared": "NOASSERTION",
-      "copyrightText": "NOASSERTION",
-      "description": "Custom Java security policy for FIPS mode enforcement",
-      "comment": "Disables MD5, SHA-1, weak ciphers. Sets fips.mode=strict and crypto.policy=unlimited"
-    },
-    {
-      "SPDXID": "SPDXRef-Package-FipsDemoApp",
-      "name": "fips-demo-app",
-      "versionInfo": "1.0.0",
-      "supplier": "Organization: Root",
-      "downloadLocation": "NOASSERTION",
-      "filesAnalyzed": false,
-      "licenseConcluded": "NOASSERTION",
-      "licenseDeclared": "NOASSERTION",
-      "copyrightText": "NOASSERTION",
-      "description": "Java demonstration application for FIPS algorithm testing"
-    }
-  ],
-  "relationships": [
-    {
-      "spdxElementId": "SPDXRef-DOCUMENT",
-      "relationshipType": "DESCRIBES",
-      "relatedSpdxElement": "SPDXRef-Package-Container"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-Container",
-      "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-Debian"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-Container",
-      "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-OpenSSL"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-Container",
-      "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-wolfSSL"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-Container",
-      "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-wolfCryptJNI"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-Container",
-      "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-wolfSSLJNI"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-Container",
-      "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-OpenJDK"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-Container",
-      "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-JavaSecurityPolicy"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-Container",
-      "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-FipsDemoApp"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-OpenJDK",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-OpenSSL"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-OpenJDK",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-JavaSecurityPolicy"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-wolfCryptJNI",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-wolfSSL"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-wolfSSLJNI",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-wolfSSL"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-OpenJDK",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-wolfCryptJNI"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-OpenJDK",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-wolfSSLJNI"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-FipsDemoApp",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-OpenJDK"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-wolfSSL",
-      "relationshipType": "RUNTIME_DEPENDENCY_OF",
-      "relatedSpdxElement": "SPDXRef-Package-wolfCryptJNI"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-wolfSSL",
-      "relationshipType": "RUNTIME_DEPENDENCY_OF",
-      "relatedSpdxElement": "SPDXRef-Package-wolfSSLJNI"
-    }
-  ]
-}
-EOF
+# ── Preflight checks ──────────────────────────────────────────────────────────
 
-echo "✓ SBOM generated successfully"
-echo ""
-echo "Output: $SBOM_OUTPUT"
-echo "Format: SPDX 2.3 JSON"
-echo "Components: 9 packages documented"
+if ! command -v trivy >/dev/null 2>&1; then
+    echo "✗ ERROR: trivy is not installed or not in PATH."
+    echo "  Install: https://aquasecurity.github.io/trivy/latest/getting-started/installation/"
+    exit 1
+fi
+
+TRIVY_VERSION=$(trivy --version 2>/dev/null | head -1 | awk '{print $2}')
+echo "✓ Trivy version: ${TRIVY_VERSION}"
+
+if ! command -v docker >/dev/null 2>&1; then
+    echo "✗ ERROR: docker is not installed or not in PATH."
+    exit 1
+fi
+
+echo "✓ Checking image: ${IMAGE_REF}"
+if ! docker image inspect "${IMAGE_REF}" >/dev/null 2>&1; then
+    echo "✗ ERROR: Image '${IMAGE_REF}' not found locally."
+    echo "  Build the image first:"
+    echo "    cd java/19-jdk-bookworm-slim-fips && ./build.sh"
+    echo "  Or pull it:"
+    echo "    docker pull ${IMAGE_REF}"
+    echo ""
+    echo "  To scan a different image, pass it as an argument:"
+    echo "    ./generate-sbom.sh cr.root.io/java:19-jdk-bookworm-slim-fips"
+    exit 1
+fi
+
+echo "✓ Image found"
 echo ""
 
-# Validate JSON syntax
+# ── Generate SBOM ─────────────────────────────────────────────────────────────
+
+echo "Scanning image with Trivy (format: cyclonedx, scanners: vuln,license)..."
+echo ""
+
+trivy image \
+    --format cyclonedx \
+    --scanners vuln,license \
+    --output "${LOCAL_OUTPUT}" \
+    "${IMAGE_REF}"
+
+if [[ ! -f "${LOCAL_OUTPUT}" ]]; then
+    echo "✗ ERROR: Trivy did not produce output file: ${LOCAL_OUTPUT}"
+    exit 1
+fi
+
+echo ""
+echo "✓ SBOM generated: ${LOCAL_OUTPUT}"
+
+# ── Copy to supply-chain directory ────────────────────────────────────────────
+
+if [[ -d "${REPO_ROOT}/supply-chain" ]]; then
+    cp "${LOCAL_OUTPUT}" "${SUPPLY_CHAIN_OUTPUT}"
+    echo "✓ Copied to:      ${SUPPLY_CHAIN_OUTPUT}"
+else
+    echo "⚠ supply-chain/ directory not found at ${REPO_ROOT}/supply-chain — skipping copy"
+fi
+
+echo ""
+
+# ── Validate JSON ─────────────────────────────────────────────────────────────
+
 if command -v python3 >/dev/null 2>&1; then
-    if python3 -c "import json; json.load(open('$SBOM_OUTPUT'))" 2>/dev/null; then
-        echo "✓ SBOM JSON validation: PASSED"
+    if python3 -c "import json, sys; json.load(open('${LOCAL_OUTPUT}'))" 2>/dev/null; then
+        echo "✓ JSON validation: PASSED"
     else
-        echo "✗ SBOM JSON validation: FAILED"
+        echo "✗ JSON validation: FAILED — output file may be malformed"
         exit 1
     fi
 fi
 
-# Display summary
+# ── Summary ───────────────────────────────────────────────────────────────────
+
+COMPONENT_COUNT=0
+VULN_COUNT=0
+if command -v python3 >/dev/null 2>&1; then
+    COMPONENT_COUNT=$(python3 -c "
+import json
+data = json.load(open('${LOCAL_OUTPUT}'))
+print(len(data.get('components', [])))
+" 2>/dev/null || echo "0")
+
+    VULN_COUNT=$(python3 -c "
+import json
+data = json.load(open('${LOCAL_OUTPUT}'))
+print(len(data.get('vulnerabilities', [])))
+" 2>/dev/null || echo "0")
+fi
+
 echo ""
 echo "================================================================================"
 echo "SBOM Summary"
 echo "================================================================================"
-echo "Document: ${IMAGE_NAME}-${IMAGE_VERSION}"
-echo "Standard: SPDX 2.3"
-echo "Created: ${TIMESTAMP}"
+echo "Image:       ${IMAGE_REF}"
+echo "Format:      CycloneDX JSON"
+echo "Generated:   ${TIMESTAMP}"
+echo "Components:  ${COMPONENT_COUNT}"
+echo "CVEs found:  ${VULN_COUNT}"
 echo ""
-echo "Key Components:"
-echo "  - Debian 12 Bookworm"
-echo "  - OpenJDK 19 JDK"
-echo "  - wolfSSL FIPS v5.2.3 (Cert #4718)"
-echo "  - wolfCrypt JNI v1.1.0 (JCE Provider)"
-echo "  - wolfSSL JNI v1.13.0 (JSSE Provider)"
-echo "  - Java FIPS Security Policy (java.security)"
-echo "  - WKS Keystore Format"
-echo ""
-echo "FIPS Compliance:"
-echo "  - FIPS 140-3 Certificate: #4718 (wolfSSL)"
-echo "  - Strict Policy: MD5, SHA-1, DSA, RC4, DES blocked"
-echo "  - Java Security: keystore.type=WKS, crypto.policy=unlimited"
-echo "  - Approved Algorithms: SHA-256, SHA-384, SHA-512, AES, RSA (≥2048)"
+echo "Output files:"
+echo "  ${LOCAL_OUTPUT}"
+[[ -f "${SUPPLY_CHAIN_OUTPUT}" ]] && echo "  ${SUPPLY_CHAIN_OUTPUT}"
 echo ""
 echo "✓ SBOM generation complete"
