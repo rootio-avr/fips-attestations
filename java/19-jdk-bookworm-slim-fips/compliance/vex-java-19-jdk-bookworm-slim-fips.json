@@ -1,0 +1,99 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://Root.com/vex/java/v1.0.0",
+  "author": "Root Security Team",
+  "timestamp": "2026-03-04T12:19:52Z",
+  "version": 1,
+  "tooling": "Root-vex-generator-1.0",
+  "statements": [
+    {
+      "vulnerability": {
+        "name": "CVE-2024-EXAMPLE-OPENSSL",
+        "description": "Hypothetical OpenSSL vulnerability"
+      },
+      "products": [
+        {
+          "@id": "pkg:docker/java@19-jdk-bookworm-slim-fips",
+          "identifiers": {
+            "purl": "pkg:docker/Root/java@19-jdk-bookworm-slim-fips"
+          }
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "This image uses wolfSSL FIPS v5.2.3 (Certificate #4718) as the cryptographic backend via wolfCrypt JNI (JCE provider) and wolfSSL JNI (JSSE provider). OpenSSL is not used for cryptographic operations. All crypto operations are performed by wolfSSL FIPS-validated module."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-EXAMPLE-OPENJDK",
+        "description": "Hypothetical OpenJDK vulnerability"
+      },
+      "products": [
+        {
+          "@id": "pkg:docker/java@19-jdk-bookworm-slim-fips",
+          "subcomponents": [
+            {
+              "@id": "pkg:oci/rootpublic/openjdk@19-jdk-bookworm-slim"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "OpenJDK 19 JDK (Debian Bookworm) with custom java.security policy. wolfSSL providers configured as security.provider.1 and security.provider.2. crypto.policy=unlimited, keystore.type=WKS. MD5, SHA-1, DSA, RC4, DES and weak algorithms disabled via jdk.tls.disabledAlgorithms, jdk.certpath.disabledAlgorithms, and jdk.jar.disabledAlgorithms."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-EXAMPLE-WOLFSSL",
+        "description": "Hypothetical wolfSSL vulnerability"
+      },
+      "products": [
+        {
+          "@id": "pkg:docker/java@19-jdk-bookworm-slim-fips",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/wolfssl@5.8.2-fips-v5.2.3"
+            },
+            {
+              "@id": "pkg:generic/wolfcrypt-jni@master"
+            },
+            {
+              "@id": "pkg:generic/wolfssljni@master"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "action_statement": "Monitoring wolfSSL security advisories. FIPS 140-3 Certificate #4718 validation ensures cryptographic module integrity. wolfSSL built with --enable-fips=v5 --enable-jni --disable-md5. FIPS in-core integrity hash verified via fips-hash.sh during build.",
+      "action_statement_timestamp": "2026-03-04T12:19:52Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GENERAL-MD5-SHA1-WEAKNESS",
+        "description": "MD5 and SHA-1 cryptographic weaknesses"
+      },
+      "products": [
+        {
+          "@id": "pkg:docker/java@19-jdk-bookworm-slim-fips"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "STRICT FIPS POLICY: MD5, MD4, MD2, and SHA-1 disabled via java.security policy (jdk.tls.disabledAlgorithms, jdk.certpath.disabledAlgorithms, jdk.jar.disabledAlgorithms). wolfSSL built with --disable-md5 and FIPS v5 mode. wolfCrypt JNI and wolfSSL JNI provide only FIPS-approved algorithms. Only SHA-256, SHA-384, SHA-512, AES, RSA (≥2048), and ECDSA available."
+    },
+    {
+      "vulnerability": {
+        "name": "LOG4SHELL-CVE-2021-44228",
+        "description": "Log4j RCE vulnerability"
+      },
+      "products": [
+        {
+          "@id": "pkg:docker/java@19-jdk-bookworm-slim-fips"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "Log4j library not included in this image. Only OpenJDK 19 JDK runtime with wolfSSL FIPS providers is present. No application logging frameworks included."
+    }
+  ]
+}

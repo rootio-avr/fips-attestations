@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-# SBOM Generator for golang (SPDX Format)
+# SBOM Generator for java (SPDX Format)
 #
 # Purpose: Generate Software Bill of Materials in SPDX 2.3 JSON format
 ################################################################################
@@ -8,9 +8,9 @@
 set -e
 
 # Configuration
-IMAGE_NAME="golang"
-IMAGE_VERSION="1.25-jammy-ubuntu-22.04-fips"
-SBOM_OUTPUT="sbom-golang-1.25-jammy-ubuntu-22.04-fips.spdx.json"
+IMAGE_NAME="java"
+IMAGE_VERSION="19-jdk-bookworm-slim-fips"
+SBOM_OUTPUT="sbom-java-19-jdk-bookworm-slim-fips.spdx.json"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 DOCUMENT_NAMESPACE="https://Root.com/sbom/${IMAGE_NAME}/${IMAGE_VERSION}/${TIMESTAMP}"
 
@@ -46,11 +46,11 @@ cat > "$SBOM_OUTPUT" <<EOF
       "licenseConcluded": "NOASSERTION",
       "licenseDeclared": "NOASSERTION",
       "copyrightText": "NOASSERTION",
-      "description": "Go FIPS Image with golang-fips/go compiler and wolfSSL FIPS v5 backend",
-      "comment": "FIPS 140-3 compliant Go runtime and compiler with strict policy (MD5 and SHA-1 blocked)"
+      "description": "Debian FIPS Java Image with OpenJDK 19 and wolfSSL FIPS v5 backend",
+      "comment": "FIPS 140-3 compliant Java runtime with strict policy (MD5 and SHA-1 blocked)"
     },
     {
-      "SPDXID": "SPDXRef-Package-Ubuntu",
+      "SPDXID": "SPDXRef-Package-Debian",
       "name": "ubuntu",
       "versionInfo": "22.04",
       "supplier": "Organization: Canonical Ltd.",
@@ -59,7 +59,7 @@ cat > "$SBOM_OUTPUT" <<EOF
       "licenseConcluded": "NOASSERTION",
       "licenseDeclared": "Various",
       "copyrightText": "Copyright (c) Canonical Ltd.",
-      "description": "Ubuntu 22.04 LTS (Jammy Jellyfish) base operating system",
+      "description": "Debian 12 Bookworm (Bookworm) base operating system",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
@@ -91,12 +91,12 @@ cat > "$SBOM_OUTPUT" <<EOF
       "SPDXID": "SPDXRef-Package-wolfSSL",
       "name": "wolfssl",
       "versionInfo": "5.8.2-fips",
-      "supplier": "Organization: Root.io Inc.",
+      "supplier": "Organization: root.io Inc.",
       "downloadLocation": "https://www.wolfssl.com/comm/wolfssl/",
       "filesAnalyzed": false,
       "licenseConcluded": "NOASSERTION",
       "licenseDeclared": "Commercial",
-      "copyrightText": "Copyright (c) Root.io Inc.",
+      "copyrightText": "Copyright (c) root.io Inc.",
       "description": "wolfSSL FIPS 140-3 Cryptographic Module v5.8.2 (Certificate #4718)",
       "comment": "Built with --disable-sha to block SHA-1 at library level. FIPS 140-3 validated.",
       "externalRefs": [
@@ -111,12 +111,12 @@ cat > "$SBOM_OUTPUT" <<EOF
       "SPDXID": "SPDXRef-Package-wolfProvider",
       "name": "wolfProvider",
       "versionInfo": "1.1.0",
-      "supplier": "Organization: Root.io Inc.",
+      "supplier": "Organization: root.io Inc.",
       "downloadLocation": "https://github.com/wolfSSL/wolfProvider/releases/tag/v1.1.0",
       "filesAnalyzed": false,
       "licenseConcluded": "GPL-3.0",
       "licenseDeclared": "GPL-3.0",
-      "copyrightText": "Copyright (c) Root.io Inc.",
+      "copyrightText": "Copyright (c) root.io Inc.",
       "description": "OpenSSL 3.x provider that routes cryptographic operations to wolfSSL",
       "externalRefs": [
         {
@@ -127,36 +127,54 @@ cat > "$SBOM_OUTPUT" <<EOF
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-GolangFIPS",
-      "name": "golang-fips",
-      "versionInfo": "go1.25-fips-release",
-      "supplier": "Organization: golang-fips project",
-      "downloadLocation": "https://github.com/golang-fips/go/tree/go1.25-fips-release",
+      "SPDXID": "SPDXRef-Package-OpenJDK",
+      "name": "openjdk",
+      "versionInfo": "17",
+      "supplier": "Organization: Oracle / OpenJDK Community",
+      "downloadLocation": "https://openjdk.java.net/",
       "filesAnalyzed": false,
-      "licenseConcluded": "BSD-3-Clause",
-      "licenseDeclared": "BSD-3-Clause",
-      "copyrightText": "Copyright (c) The Go Authors",
-      "description": "FIPS-enabled Go compiler and runtime with OpenSSL backend integration",
-      "comment": "Built with GOEXPERIMENT=strictfipsruntime for strict FIPS enforcement. ChaCha20-Poly1305 removed.",
+      "licenseConcluded": "GPL-2.0-with-classpath-exception",
+      "licenseDeclared": "GPL-2.0-with-classpath-exception",
+      "copyrightText": "Copyright (c) Oracle and/or its affiliates",
+      "description": "OpenJDK 19 Java Runtime Environment with FIPS security policy",
+      "comment": "Configured with java.security policy to disable MD5 and SHA-1 algorithms",
       "externalRefs": [
+        {
+          "referenceCategory": "SECURITY",
+          "referenceType": "cpe23Type",
+          "referenceLocator": "cpe:2.3:a:oracle:openjdk:17:*:*:*:*:*:*:*"
+        },
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:github/golang-fips/go@go1.25-fips-release"
+          "referenceLocator": "pkg:deb/ubuntu/openjdk-17-jre-headless@17"
         }
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-BuildEssential",
-      "name": "build-essential",
-      "versionInfo": "12.9ubuntu3",
-      "supplier": "Organization: Canonical Ltd.",
-      "downloadLocation": "http://archive.ubuntu.com/ubuntu/pool/main/b/build-essential/",
+      "SPDXID": "SPDXRef-Package-JavaSecurityPolicy",
+      "name": "java-security-fips-policy",
+      "versionInfo": "1.0.0",
+      "supplier": "Organization: Root",
+      "downloadLocation": "NOASSERTION",
       "filesAnalyzed": false,
       "licenseConcluded": "NOASSERTION",
-      "licenseDeclared": "GPL",
+      "licenseDeclared": "NOASSERTION",
       "copyrightText": "NOASSERTION",
-      "description": "Build tools including gcc, g++, and make for Go compilation support"
+      "description": "Custom Java security policy for FIPS mode enforcement",
+      "comment": "Disables MD5, SHA-1, weak ciphers. Sets fips.mode=strict and crypto.policy=unlimited"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-FipsDemoApp",
+      "name": "fips-demo-app",
+      "versionInfo": "1.0.0",
+      "supplier": "Organization: Root",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "copyrightText": "NOASSERTION",
+      "description": "Java demonstration application for FIPS algorithm testing"
     }
   ],
   "relationships": [
@@ -168,7 +186,7 @@ cat > "$SBOM_OUTPUT" <<EOF
     {
       "spdxElementId": "SPDXRef-Package-Container",
       "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-Ubuntu"
+      "relatedSpdxElement": "SPDXRef-Package-Debian"
     },
     {
       "spdxElementId": "SPDXRef-Package-Container",
@@ -188,22 +206,27 @@ cat > "$SBOM_OUTPUT" <<EOF
     {
       "spdxElementId": "SPDXRef-Package-Container",
       "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-GolangFIPS"
+      "relatedSpdxElement": "SPDXRef-Package-OpenJDK"
     },
     {
       "spdxElementId": "SPDXRef-Package-Container",
       "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-BuildEssential"
+      "relatedSpdxElement": "SPDXRef-Package-JavaSecurityPolicy"
     },
     {
       "spdxElementId": "SPDXRef-Package-Container",
       "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-LibSSLDev"
+      "relatedSpdxElement": "SPDXRef-Package-FipsDemoApp"
     },
     {
-      "spdxElementId": "SPDXRef-Package-GolangFIPS",
+      "spdxElementId": "SPDXRef-Package-OpenJDK",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-OpenSSL"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-OpenJDK",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-JavaSecurityPolicy"
     },
     {
       "spdxElementId": "SPDXRef-Package-wolfProvider",
@@ -214,6 +237,11 @@ cat > "$SBOM_OUTPUT" <<EOF
       "spdxElementId": "SPDXRef-Package-wolfProvider",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-OpenSSL"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-FipsDemoApp",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-OpenJDK"
     },
     {
       "spdxElementId": "SPDXRef-Package-OpenSSL",
@@ -256,16 +284,18 @@ echo "Standard: SPDX 2.3"
 echo "Created: ${TIMESTAMP}"
 echo ""
 echo "Key Components:"
-echo "  - Ubuntu 22.04 LTS"
+echo "  - Debian 12 Bookworm"
 echo "  - OpenSSL 3.0.19 (compiled from source)"
 echo "  - wolfSSL FIPS v5.8.2 (Cert #4718)"
 echo "  - wolfProvider v1.1.0"
-echo "  - golang-fips/go v1.25"
-echo "  - Build tools (gcc, g++, make)"
+echo "  - OpenJDK 19 JRE"
+echo "  - Java FIPS Security Policy"
+echo "  - FIPS Demo Application"
 echo ""
 echo "FIPS Compliance:"
 echo "  - FIPS 140-3 Certificate: #4718 (wolfSSL)"
 echo "  - Strict Policy: MD5 and SHA-1 blocked"
+echo "  - Java Security: fips.mode=strict"
 echo "  - Approved Algorithms: SHA-256, SHA-384, SHA-512"
 echo ""
 echo "✓ SBOM generation complete"
