@@ -97,7 +97,7 @@ cat > "$SBOM_OUTPUT" <<EOF
       "licenseConcluded": "NOASSERTION",
       "licenseDeclared": "Commercial",
       "copyrightText": "Copyright (c) root.io Inc.",
-      "description": "wolfSSL FIPS 140-3 Cryptographic Module v5.8.2 (Certificate #4718)",
+      "description": "wolfSSL FIPS 140-3 Cryptographic Module v5.2.3 (Certificate #4718) - Library version 5.8.2",
       "comment": "Built with --disable-sha to block SHA-1 at library level. FIPS 140-3 validated.",
       "externalRefs": [
         {
@@ -108,21 +108,40 @@ cat > "$SBOM_OUTPUT" <<EOF
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-wolfProvider",
-      "name": "wolfProvider",
+      "SPDXID": "SPDXRef-Package-wolfCryptJNI",
+      "name": "wolfcrypt-jni",
       "versionInfo": "1.1.0",
       "supplier": "Organization: root.io Inc.",
-      "downloadLocation": "https://github.com/wolfSSL/wolfProvider/releases/tag/v1.1.0",
+      "downloadLocation": "https://github.com/wolfSSL/wolfcrypt-jni",
       "filesAnalyzed": false,
-      "licenseConcluded": "GPL-3.0",
-      "licenseDeclared": "GPL-3.0",
+      "licenseConcluded": "GPL-2.0",
+      "licenseDeclared": "GPL-2.0",
       "copyrightText": "Copyright (c) root.io Inc.",
-      "description": "OpenSSL 3.x provider that routes cryptographic operations to wolfSSL",
+      "description": "JCE provider (WolfCryptProvider) with JNI bindings to wolfSSL FIPS",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:github/wolfSSL/wolfProvider@v1.1.0"
+          "referenceLocator": "pkg:github/wolfSSL/wolfcrypt-jni@master"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-wolfSSLJNI",
+      "name": "wolfssljni",
+      "versionInfo": "1.13.0",
+      "supplier": "Organization: root.io Inc.",
+      "downloadLocation": "https://github.com/wolfSSL/wolfssljni",
+      "filesAnalyzed": false,
+      "licenseConcluded": "GPL-2.0",
+      "licenseDeclared": "GPL-2.0",
+      "copyrightText": "Copyright (c) root.io Inc.",
+      "description": "JSSE provider (WolfSSLProvider) with JNI bindings to wolfSSL FIPS for TLS/SSL",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:github/wolfSSL/wolfssljni@master"
         }
       ]
     },
@@ -142,12 +161,12 @@ cat > "$SBOM_OUTPUT" <<EOF
         {
           "referenceCategory": "SECURITY",
           "referenceType": "cpe23Type",
-          "referenceLocator": "cpe:2.3:a:oracle:openjdk:17:*:*:*:*:*:*:*"
+          "referenceLocator": "cpe:2.3:a:oracle:openjdk:19:*:*:*:*:*:*:*"
         },
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:deb/ubuntu/openjdk-17-jre-headless@17"
+          "referenceLocator": "pkg:deb/debian/openjdk-19-jdk-headless@19"
         }
       ]
     },
@@ -201,7 +220,12 @@ cat > "$SBOM_OUTPUT" <<EOF
     {
       "spdxElementId": "SPDXRef-Package-Container",
       "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-wolfProvider"
+      "relatedSpdxElement": "SPDXRef-Package-wolfCryptJNI"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Container",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-wolfSSLJNI"
     },
     {
       "spdxElementId": "SPDXRef-Package-Container",
@@ -229,14 +253,24 @@ cat > "$SBOM_OUTPUT" <<EOF
       "relatedSpdxElement": "SPDXRef-Package-JavaSecurityPolicy"
     },
     {
-      "spdxElementId": "SPDXRef-Package-wolfProvider",
+      "spdxElementId": "SPDXRef-Package-wolfCryptJNI",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-wolfSSL"
     },
     {
-      "spdxElementId": "SPDXRef-Package-wolfProvider",
+      "spdxElementId": "SPDXRef-Package-wolfSSLJNI",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-OpenSSL"
+      "relatedSpdxElement": "SPDXRef-Package-wolfSSL"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-OpenJDK",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-wolfCryptJNI"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-OpenJDK",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-wolfSSLJNI"
     },
     {
       "spdxElementId": "SPDXRef-Package-FipsDemoApp",
@@ -244,14 +278,14 @@ cat > "$SBOM_OUTPUT" <<EOF
       "relatedSpdxElement": "SPDXRef-Package-OpenJDK"
     },
     {
-      "spdxElementId": "SPDXRef-Package-OpenSSL",
+      "spdxElementId": "SPDXRef-Package-wolfSSL",
       "relationshipType": "RUNTIME_DEPENDENCY_OF",
-      "relatedSpdxElement": "SPDXRef-Package-wolfProvider"
+      "relatedSpdxElement": "SPDXRef-Package-wolfCryptJNI"
     },
     {
       "spdxElementId": "SPDXRef-Package-wolfSSL",
       "relationshipType": "RUNTIME_DEPENDENCY_OF",
-      "relatedSpdxElement": "SPDXRef-Package-wolfProvider"
+      "relatedSpdxElement": "SPDXRef-Package-wolfSSLJNI"
     }
   ]
 }
@@ -261,7 +295,7 @@ echo "✓ SBOM generated successfully"
 echo ""
 echo "Output: $SBOM_OUTPUT"
 echo "Format: SPDX 2.3 JSON"
-echo "Components: 8 packages documented"
+echo "Components: 9 packages documented"
 echo ""
 
 # Validate JSON syntax
@@ -285,17 +319,17 @@ echo "Created: ${TIMESTAMP}"
 echo ""
 echo "Key Components:"
 echo "  - Debian 12 Bookworm"
-echo "  - OpenSSL 3.0.19 (compiled from source)"
-echo "  - wolfSSL FIPS v5.8.2 (Cert #4718)"
-echo "  - wolfProvider v1.1.0"
-echo "  - OpenJDK 19 JRE"
-echo "  - Java FIPS Security Policy"
-echo "  - FIPS Demo Application"
+echo "  - OpenJDK 19 JDK"
+echo "  - wolfSSL FIPS v5.2.3 (Cert #4718)"
+echo "  - wolfCrypt JNI v1.1.0 (JCE Provider)"
+echo "  - wolfSSL JNI v1.13.0 (JSSE Provider)"
+echo "  - Java FIPS Security Policy (java.security)"
+echo "  - WKS Keystore Format"
 echo ""
 echo "FIPS Compliance:"
 echo "  - FIPS 140-3 Certificate: #4718 (wolfSSL)"
-echo "  - Strict Policy: MD5 and SHA-1 blocked"
-echo "  - Java Security: fips.mode=strict"
-echo "  - Approved Algorithms: SHA-256, SHA-384, SHA-512"
+echo "  - Strict Policy: MD5, SHA-1, DSA, RC4, DES blocked"
+echo "  - Java Security: keystore.type=WKS, crypto.policy=unlimited"
+echo "  - Approved Algorithms: SHA-256, SHA-384, SHA-512, AES, RSA (≥2048)"
 echo ""
 echo "✓ SBOM generation complete"

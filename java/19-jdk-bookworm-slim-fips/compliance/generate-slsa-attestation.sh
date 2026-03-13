@@ -125,10 +125,12 @@ cat > "$ATTESTATION_OUTPUT" <<EOF
         "buildConfig": {
           "dockerfile": "Dockerfile",
           "buildArgs": {
-            "BASE_IMAGE": "ubuntu:22.04",
+            "BASE_IMAGE": "rootpublic/openjdk:19-jdk-bookworm-slim",
             "WOLFSSL_VERSION": "5.8.2-commercial-fips-v5.2.3",
-            "WOLFPROVIDER_VERSION": "v1.1.0",
-            "OPENJDK_VERSION": "17"
+            "WOLFCRYPT_JNI_REPO": "https://github.com/wolfSSL/wolfcrypt-jni.git",
+            "WOLFCRYPT_JNI_BRANCH": "master",
+            "WOLFSSL_JNI_REPO": "https://github.com/wolfSSL/wolfssljni.git",
+            "WOLFSSL_JNI_BRANCH": "master"
           }
         }
       },
@@ -148,7 +150,7 @@ cat > "$ATTESTATION_OUTPUT" <<EOF
           "downloadLocation": "https://hub.docker.com/_/ubuntu"
         },
         {
-          "uri": "pkg:generic/wolfssl@5.8.2-fips",
+          "uri": "pkg:generic/wolfssl@5.8.2-fips-v5.2.3",
           "name": "wolfssl",
           "downloadLocation": "https://www.wolfssl.com/comm/wolfssl/",
           "annotations": {
@@ -157,19 +159,35 @@ cat > "$ATTESTATION_OUTPUT" <<EOF
           }
         },
         {
-          "uri": "pkg:generic/wolfprovider@1.1.0",
-          "name": "wolfProvider",
-          "downloadLocation": "https://github.com/wolfSSL/wolfProvider",
+          "uri": "pkg:github/wolfSSL/wolfcrypt-jni@1.1.0",
+          "name": "wolfcrypt-jni",
+          "downloadLocation": "https://github.com/wolfSSL/wolfcrypt-jni",
           "digest": {
-            "gitCommit": "v1.1.0"
+            "gitCommit": "master"
+          },
+          "annotations": {
+            "purpose": "JCE Provider (WolfCryptProvider)",
+            "artifacts": "libwolfcryptjni.so, wolfcrypt-jni.jar"
           }
         },
         {
-          "uri": "pkg:deb/ubuntu/openjdk-17-jre-headless",
-          "name": "openjdk-17",
-          "downloadLocation": "https://packages.ubuntu.com/jammy/openjdk-17-jre-headless",
+          "uri": "pkg:github/wolfSSL/wolfssljni@1.13.0",
+          "name": "wolfssljni",
+          "downloadLocation": "https://github.com/wolfSSL/wolfssljni",
+          "digest": {
+            "gitCommit": "master"
+          },
           "annotations": {
-            "java_version": "17",
+            "purpose": "JSSE Provider (WolfSSLProvider)",
+            "artifacts": "libwolfssljni.so, wolfssl-jsse.jar"
+          }
+        },
+        {
+          "uri": "pkg:deb/debian/openjdk-19-jdk-headless",
+          "name": "openjdk-19",
+          "downloadLocation": "https://packages.debian.org/bookworm/openjdk-19-jdk-headless",
+          "annotations": {
+            "java_version": "19",
             "distribution": "Debian 12"
           }
         },

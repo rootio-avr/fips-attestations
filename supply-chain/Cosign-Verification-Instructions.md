@@ -24,7 +24,7 @@ The following images have been signed with cosign:
 
 | Image Name | Tag | Digest | ECR Repository |
 |------------|-----|--------|----------------|
-| java | 19-jdk-bookworm-slim-fips | sha256:9ebc4768b4fdadd6dab92aea1748f8040407d32a623c66564f2ab19edd04e325 | root-reg/java |
+| java | 19-jdk-bookworm-slim-fips | sha256:73047fef8b4f7345504ef0478682edbce7f69150dbfd88eafcc22ffb264a29e9 | root-reg/java |
 | golang | 1.25-jammy-ubuntu-22.04-fips | sha256:d48386da5fcaea2cfc40a659ab16d37bd27619a031210e2e394b8685b02b5fad | root-reg/golang |
 
 ## Verification Methods
@@ -58,7 +58,7 @@ Verify using the image digest for immutable verification.
 cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
-  <redacted_root_ecr_base>/root-reg/java:19-jdk-bookworm-slim-fips:sha256:9ebc4768b4fdadd6dab92aea1748f8040407d32a623c66564f2ab19edd04e325                     
+  <redacted_root_ecr_base>/root-reg/java:19-jdk-bookworm-slim-fips:sha256:73047fef8b4f7345504ef0478682edbce7f69150dbfd88eafcc22ffb264a29e9                     
 ```
 
 **Golang Image:**
@@ -80,7 +80,7 @@ Successful verification will output JSON with signature details:
       "docker-reference": "<redacted_root_ecr_base>/root-reg/java:19-jdk-bookworm-slim-fips"
     },
     "image": {
-      "docker-manifest-digest": "sha256:9ebc4768b4fdadd6dab92aea1748f8040407d32a623c66564f2ab19edd04e325"
+      "docker-manifest-digest": "sha256:73047fef8b4f7345504ef0478682edbce7f69150dbfd88eafcc22ffb264a29e9"
     },
     "type": "https://sigstore.dev/cosign/sign/v1"
   },
@@ -106,7 +106,7 @@ The cr.root.io proxy is read-only and doesn't store signature artifacts. To veri
    cosign verify \
      --certificate-identity-regexp '.*' \
      --certificate-oidc-issuer-regexp '.*' \
-     <redacted_root_ecr_base>/root-reg/java@sha256:9ebc4768b4fdadd6dab92aea1748f8040407d32a623c66564f2ab19edd04e325
+     <redacted_root_ecr_base>/root-reg/java@sha256:73047fef8b4f7345504ef0478682edbce7f69150dbfd88eafcc22ffb264a29e9
    ```
 
 ## Advanced Commands

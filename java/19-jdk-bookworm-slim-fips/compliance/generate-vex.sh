@@ -48,7 +48,7 @@ cat > "$VEX_OUTPUT" <<'EOF'
       ],
       "status": "not_affected",
       "justification": "component_not_present",
-      "impact_statement": "This image uses wolfSSL FIPS v5.8.2 (Certificate #4718) as the primary cryptographic backend via wolfProvider. OpenSSL 3.0.19 (compiled from source) provides the provider interface but cryptographic operations route through wolfSSL in FIPS mode."
+      "impact_statement": "This image uses wolfSSL FIPS v5.2.3 (Certificate #4718) as the cryptographic backend via wolfCrypt JNI (JCE provider) and wolfSSL JNI (JSSE provider). OpenSSL is not used for cryptographic operations. All crypto operations are performed by wolfSSL FIPS-validated module."
     },
     {
       "vulnerability": {
@@ -60,14 +60,14 @@ cat > "$VEX_OUTPUT" <<'EOF'
           "@id": "pkg:docker/java@19-jdk-bookworm-slim-fips",
           "subcomponents": [
             {
-              "@id": "pkg:deb/ubuntu/openjdk-17-jre-headless@17"
+              "@id": "pkg:oci/rootpublic/openjdk@19-jdk-bookworm-slim"
             }
           ]
         }
       ],
       "status": "not_affected",
       "justification": "vulnerable_code_not_in_execute_path",
-      "impact_statement": "OpenJDK 17 JRE with custom java.security policy. FIPS mode configured (fips.mode=strict, crypto.policy=unlimited). MD5, SHA-1, and weak algorithms disabled at JDK level."
+      "impact_statement": "OpenJDK 19 JDK (Debian Bookworm) with custom java.security policy. wolfSSL providers configured as security.provider.1 and security.provider.2. crypto.policy=unlimited, keystore.type=WKS. MD5, SHA-1, DSA, RC4, DES and weak algorithms disabled via jdk.tls.disabledAlgorithms, jdk.certpath.disabledAlgorithms, and jdk.jar.disabledAlgorithms."
     },
     {
       "vulnerability": {
@@ -79,7 +79,7 @@ cat > "$VEX_OUTPUT" <<'EOF'
           "@id": "pkg:docker/java@19-jdk-bookworm-slim-fips",
           "subcomponents": [
             {
-              "@id": "pkg:generic/wolfssl@5.8.2-fips"
+              "@id": "pkg:generic/wolfssl@5.8.2-fips-v5.2.3"
             }
           ]
         }
@@ -114,7 +114,7 @@ cat > "$VEX_OUTPUT" <<'EOF'
       ],
       "status": "not_affected",
       "justification": "component_not_present",
-      "impact_statement": "Log4j library not included in this image. Only OpenJDK 17 JRE runtime is present."
+      "impact_statement": "Log4j library not included in this image. Only OpenJDK 19 JDK runtime with wolfSSL FIPS providers is present. No application logging frameworks included."
     }
   ]
 }
