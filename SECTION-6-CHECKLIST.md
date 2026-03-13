@@ -32,7 +32,7 @@ This document provides explicit, line-by-line traceability from Section 6 requir
 
 **Verification Command:**
 ```bash
-docker run --rm localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
+docker run --rm cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 # Expected: MD5 BLOCKED, SHA-1 BLOCKED
 ```
 
@@ -89,7 +89,7 @@ docker run --rm --entrypoint="" java-19-jdk-bookworm-slim-fips-demos \
 
 **Verification Command:**
 ```bash
-docker run --rm localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
+docker run --rm cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 # Expected: SHA-256 PASS, SHA-384 PASS, SHA-512 PASS
 ```
 
@@ -142,7 +142,7 @@ cd java/19-jdk-bookworm-slim-fips
 docker run --rm \
   -v $(pwd)/golang/1.25-jammy-ubuntu-22.04-fips/tests:/tests \
   --entrypoint="" \
-  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips \
+  cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips \
   bash /tests/test-os-fips-status.sh
 ```
 
@@ -270,14 +270,12 @@ cat golang/1.25-jammy-ubuntu-22.04-fips/SCAP-SUMMARY.md
 | Evidence Type | File Path | Description | Status |
 |--------------|-----------|-------------|--------|
 | **Signing Instructions** | `supply-chain/Cosign-Verification-Instructions.md` | Complete verification guide | ✅ |
-| **Go Signing Script** | `golang/1.25-jammy-ubuntu-22.04-fips/compliance/sign-image.sh` | Image signing automation | ✅ |
-| **Java Signing Script** | `java/19-jdk-bookworm-slim-fips/compliance/sign-image.sh` | Image signing automation | ✅ |
 | **Verification Script** | `supply-chain/verify-all.sh` | Automated verification | ✅ |
 
 **Verification:**
 ```bash
 # Verify Go image signature
-cosign verify --key cosign.pub localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
+cosign verify --key cosign.pub cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Verify Java image signature
 cosign verify --key cosign.pub cr.root.io/java:19-jdk-bookworm-slim-fips
@@ -317,7 +315,7 @@ cosign verify --key cosign.pub cr.root.io/java:19-jdk-bookworm-slim-fips
 cosign verify-attestation \
   --type slsaprovenance \
   --key cosign.pub \
-  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
+  cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Verify SBOM attestation for Java image
 cosign verify-attestation \
@@ -352,7 +350,7 @@ cosign verify-attestation \
 docker run --rm \
   -v $(pwd)/golang/1.25-jammy-ubuntu-22.04-fips/tests:/tests \
   --entrypoint="" \
-  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips \
+  cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips \
   bash /tests/test-contrast-fips-enabled-vs-disabled.sh
 ```
 
@@ -424,14 +422,14 @@ This checklist maps directly to the Root FIPS/STIG POC Execution Plan:
 git clone <repository-url> && cd fips-poc
 
 # 2. Pull images
-docker pull localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
+docker pull cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 docker pull cr.root.io/java:19-jdk-bookworm-slim-fips
 
 # 3. Verify signatures
 ./supply-chain/verify-all.sh
 
 # 4. Run Go tests
-docker run --rm localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
+docker run --rm cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 
 # 5. Run Java tests
 docker run --rm cr.root.io/java:19-jdk-bookworm-slim-fips

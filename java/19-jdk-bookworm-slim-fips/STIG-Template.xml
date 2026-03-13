@@ -340,8 +340,7 @@
 
           1. Enable APT signature checking (default in Debian Bookworm)
           2. Generate SBOM: ./compliance/generate-sbom.sh
-          3. Sign image: ./compliance/sign-image.sh
-          4. Verify: cosign verify java:19-jdk-bookworm-slim-fips
+          3. Verify: cosign verify java:19-jdk-bookworm-slim-fips
         </fixtext>
       </fix>
     </Rule>

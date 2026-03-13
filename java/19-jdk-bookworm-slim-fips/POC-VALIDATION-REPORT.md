@@ -241,7 +241,6 @@ Note: Kernel-level checks report warnings (expected in containers)
 | **Audit Trail** | ✅ | `entrypoint.sh:27-64`, `/var/log/fips-audit.log` | JSON structured logging |
 | **VEX Documentation** | ✅ | `compliance/generate-vex.sh` | OpenVEX v0.2.0 |
 | **SBOM** | ✅ | `compliance/generate-sbom.sh` | SPDX 2.3 |
-| **Artifact Signing** | ✅ | `compliance/sign-image.sh` | Cosign (Sigstore) |
 | **SLSA Level 2** | ✅ | `compliance/generate-slsa-attestation.sh` | SLSA v1.0 |
 | **Chain of Custody** | ✅ | `compliance/CHAIN-OF-CUSTODY.md` | Complete provenance |
 
@@ -274,7 +273,6 @@ Note: Kernel-level checks report warnings (expected in containers)
 
 | Operation | Tool | Command |
 |-----------|------|---------|
-| **Image Signing** | Cosign | `./compliance/sign-image.sh` |
 | **Attestation** | Cosign | `cosign attest --predicate slsa-provenance-*.json` |
 | **Verification** | Cosign | `cosign verify-attestation --type slsaprovenance` |
 

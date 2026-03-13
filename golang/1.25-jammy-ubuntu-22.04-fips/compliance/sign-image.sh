@@ -18,7 +18,7 @@ NC='\033[0m'
 IMAGE_NAME="golang"
 IMAGE_VERSION="1.25-jammy-ubuntu-22.04-fips"
 IMAGE_TAG="${IMAGE_NAME}:${IMAGE_VERSION}"
-REGISTRY="${REGISTRY:-localhost:5000}"
+REGISTRY="${REGISTRY:-cr.root.io}"
 FULL_IMAGE_TAG="${REGISTRY}/${IMAGE_TAG}"
 
 # Output files
@@ -80,7 +80,7 @@ echo ""
 # Tag Image (if using local registry)
 ################################################################################
 
-if [ "${REGISTRY}" != "localhost:5000" ] && [ "${REGISTRY}" != "" ]; then
+if [ "${REGISTRY}" != "cr.root.io" ] && [ "${REGISTRY}" != "" ]; then
     echo "========================================="
     echo -e "${BOLD}[2/5] Tagging Image for Registry${NC}"
     echo "========================================="

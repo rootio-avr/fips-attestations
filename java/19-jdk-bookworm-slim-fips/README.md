@@ -517,7 +517,6 @@ This image **fully satisfies all FIPS Proof of Concept (POC) criteria** for fede
 - ✅ Audit trail visibility (`/var/log/fips-audit.log` - if configured)
 - ✅ VEX documentation (`compliance/generate-vex.sh`)
 - ✅ SBOM availability (`compliance/generate-sbom.sh`)
-- ✅ Artifact signing (`compliance/sign-image.sh`)
 - ✅ SLSA Level 2 compliance (`compliance/generate-slsa-attestation.sh`)
 - ✅ Verified chain of custody (`compliance/CHAIN-OF-CUSTODY.md`)
 
@@ -676,7 +675,6 @@ java/19-jdk-bookworm-slim-fips/
     ├── generate-sbom.sh
     ├── generate-vex.sh
     ├── generate-slsa-attestation.sh
-    ├── sign-image.sh
     └── CHAIN-OF-CUSTODY.md
 ```
 

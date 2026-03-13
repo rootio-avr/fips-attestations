@@ -277,13 +277,13 @@ To reproduce all tests:
 git clone <repo-url> && cd fips-poc/golang/1.25-jammy-ubuntu-22.04-fips
 
 # Pull image
-docker pull localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips
+docker pull cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Run all tests
 docker run --rm \
   -v $(pwd)/tests:/tests \
   --entrypoint="" \
-  localhost:5000/golang:1.25-jammy-ubuntu-22.04-fips \
+  cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips \
   bash -c 'cd /tests && ./run-all-tests.sh'
 
 # Expected: ✅ ALL TEST SUITES PASSED (7/7)

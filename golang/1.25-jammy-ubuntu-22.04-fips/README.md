@@ -171,7 +171,6 @@ This image **fully satisfies all FIPS Proof of Concept (POC) criteria** for fede
 - ✅ Audit trail visibility (`/var/log/fips-audit.log`)
 - ✅ VEX documentation (`compliance/generate-vex.sh`)
 - ✅ SBOM availability (`compliance/generate-sbom.sh`)
-- ✅ Artifact signing (`compliance/sign-image.sh`)
 - ✅ SLSA Level 2 compliance (`compliance/generate-slsa-attestation.sh`)
 - ✅ Verified chain of custody (`compliance/CHAIN-OF-CUSTODY.md`)
 
@@ -360,7 +359,6 @@ golang/1.25-jammy-ubuntu-22.04-fips/
 │   ├── generate-sbom.sh               # SBOM generator (SPDX)
 │   ├── generate-vex.sh                # VEX generator (OpenVEX)
 │   ├── generate-slsa-attestation.sh   # SLSA attestation generator
-│   ├── sign-image.sh                  # Image signing (Cosign)
 │   └── CHAIN-OF-CUSTODY.md            # Provenance documentation
 ```
 

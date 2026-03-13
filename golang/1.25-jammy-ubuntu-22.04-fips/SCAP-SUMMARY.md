@@ -194,7 +194,6 @@ cosign verify golang:1.25-jammy-ubuntu-22.04-fips
 **Evidence Files:**
 - `compliance/sbom-golang-1.25-jammy-ubuntu-22.04-fips.spdx.json`
 - `supply-chain/SBOM-golang-1.25-jammy-ubuntu-22.04-fips.spdx.json`
-- `compliance/sign-image.sh`
 
 ---
 

@@ -272,11 +272,6 @@ All cryptographic operations occur within the FIPS boundary:
 
 **Signing Method**: Cosign (Sigstore)
 
-**Signing Process**:
-```bash
-# Sign image
-./compliance/sign-image.sh
-
 # Verify signature
 cosign verify \
   --key cosign.pub \
@@ -675,9 +670,6 @@ cd compliance
 
 # Generate SLSA provenance
 ./generate-slsa-attestation.sh
-
-# Sign image
-./sign-image.sh
 
 # All artifacts generated in compliance/
 ```
