@@ -1266,7 +1266,7 @@ Application: Secure HTTPS connection established
 
 - **[README.md](README.md)** - General documentation and usage
 - **[POC-VALIDATION-REPORT.md](POC-VALIDATION-REPORT.md)** - FIPS validation evidence
-- **[SECTION-6-CHECKLIST.md](../SECTION-6-CHECKLIST.md)** - Compliance checklist
+- **[SECTION-6-CHECKLIST.md](../../SECTION-6-CHECKLIST.md)** - Compliance checklist
 - **golang-fips/go**: https://github.com/golang-fips/go
 - **wolfSSL FIPS**: https://www.wolfssl.com/products/fips/
 - **wolfProvider**: https://github.com/wolfSSL/wolfProvider
