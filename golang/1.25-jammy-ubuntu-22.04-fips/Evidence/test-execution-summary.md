@@ -281,10 +281,10 @@ docker pull cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Run all tests
 docker run --rm \
-  -v $(pwd)/tests:/tests \
+  -v $(pwd)/diagnostics:/diagnostics \
   --entrypoint="" \
   cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips \
-  bash -c 'cd /tests && ./run-all-tests.sh'
+  bash -c 'cd /diagnostics && ./run-all-tests.sh'
 
 # Expected: ✅ ALL TEST SUITES PASSED (7/7)
 ```

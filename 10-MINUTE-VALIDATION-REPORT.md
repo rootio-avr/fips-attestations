@@ -383,9 +383,9 @@ Running additional FIPS security compliance tests...
 
 **Command:**
 ```bash
-docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
+docker run --rm -v $(pwd)/golang/1.25-jammy-ubuntu-22.04-fips/diagnostics:/diagnostics --entrypoint="" \
   golang:1.25-jammy-ubuntu-22.04-fips \
-  bash /tests/test-go-fips-algorithms.sh
+  bash /diagnostics/test-go-fips-algorithms.sh
 ```
 
 **Result:** ✅ **PASSED (4/4 tests)**
@@ -403,9 +403,9 @@ docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
 
 **Command:**
 ```bash
-docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
+docker run --rm -v $(pwd)/java/19-jdk-bookworm-slim-fips/diagnostics:/diagnostics --entrypoint="" \
   cr.root.io/java:19-jdk-bookworm-slim-fips \
-  bash /tests/test-java-algorithm-enforcement.sh
+  bash /diagnostics/test-java-algorithm-enforcement.sh
 ```
 
 **Result:** ✅ **PASSED (5/5 tests)**
@@ -428,9 +428,9 @@ docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
 
 **Command:**
 ```bash
-docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
+docker run --rm -v $(pwd)/golang/1.25-jammy-ubuntu-22.04-fips/diagnostics:/diagnostics --entrypoint="" \
   golang:1.25-jammy-ubuntu-22.04-fips \
-  bash -c 'cd /tests && ./run-all-tests.sh'
+  bash -c 'cd /diagnostics && ./run-all-tests.sh'
 ```
 
 **Result:** ✅ **PASSED (6/6 test suites)**
@@ -447,9 +447,9 @@ docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
 
 **Command:**
 ```bash
-docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
+docker run --rm -v $(pwd)/java/19-jdk-bookworm-slim-fips/diagnostics:/diagnostics --entrypoint="" \
   java:19-jdk-bookworm-slim-fips \
-  bash -c 'cd /tests && ./run-all-tests.sh'
+  bash -c 'cd /diagnostics && ./run-all-tests.sh'
 ```
 
 **Result:** ✅ **PASSED (4/4 test suites)**

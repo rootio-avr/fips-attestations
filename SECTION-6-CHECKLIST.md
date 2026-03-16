@@ -24,9 +24,9 @@ This document provides explicit, line-by-line traceability from Section 6 requir
 
 | Evidence Type | File Path | Line Numbers | Status |
 |--------------|-----------|--------------|--------|
-| **Test Script** | `golang/1.25-jammy-ubuntu-22.04-fips/tests/test-go-fips-algorithms.sh` | Lines 35-80 | ✅ |
+| **Test Script** | `golang/1.25-jammy-ubuntu-22.04-fips/diagnostics/test-go-fips-algorithms.sh` | Lines 35-80 | ✅ |
 | **Demo Application** | `golang/1.25-jammy-ubuntu-22.04-fips/src/main.go` | Lines 115-164 | ✅ |
-| **CLI Test** | `golang/1.25-jammy-ubuntu-22.04-fips/tests/test-openssl-cli-algorithms.sh` | Lines 35-66 | ✅ |
+| **CLI Test** | `golang/1.25-jammy-ubuntu-22.04-fips/diagnostics/test-openssl-cli-algorithms.sh` | Lines 35-66 | ✅ |
 | **Evidence Bundle** | `golang/1.25-jammy-ubuntu-22.04-fips/Evidence/algorithm-enforcement-evidence.log` | MD5/SHA-1 blocks | ✅ |
 | **Validation Report** | `golang/1.25-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md` | Lines 35-44 | ✅ |
 
@@ -81,9 +81,9 @@ docker run --rm --entrypoint="" java-19-jdk-bookworm-slim-fips-demos \
 
 | Evidence Type | File Path | Line Numbers | Status |
 |--------------|-----------|--------------|--------|
-| **Test Script** | `golang/1.25-jammy-ubuntu-22.04-fips/tests/test-go-fips-algorithms.sh` | Lines 85-140 | ✅ |
+| **Test Script** | `golang/1.25-jammy-ubuntu-22.04-fips/diagnostics/test-go-fips-algorithms.sh` | Lines 85-140 | ✅ |
 | **Demo Application** | `golang/1.25-jammy-ubuntu-22.04-fips/src/main.go` | Lines 166-233 | ✅ |
-| **CLI Test** | `golang/1.25-jammy-ubuntu-22.04-fips/tests/test-openssl-cli-algorithms.sh` | Lines 72-117 | ✅ |
+| **CLI Test** | `golang/1.25-jammy-ubuntu-22.04-fips/diagnostics/test-openssl-cli-algorithms.sh` | Lines 72-117 | ✅ |
 | **Evidence Bundle** | `golang/1.25-jammy-ubuntu-22.04-fips/Evidence/algorithm-enforcement-evidence.log` | SHA-256+ success | ✅ |
 | **Validation Report** | `golang/1.25-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md` | Lines 96-99 | ✅ |
 
@@ -130,20 +130,20 @@ cd java/19-jdk-bookworm-slim-fips
 
 | Evidence Type | File Path | Line Numbers | Status |
 |--------------|-----------|--------------|--------|
-| **OS Status Test** | `golang/1.25-jammy-ubuntu-22.04-fips/tests/test-os-fips-status.sh` | Lines 21-258 | ✅ |
-| **Provider Check** | `golang/1.25-jammy-ubuntu-22.04-fips/tests/test-os-fips-status.sh` | Lines 118-135 | ✅ |
-| **Environment Validation** | `golang/1.25-jammy-ubuntu-22.04-fips/tests/test-os-fips-status.sh` | Lines 141-184 | ✅ |
-| **wolfSSL Verification** | `golang/1.25-jammy-ubuntu-22.04-fips/tests/test-os-fips-status.sh` | Lines 190-219 | ✅ |
+| **OS Status Test** | `golang/1.25-jammy-ubuntu-22.04-fips/diagnostics/test-os-fips-status.sh` | Lines 21-258 | ✅ |
+| **Provider Check** | `golang/1.25-jammy-ubuntu-22.04-fips/diagnostics/test-os-fips-status.sh` | Lines 118-135 | ✅ |
+| **Environment Validation** | `golang/1.25-jammy-ubuntu-22.04-fips/diagnostics/test-os-fips-status.sh` | Lines 141-184 | ✅ |
+| **wolfSSL Verification** | `golang/1.25-jammy-ubuntu-22.04-fips/diagnostics/test-os-fips-status.sh` | Lines 190-219 | ✅ |
 | **Entrypoint Audit Log** | `golang/1.25-jammy-ubuntu-22.04-fips/entrypoint.sh` | Lines 25-64 | ✅ |
 | **Validation Report** | `golang/1.25-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md` | Lines 140-210 | ✅ |
 
 **Verification Command:**
 ```bash
 docker run --rm \
-  -v $(pwd)/golang/1.25-jammy-ubuntu-22.04-fips/tests:/tests \
+  -v $(pwd)/golang/1.25-jammy-ubuntu-22.04-fips/diagnostics:/diagnostics \
   --entrypoint="" \
   cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips \
-  bash /tests/test-os-fips-status.sh
+  bash /diagnostics/test-os-fips-status.sh
 ```
 
 **Expected Results:**
@@ -340,7 +340,7 @@ cosign verify-attestation \
 
 | Evidence Type | File Path | Description | Status |
 |--------------|-----------|-------------|--------|
-| **Contrast Test Script** | `golang/1.25-jammy-ubuntu-22.04-fips/tests/test-contrast-fips-enabled-vs-disabled.sh` | Automated contrast test | ✅ |
+| **Contrast Test Script** | `golang/1.25-jammy-ubuntu-22.04-fips/diagnostics/test-contrast-fips-enabled-vs-disabled.sh` | Automated contrast test | ✅ |
 | **Contrast Results** | `golang/1.25-jammy-ubuntu-22.04-fips/Evidence/contrast-test-results.md` | Side-by-side comparison | ✅ |
 | **README Section** | `golang/1.25-jammy-ubuntu-22.04-fips/README.md` | Contrast test documentation | ✅ |
 
@@ -348,10 +348,10 @@ cosign verify-attestation \
 ```bash
 # Run contrast test
 docker run --rm \
-  -v $(pwd)/golang/1.25-jammy-ubuntu-22.04-fips/tests:/tests \
+  -v $(pwd)/golang/1.25-jammy-ubuntu-22.04-fips/diagnostics:/diagnostics \
   --entrypoint="" \
   cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips \
-  bash /tests/test-contrast-fips-enabled-vs-disabled.sh
+  bash /diagnostics/test-contrast-fips-enabled-vs-disabled.sh
 ```
 
 **Expected Results:**

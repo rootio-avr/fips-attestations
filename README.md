@@ -47,9 +47,9 @@ This POC explicitly addresses every requirement from Section 6:
 
 | Requirement | Evidence Location | Verification Method |
 |-------------|------------------|---------------------|
-| **6.1** FIPS incompatible algorithms fail | Go: `golang/.../tests/test-go-fips-algorithms.sh`; Java: `java/.../diagnostics/test-java-algorithm-enforcement.sh` | Run test, observe blocked algorithms |
-| **6.2** FIPS compatible algorithms succeed | Go: `golang/.../tests/test-go-fips-algorithms.sh`; Java: `java/.../diagnostics/test-java-algorithms.sh` | Run test, observe SHA-256+ success |
-| **6.3** OS FIPS enabled | Go: `golang/.../tests/test-os-fips-status.sh`; Java: `java/.../diagnostics/test-os-fips-status.sh` | Run test, verify provider status |
+| **6.1** FIPS incompatible algorithms fail | Go: `golang/.../diagnostics/test-go-fips-algorithms.sh`; Java: `java/.../diagnostics/test-java-algorithm-enforcement.sh` | Run test, observe blocked algorithms |
+| **6.2** FIPS compatible algorithms succeed | Go: `golang/.../diagnostics/test-go-fips-algorithms.sh`; Java: `java/.../diagnostics/test-java-algorithms.sh` | Run test, observe SHA-256+ success |
+| **6.3** OS FIPS enabled | Go: `golang/.../diagnostics/test-os-fips-status.sh`; Java: `java/.../diagnostics/test-os-fips-status.sh` | Run test, verify provider status |
 | **STIG Baseline** | `[go\|java]/STIG-Template.xml` | Review template and exclusions |
 | **SCAP Output** | `[go\|java]/SCAP-Results.{xml,html}` | Review scan results |
 | **Signed Images** | `supply-chain/Cosign-Verification-Instructions.md` | Run cosign verify |
@@ -116,10 +116,10 @@ docker run --rm cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 ```bash
 # Run complete test suite (6 tests)
 docker run --rm \
-  -v $(pwd)/golang/1.25-jammy-ubuntu-22.04-fips/tests:/tests \
+  -v $(pwd)/golang/1.25-jammy-ubuntu-22.04-fips/diagnostics:/diagnostics \
   --entrypoint="" \
   cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips \
-  bash -c 'cd /tests && ./run-all-tests.sh'
+  bash -c 'cd /diagnostics && ./run-all-tests.sh'
 
 # Expected: ✅ 6/6 test suites passed
 ```

@@ -335,7 +335,7 @@
 
           1. Enable APT signature checking (default in Ubuntu 22.04)
           2. Generate SBOM: ./compliance/generate-sbom.sh
-          3. Verify: cosign verify <root_ect>/golang:1.25-jammy-ubuntu-22.04-fips
+          3. Verify: cosign verify cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
         </fixtext>
       </fix>
     </Rule>

@@ -104,7 +104,7 @@ docker run --rm golang:1.25-jammy-ubuntu-22.04-fips
 
 # Run specific algorithm test
 docker run --rm \
-  -v $(pwd)/tests:/tests \
+  -v $(pwd)/diagnostics:/diagnostics \
   --entrypoint="" \
   golang:1.25-jammy-ubuntu-22.04-fips \
   ./diagnostic.sh test-go-fips-algorithms.sh
@@ -178,7 +178,7 @@ docker run --rm \
 ```bash
 # Run OS FIPS status check
 docker run --rm \
-  -v $(pwd)/tests:/tests \
+  -v $(pwd)/diagnostics:/diagnostics \
   --entrypoint="" \
   golang:1.25-jammy-ubuntu-22.04-fips \
   ./diagnostic.sh test-os-fips-status.sh
@@ -290,10 +290,10 @@ Note: Kernel-level checks report warnings (expected in containers)
 ```bash
 # Run complete test suite
 docker run --rm \
-  -v $(pwd)/tests:/tests \
+  -v $(pwd)/diagnostics:/diagnostics \
   --entrypoint="" \
   golang:1.25-jammy-ubuntu-22.04-fips \
-  bash -c 'cd /tests && ./run-all-tests.sh'
+  bash -c 'cd /diagnostics && ./run-all-tests.sh'
 
 # Expected output
 # ✓ ALL TEST SUITES PASSED
@@ -381,8 +381,8 @@ This image implements **stricter-than-FIPS** policy:
 
 3. **Continuous Validation**: Run test suite on every deployment:
    ```bash
-   docker run --rm -v $(pwd)/tests:/tests --entrypoint="" \
-     golang:1.25-jammy-ubuntu-22.04-fips bash -c 'cd /tests && ./run-all-tests.sh'
+   docker run --rm -v $(pwd)/diagnostics:/diagnostics --entrypoint="" \
+     golang:1.25-jammy-ubuntu-22.04-fips bash -c 'cd /diagnostics && ./run-all-tests.sh'
    ```
 
 4. **Audit Log Monitoring**: Mount audit log volume and monitor for policy violations:
