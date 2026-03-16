@@ -1,7 +1,7 @@
 # Contrast Test Results: FIPS Enabled vs Disabled
 
 **Test Date:** 2026-03-05
-**Image:** golang:1.25-jammy-ubuntu-22.04-fips
+**Image:** cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 **Purpose:** Demonstrate that FIPS enforcement is real and not superficial
 
 ---
@@ -215,14 +215,14 @@ To reproduce this contrast test:
 
 ```bash
 # Test 1: FIPS ENABLED (default)
-docker run --rm golang:1.25-jammy-ubuntu-22.04-fips
+docker run --rm cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Test 2: FIPS DISABLED (override)
 docker run --rm \
   -e GOLANG_FIPS=0 \
   -e GODEBUG="" \
   -e GOEXPERIMENT="" \
-  golang:1.25-jammy-ubuntu-22.04-fips
+  cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 ```
 
 ---

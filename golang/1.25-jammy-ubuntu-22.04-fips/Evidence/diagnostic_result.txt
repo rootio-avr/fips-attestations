@@ -3,7 +3,7 @@
 [1m[0;36mUbuntu FIPS Go - Diagnostic Runner[0m
 ================================================================================
 
-[0;32m✓[0m Image found: golang:1.25-jammy-ubuntu-22.04-fips
+[0;32m✓[0m Image found: cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 
 [0;36mRunning all diagnostics...[0m
 

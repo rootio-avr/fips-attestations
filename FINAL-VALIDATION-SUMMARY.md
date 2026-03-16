@@ -230,7 +230,7 @@ cd supply-chain
 ### Step 4: Run Go Image Tests (3 minutes)
 ```bash
 cd ../golang/1.25-jammy-ubuntu-22.04-fips
-docker run --rm golang:1.25-jammy-ubuntu-22.04-fips
+docker run --rm cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 # Expected: All FIPS tests PASS, MD5/SHA-1 BLOCKED
 ```
 

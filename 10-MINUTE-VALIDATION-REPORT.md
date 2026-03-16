@@ -33,7 +33,7 @@ docker images | grep -E "^(golang|java)"
 
 **Command:**
 ```bash
-docker run --rm golang:1.25-jammy-ubuntu-22.04-fips validate
+docker run --rm cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips validate
 ```
 
 **Result:** ✅ **PASSED**
@@ -384,7 +384,7 @@ Running additional FIPS security compliance tests...
 **Command:**
 ```bash
 docker run --rm -v $(pwd)/golang/1.25-jammy-ubuntu-22.04-fips/diagnostics:/diagnostics --entrypoint="" \
-  golang:1.25-jammy-ubuntu-22.04-fips \
+  cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips \
   bash /diagnostics/test-go-fips-algorithms.sh
 ```
 
@@ -429,7 +429,7 @@ docker run --rm -v $(pwd)/java/19-jdk-bookworm-slim-fips/diagnostics:/diagnostic
 **Command:**
 ```bash
 docker run --rm -v $(pwd)/golang/1.25-jammy-ubuntu-22.04-fips/diagnostics:/diagnostics --entrypoint="" \
-  golang:1.25-jammy-ubuntu-22.04-fips \
+  cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips \
   bash -c 'cd /diagnostics && ./run-all-tests.sh'
 ```
 

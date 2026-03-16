@@ -1,6 +1,6 @@
 # Test Execution Summary - golang
 
-**Image:** golang:1.25-jammy-ubuntu-22.04-fips
+**Image:** cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 **Test Date:** 2026-03-04
 **Execution Environment:** Docker 24.x on Ubuntu 22.04 LTS
 
@@ -189,7 +189,7 @@ cd diagnostics && ./test-contrast-fips-enabled-vs-disabled.sh
 
 **Execution:**
 ```bash
-docker run --rm golang:1.25-jammy-ubuntu-22.04-fips
+docker run --rm cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 ```
 
 **Results:** ✅ PASS
@@ -201,7 +201,7 @@ docker run --rm golang:1.25-jammy-ubuntu-22.04-fips
 
 **Execution:**
 ```bash
-docker run --rm golang:1.25-jammy-ubuntu-22.04-fips validate
+docker run --rm cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips validate
 ```
 
 **Results:** ✅ PASS
@@ -282,13 +282,13 @@ To reproduce all tests:
 git clone <repo-url> && cd fips-poc/golang/1.25-jammy-ubuntu-22.04-fips
 
 # Pull image
-docker pull cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
+docker pull cr.root.io/cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Run all tests
 docker run --rm \
   -v $(pwd)/diagnostics:/diagnostics \
   --entrypoint="" \
-  cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips \
+  cr.root.io/cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips \
   bash -c 'cd /diagnostics && ./run-all-tests.sh'
 
 # Expected: ✅ ALL TEST SUITES PASSED (7/7)

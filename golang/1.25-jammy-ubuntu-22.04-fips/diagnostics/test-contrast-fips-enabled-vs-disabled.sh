@@ -19,7 +19,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-IMAGE_NAME="${IMAGE_NAME:-golang:1.25-jammy-ubuntu-22.04-fips}"
+IMAGE_NAME="${IMAGE_NAME:-cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips}"
 EVIDENCE_DIR="/tmp/contrast-evidence"
 
 echo "================================================================================"

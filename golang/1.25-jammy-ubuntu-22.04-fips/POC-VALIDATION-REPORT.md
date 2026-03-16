@@ -2,7 +2,7 @@
 
 ## Document Information
 
-- **Image**: golang:1.25-jammy-ubuntu-22.04-fips
+- **Image**: cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 - **Date**: 2026-03-04
 - **Version**: 1.0
 - **Status**: ✅ **VERIFIED - 100% POC CRITERIA MET**
@@ -100,13 +100,13 @@ This document provides evidence that the `golang` container image fully satisfie
 
 ```bash
 # Run Go algorithm enforcement test (uses default entrypoint)
-docker run --rm golang:1.25-jammy-ubuntu-22.04-fips
+docker run --rm cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Run specific algorithm test
 docker run --rm \
   -v $(pwd)/diagnostics:/diagnostics \
   --entrypoint="" \
-  golang:1.25-jammy-ubuntu-22.04-fips \
+  cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips \
   ./diagnostic.sh test-go-fips-algorithms.sh
 ```
 
@@ -180,7 +180,7 @@ docker run --rm \
 docker run --rm \
   -v $(pwd)/diagnostics:/diagnostics \
   --entrypoint="" \
-  golang:1.25-jammy-ubuntu-22.04-fips \
+  cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips \
   ./diagnostic.sh test-os-fips-status.sh
 ```
 
@@ -292,7 +292,7 @@ Note: Kernel-level checks report warnings (expected in containers)
 docker run --rm \
   -v $(pwd)/diagnostics:/diagnostics \
   --entrypoint="" \
-  golang:1.25-jammy-ubuntu-22.04-fips \
+  cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips \
   bash -c 'cd /diagnostics && ./run-all-tests.sh'
 
 # Expected output
@@ -382,12 +382,12 @@ This image implements **stricter-than-FIPS** policy:
 3. **Continuous Validation**: Run test suite on every deployment:
    ```bash
    docker run --rm -v $(pwd)/diagnostics:/diagnostics --entrypoint="" \
-     golang:1.25-jammy-ubuntu-22.04-fips bash -c 'cd /diagnostics && ./run-all-tests.sh'
+     cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips bash -c 'cd /diagnostics && ./run-all-tests.sh'
    ```
 
 4. **Audit Log Monitoring**: Mount audit log volume and monitor for policy violations:
    ```bash
-   docker run -v /var/log/fips-audit:/var/log golang:1.25-jammy-ubuntu-22.04-fips
+   docker run -v /var/log/fips-audit:/var/log cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
    ```
 
 ### For Enhanced Security
@@ -401,7 +401,7 @@ This image implements **stricter-than-FIPS** policy:
 
 ## Conclusion
 
-The `golang:1.25-jammy-ubuntu-22.04-fips` container image **fully satisfies all FIPS POC criteria**:
+The `cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips` container image **fully satisfies all FIPS POC criteria**:
 
 - ✅ **Test Case 1**: Algorithm enforcement via CLI - **100% VERIFIED**
 - ✅ **Test Case 2**: Golang cryptographic validation - **100% VERIFIED**
