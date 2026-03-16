@@ -78,7 +78,7 @@ if [ $BUILD_EXIT_CODE -eq 0 ]; then
     echo "  docker run --rm ${IMAGE_NAME}:${IMAGE_TAG}"
     echo ""
     echo "Run tests:"
-    echo "  docker run --rm --entrypoint='' -v \$(pwd)/tests:/tests ${IMAGE_NAME}:${IMAGE_TAG} bash -c 'cd /tests && ./run-all-tests.sh'"
+    echo "  docker run --rm --entrypoint='' -v \$(pwd)/diagnostics:/diagnostics ${IMAGE_NAME}:${IMAGE_TAG} bash -c 'cd /diagnostics && ./run-all-tests.sh'"
     echo ""
     echo "Interactive shell:"
     echo "  docker run --rm -it --entrypoint bash ${IMAGE_NAME}:${IMAGE_TAG}"

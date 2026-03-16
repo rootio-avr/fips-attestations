@@ -418,7 +418,7 @@ For Section 6 (Contrast Test) requirement:
 | **FIPS Enabled Output** | `fips-enabled-output.txt` | Raw console output with FIPS enabled |
 | **FIPS Disabled Output** | `fips-disabled-output.txt` | Raw console output with FIPS disabled |
 | **This Document** | `contrast-test-results.md` | Analysis and comparison |
-| **Test Script** | `tests/test-contrast-fips-enabled-vs-disabled.sh` | Automated test execution |
+| **Test Script** | `diagnostics/test-contrast-fips-enabled-vs-disabled.sh` | Automated test execution |
 
 ---
 
