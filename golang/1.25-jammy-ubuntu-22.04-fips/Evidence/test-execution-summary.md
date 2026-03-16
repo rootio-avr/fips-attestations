@@ -18,7 +18,8 @@ to validate FIPS compliance and security requirements.
 ### Master Test Runner
 
 **Script:** `diagnostics/run-all-tests.sh`
-**Total Suites:** 7
+**Total Suites:** 6 (core validation tests)
+**Additional:** 1 contrast test (run separately)
 **Status:** ✅ **ALL PASSED**
 
 | # | Test Suite | Status | Duration | Evidence File |
@@ -31,7 +32,9 @@ to validate FIPS compliance and security requirements.
 | 6 | OS FIPS Status Check | ✅ PASS | 15s | algorithm-enforcement-evidence.log |
 | 7 | Contrast Test (FIPS On/Off) | ✅ PASS | 25s | contrast-test-results.md |
 
-**Total Execution Time:** ~2 minutes
+*Note: Contrast test (#7) runs separately via `test-contrast-fips-enabled-vs-disabled.sh` and is not included in `run-all-tests.sh`*
+
+**Total Execution Time:** ~2 minutes (6 core tests) + ~25s (contrast test if run separately)
 
 ---
 
@@ -161,8 +164,10 @@ to validate FIPS compliance and security requirements.
 
 **Execution:**
 ```bash
-./diagnostic.sh test-contrast-fips-enabled-vs-disabled.sh
+cd diagnostics && ./test-contrast-fips-enabled-vs-disabled.sh
 ```
+
+**Note:** This test runs directly from the host (not via diagnostic.sh) because it requires Docker CLI access to spawn and compare multiple container configurations with different FIPS settings.
 
 **Results:**
 

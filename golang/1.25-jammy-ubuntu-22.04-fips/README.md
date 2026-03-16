@@ -250,9 +250,11 @@ This image includes a contrast test that **proves FIPS enforcement is real** by 
 ### 🔬 Run Contrast Test
 
 ```bash
-# Execute contrast test
-./diagnostic.sh test-contrast-fips-enabled-vs-disabled.sh
+# Execute contrast test (runs directly from host, not via diagnostic.sh)
+cd diagnostics && ./test-contrast-fips-enabled-vs-disabled.sh
 ```
+
+**Note:** Unlike other diagnostic tests, the contrast test runs directly from the host because it needs Docker CLI access to spawn and compare multiple container configurations.
 
 ### 📊 Expected Results
 

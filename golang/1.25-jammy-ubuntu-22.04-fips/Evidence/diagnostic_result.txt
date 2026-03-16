@@ -1,10 +1,18 @@
 
+================================================================================
+[1m[0;36mUbuntu FIPS Go - Diagnostic Runner[0m
+================================================================================
+
+[0;32m✓[0m Image found: golang:1.25-jammy-ubuntu-22.04-fips
+
+[0;36mRunning all diagnostics...[0m
+
 
 ================================================================================
 [1m[0;36mUbuntu FIPS Go - Test Suite[0m
 ================================================================================
 
-Running Test 1/3: Algorithm Enforcement...
+Running Test 1/6: Algorithm Enforcement...
 --------------------------------------------------------------------------------
 ================================================================================
 Test: Go FIPS Algorithm Enforcement
@@ -80,7 +88,7 @@ Failed: 0
 [0;32m✓ ALL TESTS PASSED[0m
 [0;32m✓ Test 1 PASSED[0m
 
-Running Test 2/3: OpenSSL Integration...
+Running Test 2/6: OpenSSL Integration...
 --------------------------------------------------------------------------------
 ================================================================================
 Test: Go → OpenSSL Integration
@@ -99,18 +107,18 @@ Test: Go → OpenSSL Integration
 [0;32m✓ PASS[0m - FIPS provider is loaded
 
 [Test 5] Runtime library loading (LD_DEBUG trace)
-[0;32m✓ PASS[0m - Runtime loads OpenSSL/wolfSSL libraries
+⚠ SKIP[0m - strace not available
 
 ================================================================================
 Test Summary
 ================================================================================
-Passed: 5
+Passed: 4
 Failed: 0
 
 [0;32m✓ ALL TESTS PASSED[0m
 [0;32m✓ Test 2 PASSED[0m
 
-Running Test 3/4: Full FIPS Validation...
+Running Test 3/6: Full FIPS Validation...
 --------------------------------------------------------------------------------
 ================================================================================
 Test: Full Go FIPS Validation
@@ -236,21 +244,21 @@ Command: echo "Hello FIPS World" | openssl sha1
 Command: echo "Hello FIPS World" | openssl sha256
 [0;32m✓ PASS[0m - SHA-256 is AVAILABLE (FIPS approved)
 Result:
-SHA256(stdin)= aabfa0f760d419db55f676e954d2475604d9cb94e6cb5b86933d2ac6a90fa0e5
+SHA2-256(stdin)= aabfa0f760d419db55f676e954d2475604d9cb94e6cb5b86933d2ac6a90fa0e5
 
 [Test 4] SHA-384 Algorithm (FIPS approved - should SUCCEED)
 --------------------------------------------------------------------------------
 Command: echo "Hello FIPS World" | openssl sha384
 [0;32m✓ PASS[0m - SHA-384 is AVAILABLE (FIPS approved)
 Result:
-SHA384(stdin)= c1ef5b4a678a00809e7de82b05e4f8c13c66b878b4fab3ca143f77a2957aabf29db625612eb0d057e6cc623150c649ff
+SHA2-384(stdin)= c1ef5b4a678a00809e7de82b05e4f8c13c66b878b4fab3ca143f77a2957aabf29db625612eb0d057e6cc623150c649ff
 
 [Test 5] SHA-512 Algorithm (FIPS approved - should SUCCEED)
 --------------------------------------------------------------------------------
 Command: echo "Hello FIPS World" | openssl sha512
 [0;32m✓ PASS[0m - SHA-512 is AVAILABLE (FIPS approved)
 Result:
-SHA512(stdin)= 462898cbf3f4b96f0ef37badcd7c64bf89cb4e0f8d536825b594f808e327ee406cbb78484726bf724be12d7467d7449fd775b3d4844ee10dd4545d2a307dbdc7
+SHA2-512(stdin)= 462898cbf3f4b96f0ef37badcd7c64bf89cb4e0f8d536825b594f808e327ee406cbb78484726bf724be12d7467d7449fd775b3d4844ee10dd4545d2a307dbdc7
 
 [Test 6] Verify FIPS/wolfProvider is active
 --------------------------------------------------------------------------------
@@ -263,7 +271,7 @@ Active providers:
 [Test 7] Verify OpenSSL 3.x is active
 --------------------------------------------------------------------------------
 [0;32m✓ PASS[0m - OpenSSL 3.x confirmed
-OpenSSL 3.0.2 15 Mar 2022 (Library: OpenSSL 3.0.2 15 Mar 2022)
+OpenSSL 3.0.19 27 Jan 2026 (Library: OpenSSL 3.0.19 27 Jan 2026)
 
 ================================================================================
 Test Summary: OpenSSL CLI Algorithm Enforcement

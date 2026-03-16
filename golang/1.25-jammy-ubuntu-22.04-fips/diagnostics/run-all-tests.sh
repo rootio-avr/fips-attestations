@@ -23,7 +23,7 @@ TESTS_PASSED=0
 TESTS_FAILED=0
 
 # Test 1: Algorithm Enforcement
-echo "Running Test 1/3: Algorithm Enforcement..."
+echo "Running Test 1/6: Algorithm Enforcement..."
 echo "--------------------------------------------------------------------------------"
 if bash test-go-fips-algorithms.sh; then
     TESTS_PASSED=$((TESTS_PASSED + 1))
@@ -35,7 +35,7 @@ fi
 echo ""
 
 # Test 2: OpenSSL Integration
-echo "Running Test 2/3: OpenSSL Integration..."
+echo "Running Test 2/6: OpenSSL Integration..."
 echo "--------------------------------------------------------------------------------"
 if bash test-go-openssl-integration.sh; then
     TESTS_PASSED=$((TESTS_PASSED + 1))
@@ -47,7 +47,7 @@ fi
 echo ""
 
 # Test 3: Full FIPS Validation
-echo "Running Test 3/4: Full FIPS Validation..."
+echo "Running Test 3/6: Full FIPS Validation..."
 echo "--------------------------------------------------------------------------------"
 if bash test-go-fips-validation.sh; then
     TESTS_PASSED=$((TESTS_PASSED + 1))
