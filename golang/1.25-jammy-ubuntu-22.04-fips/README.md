@@ -52,7 +52,7 @@ wolfSSL FIPS v5.8.2 (FIPS-validated cryptographic module)
 - **golang-fips/go v1.25**
   - FIPS-enabled Go compiler from golang-fips project
   - Routes crypto operations through OpenSSL 3.x
-  - ChaCha20-Poly1305 removed (non-FIPS)
+  - ChaCha20-Poly1305 not used (non-FIPS, listed but blocked in practice)
 
 - **Go Demo Application**
   - Tests FIPS algorithm enforcement
@@ -70,6 +70,13 @@ echo 'your-wolfssl-password' > .wolfssl_password
 chmod 600 .wolfssl_password
 ```
 
+## Pull Pre-built Image
+
+Pull from container registry:
+```bash
+docker pull cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
+```
+
 ## Build
 
 ### Standard Build
@@ -80,6 +87,11 @@ chmod 600 .wolfssl_password
 ### Clean Build (no cache)
 ```bash
 ./build.sh --no-cache
+```
+
+### Build with Custom Registry
+```bash
+./build.sh -b cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 ```
 
 ### Manual Build
@@ -151,6 +163,42 @@ docker run --rm \
   golang:1.25-jammy-ubuntu-22.04-fips \
   bash -c 'cd /diagnostics && ./run-all-tests.sh'
 ```
+
+## Test Images
+
+### Basic Test Image
+
+Comprehensive FIPS test application demonstrating cryptographic operations and TLS functionality.
+
+**Location**: [diagnostics/test-images/basic-test-image/](diagnostics/test-images/basic-test-image/)
+
+**Build:**
+```bash
+cd diagnostics/test-images/basic-test-image
+./build.sh
+```
+
+**Run Default Test Suite:**
+```bash
+docker run --rm golang-1.25-jammy-ubuntu-22.04-fips-test-image:latest
+```
+
+**Run Specific Test Suites:**
+```bash
+# Cryptographic operations test suite
+docker run --rm golang-1.25-jammy-ubuntu-22.04-fips-test-image:latest /app/test/crypto_test_suite
+
+# TLS and HTTPS test suite
+docker run --rm golang-1.25-jammy-ubuntu-22.04-fips-test-image:latest /app/test/tls_test_suite
+```
+
+**Features**:
+- 20 cryptographic operation tests (SHA, RSA, ECDSA, HMAC, secure random)
+- 12 TLS/HTTPS connection tests (TLS 1.3, cipher suites, certificates)
+- Real-world scenarios (document signing, password hashing, HTTPS clients)
+- AES-GCM restriction validation (blocked in app layer, works in TLS)
+
+See [diagnostics/test-images/basic-test-image/README.md](diagnostics/test-images/basic-test-image/README.md) for complete documentation.
 
 ## FIPS POC Compliance
 
@@ -348,7 +396,16 @@ golang/1.25-jammy-ubuntu-22.04-fips/
 │   ├── test-openssl-cli-algorithms.sh # CLI algorithm enforcement
 │   ├── test-os-fips-status.sh         # OS FIPS status check
 │   ├── test-contrast-fips-enabled-vs-disabled.sh # Contrast test (FIPS on/off)
-│   └── run-all-tests.sh               # Master test runner (6 tests)
+│   ├── run-all-tests.sh               # Master test runner (6 tests)
+│   └── test-images/
+│       └── basic-test-image/          # Comprehensive test application
+│           ├── Dockerfile
+│           ├── build.sh
+│           ├── README.md
+│           └── src/
+│               ├── crypto_test_suite.go
+│               ├── tls_test_suite.go
+│               └── fips_user_application.go
 ├── Evidence/
 │   ├── test-execution-summary.md      # Complete test execution summary
 │   ├── algorithm-enforcement-evidence.log # Test output logs

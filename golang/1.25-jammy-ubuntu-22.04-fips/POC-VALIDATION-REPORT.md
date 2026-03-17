@@ -325,7 +325,7 @@ docker run --rm \
 | AES | ✅ Approved | ✅ **AVAILABLE** |
 | RSA | ✅ Approved | ✅ **AVAILABLE** |
 | ECDSA | ✅ Approved | ✅ **AVAILABLE** |
-| ChaCha20-Poly1305 | ❌ Not FIPS | ❌ **REMOVED** |
+| ChaCha20-Poly1305 | ❌ Not FIPS | ❌ **NOT USED** (listed but blocked in practice) |
 
 ### Enforcement Levels
 

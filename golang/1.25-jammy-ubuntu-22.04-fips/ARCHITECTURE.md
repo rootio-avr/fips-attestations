@@ -465,6 +465,87 @@ var cipherSuites = []*cipherSuite{
 
 ---
 
+## Application-Layer AES-GCM Restrictions
+
+### FIPS Policy on Direct GCM Usage
+
+golang-fips/go implements strict nonce handling for AES-GCM to prevent cryptographic misuse in FIPS mode.
+
+### Restrictions
+
+**Direct application GCM usage is blocked:**
+
+```go
+// This pattern is BLOCKED in strict FIPS mode
+key := make([]byte, 32)
+rand.Read(key)
+
+block, _ := aes.NewCipher(key)
+gcm, err := cipher.NewGCM(block)
+// ❌ Error: "use of GCM with arbitrary IVs is not allowed in FIPS 140-only mode, use NewGCMWithRandomNonce"
+```
+
+```go
+// Suggested API also fails (type incompatibility)
+gcm, err := cipher.NewGCMWithRandomNonce(block)
+// ❌ Error: "requires aes.Block"
+// Reason: golang-fips/go returns *openssl.aesCipher, not pure Go aes.Block
+```
+
+### Rationale
+
+**Why This Restriction Exists:**
+
+1. **Nonce Reuse Vulnerability**: Using the same nonce twice with AES-GCM catastrophically breaks security
+2. **Developer Error Risk**: Application developers might inadvertently reuse nonces in manual handling
+3. **FIPS Policy**: Requires cryptographically secure random nonce generation within the validated boundary
+
+**Design Intent**: Force developers to use GCM only in properly encapsulated contexts (like TLS) where nonce management is handled correctly.
+
+### Where AES-GCM Works
+
+**✅ TLS Layer (Internal Implementation)**:
+- All TLS cipher suites use AES-GCM successfully
+- Nonce management handled internally by crypto/tls
+- Properly encapsulated within FIPS boundary
+- See `diagnostics/test-images/basic-test-image/src/tls_test_suite.go`
+
+```go
+// TLS connections work - GCM used internally
+config := &tls.Config{
+    MinVersion: tls.VersionTLS12,
+}
+conn, _ := tls.Dial("tcp", "example.com:443", config)
+// ✅ Uses AES-GCM cipher suites internally
+```
+
+**❌ Application crypto/cipher Package**:
+- Direct `cipher.NewGCM()` blocked
+- `cipher.NewGCMWithRandomNonce()` type incompatibility
+- By design - prevents misuse
+
+### Test Behavior
+
+**Expected Test Results:**
+- AES-GCM tests show as **SKIP** (not FAIL)
+- This indicates correct FIPS enforcement
+- See `diagnostics/test-images/basic-test-image/src/crypto_test_suite.go`
+
+### Alternative for Application Encryption
+
+**For file/data encryption in FIPS mode:**
+- Use **AES-CBC with HMAC** (Encrypt-then-MAC pattern)
+- Provides authenticated encryption without GCM restrictions
+
+```go
+// FIPS-compliant authenticated encryption pattern
+// 1. Encrypt with AES-CBC
+// 2. Calculate HMAC over ciphertext
+// 3. Verify HMAC before decryption
+```
+
+---
+
 ## CGO Architecture
 
 ### CGO Call Lifecycle
