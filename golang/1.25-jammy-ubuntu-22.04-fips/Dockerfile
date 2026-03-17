@@ -383,16 +383,21 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies first (while apt works), then remove PAM packages to avoid layer scanning
-# This prevents CVE-2025-8941 false positives from vulnerability scanners
+# Install runtime and build dependencies for in-container compilation support
+# Includes gcc and build tools needed for CGO compilation
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         ca-certificates \
         build-essential \
+        gcc \
+        libc6-dev \
         pkg-config \
-    && rm -rf /var/lib/apt/lists/* \
-    && dpkg --force-all --purge login passwd util-linux \
-    && dpkg --force-all --purge libpam-modules libpam-modules-bin libpam-runtime libpam0g
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user for security (STIG SV-238201)
+# Consistent with Java base image design
+RUN groupadd -g 1001 appuser \
+    && useradd -r -u 1001 -g appuser -m -d /home/appuser -s /bin/bash appuser
 
 # Copy OpenSSL 3.0.19 runtime libraries and binaries from wolfssl-builder
 COPY --from=wolfssl-builder /usr/lib/*/libssl.* /tmp/openssl-libs/
@@ -495,27 +500,13 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 WORKDIR /app
 
-# Create Go cache directories with proper permissions for non-root user
-RUN mkdir -p /tmp/go-build /tmp/go/pkg/mod && \
-    chmod -R 777 /tmp/go-build /tmp/go/pkg/mod
+# Create directory structure for user applications and Go cache with proper ownership
+RUN mkdir -p /app \
+    && mkdir -p /tmp/go-build /tmp/go/pkg/mod \
+    && chown -R appuser:appuser /app /tmp/go-build /tmp/go/pkg/mod
 
-# Harden: remove vulnerable packages not needed at runtime, then wipe package manager
-# Note: libzstd1 is kept because gcc depends on it for CGO compilation
-# Security: Removing packages to eliminate CVEs from runtime:
-#   - gzip, xz-utils: CVE-2022-1271
-# Note: login, passwd, util-linux (CVE-2021-3995) already removed in first RUN command
-# Note: libpam-* (CVE-2025-8941) already removed in first RUN command
-RUN dpkg --force-all --purge \
-        tar gpgv \
-        gzip xz-utils \
-        libncurses6 libncursesw6 ncurses-base ncurses-bin \
-        libgcrypt20 \
-        libsystemd0 libudev1 \
-    || true \
-    && sed -i '/^Package: \(gzip\|xz-utils\)/,/^$/d' /var/lib/dpkg/status 2>/dev/null || true \
-    && rm -rf /var/lib/dpkg /var/log/dpkg.log /var/lib/apt /usr/bin/dpkg /usr/bin/apt*
-
-USER 1001
+# Switch to non-root user for runtime (STIG SV-238201)
+USER appuser
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD []

@@ -186,37 +186,26 @@ echo ""
 ################################################################################
 # Command Execution
 ################################################################################
-COMMAND="${1:-demo}"
+# Execute user command or default demo
+# Consistent with Java base image design - supports arbitrary commands
 
-case "$COMMAND" in
-    demo|"")
-        log_audit_event "command_execution" "info" "Running Go FIPS demo"
-        echo "========================================"
-        echo -e "${BOLD}Running Go FIPS Demo${NC}"
-        echo "========================================"
-        echo ""
-        /app/fips-go-demo
-        log_audit_event "command_execution" "success" "Go FIPS demo completed"
-        ;;
-
-    validate)
-        log_audit_event "command_execution" "info" "Validation-only mode (no demo run)"
-        echo "FIPS validation complete (no demo run)"
-        ;;
-
-    bash|sh|shell)
-        log_audit_event "command_execution" "info" "Interactive shell started"
-        echo "Starting interactive shell..."
-        exec /bin/bash
-        ;;
-
-    *)
-        log_audit_event "command_execution" "error" "Unknown command: $COMMAND"
-        echo -e "${YELLOW}Unknown command: $COMMAND${NC}"
-        echo ""
-        echo "Valid commands: demo, validate, bash"
-        exit 1
-        ;;
-esac
+if [ $# -eq 0 ]; then
+    # No arguments: run default demo
+    log_audit_event "command_execution" "info" "Running Go FIPS demo (default)"
+    echo "========================================"
+    echo -e "${BOLD}Running Go FIPS Demo${NC}"
+    echo "========================================"
+    echo ""
+    /app/fips-go-demo
+    log_audit_event "command_execution" "success" "Go FIPS demo completed"
+else
+    # Arguments provided: execute user command
+    log_audit_event "command_execution" "info" "Executing user command: $*"
+    echo "========================================"
+    echo -e "${BOLD}Executing User Command${NC}"
+    echo "========================================"
+    echo ""
+    exec "$@"
+fi
 
 echo ""
