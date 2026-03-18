@@ -1,6 +1,6 @@
 /* FipsInitCheck.java
  *
- * Copyright (C) 2006-2025 root.io Inc.
+ * Copyright (C) 2006-2025 wolfSSL Inc.
  *
  * This file is part of wolfSSL.
  *
@@ -399,7 +399,7 @@ public class FipsInitCheck {
      *
      * This also spot checks algorithms that should not be available in
      * a FIPS validated wolfCrypt are also not available via Java
-     * services (ex: MessageDigest.MD5).
+     * services (ex: Mac.getInstance("HmacMD5")).
      *
      * @throws SecurityException if any algorithm fails to instantiate with
      *         the expected wolfSSL provider.
@@ -418,7 +418,12 @@ public class FipsInitCheck {
             "SHA-1", "SHA-224", "SHA-256", "SHA-384", "SHA-512",
             "SHA3-224", "SHA3-256", "SHA3-384", "SHA3-512"
         };
-        String[] nonFipsDigests = { "MD5" };
+        /* MD5 is a non-FIPS digest, but wolfCrypt enables it when enabling JNI,
+         * and wolfCrypt FIPS doesn't disallow it (see wolfSSL PR #5159:
+         * https://github.com/wolfSSL/wolfssl/pull/5159), as long as it doesn't
+         * enter the FIPS boundary. This also applies to MD5withRSA.
+         */
+        String[] nonFipsDigests = {};
 
         /* Mac - FIPS and non-FIPS validated algorithms */
         String[] fipsApprovedMacs = {
@@ -470,9 +475,7 @@ public class FipsInitCheck {
             "SHA384withRSA/PSS",
             "SHA512withRSA/PSS"
         };
-        String[] nonFipsSignatures = {
-            "MD5withRSA"
-        };
+        String[] nonFipsSignatures = {};
 
         /* SSLContext protocols */
         String[] sslContexts = {
@@ -521,6 +524,8 @@ public class FipsInitCheck {
                     "FIPS violation: MessageDigest: " + alg +
                     " should NOT be available in FIPS mode but was " +
                     "provided by " + providerName);
+            } catch (SecurityException se) {
+                throw se;
             } catch (Exception e) {
                 /* Expected behavior - algorithm should not be available */
                 System.out.println("\tMessageDigest: " + alg +
@@ -558,6 +563,8 @@ public class FipsInitCheck {
                 throw new SecurityException("FIPS violation: Mac: " + alg +
                     " should NOT be available in FIPS mode but was " +
                     "provided by " + providerName);
+            } catch (SecurityException se) {
+                throw se;
             } catch (Exception e) {
                 /* Expected behavior - algorithm should not be available */
                 System.out.println("\tMac: " + alg + " -> UNAVAILABLE " +
@@ -597,6 +604,8 @@ public class FipsInitCheck {
                 throw new SecurityException("FIPS violation: Cipher: " + alg +
                     " should NOT be available in FIPS mode but was " +
                     "provided by " + providerName);
+            } catch (SecurityException se) {
+                throw se;
             } catch (Exception e) {
                 /* Expected behavior - algorithm should not be available */
                 System.out.println("\tCipher: " + alg + " -> UNAVAILABLE " +
@@ -636,6 +645,8 @@ public class FipsInitCheck {
                 throw new SecurityException("FIPS violation: Signature: " +
                     alg + " should NOT be available in FIPS mode but " +
                     "was provided by " + providerName);
+            } catch (SecurityException se) {
+                throw se;
             } catch (Exception e) {
                 /* Expected behavior - algorithm should not be available */
                 System.out.println("\tSignature: " + alg + " -> UNAVAILABLE " +
@@ -745,7 +756,7 @@ public class FipsInitCheck {
         /* JCE service types that should use wolfJCE */
         String[] jceServiceTypes = {
             "MessageDigest", "Mac", "Cipher", "Signature", "KeyGenerator",
-            "KeyPairGenerator", "KeyAgreement",
+            "KeyPairGenerator", "KeyAgreement", "SecretKeyFactory",
             "AlgorithmParameterGenerator", "SecureRandom"
         };
 
@@ -1057,4 +1068,3 @@ public class FipsInitCheck {
         }
     }
 }
-
