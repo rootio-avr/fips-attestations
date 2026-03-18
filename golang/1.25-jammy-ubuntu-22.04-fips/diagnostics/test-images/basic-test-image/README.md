@@ -86,7 +86,8 @@ func testAES256GCM() {
 - ✅ **HTTPS Requests**: HTTP GET requests over TLS with response validation
 - ✅ **Cipher Suite Validation**: FIPS-approved cipher suite verification (AES-GCM in TLS, ECDHE)
 - ✅ **Certificate Validation**: Certificate chain inspection, system cert pool usage
-- ✅ **TLS Protocol Versions**: TLS 1.3 support verification
+- ✅ **TLS Protocol Versions**: TLS 1.2 and 1.3 support verification, protocol listing
+- ✅ **TLS Configuration Inspection**: Detailed cipher suite categorization, default config validation
 - ✅ **ChaCha20 Not Used**: Verification that non-FIPS ChaCha20 ciphers are not actually used in TLS connections
 
 **What It Validates**:

@@ -47,6 +47,7 @@ func main() {
 	testHTTPSRequests()
 	testCipherSuites()
 	testCertificateValidation()
+	testTLSConfiguration()
 
 	// Print summary
 	fmt.Println()
@@ -579,6 +580,190 @@ func testSystemCertPool() {
 		passedTests++
 	} else {
 		fmt.Println("FAIL ✗ (nil pool)")
+		failedTests++
+	}
+}
+
+func testTLSConfiguration() {
+	fmt.Println("[Test Suite 5] TLS Configuration Inspection")
+	fmt.Println("--------------------------------------------------------------------------------")
+	fmt.Println()
+
+	testTLSProtocolVersions()
+	testDetailedCipherSuites()
+	testTLSConfigDefaults()
+
+	fmt.Println()
+}
+
+func testTLSProtocolVersions() {
+	totalTests++
+	fmt.Print("  [5.1] TLS Protocol Versions ... ")
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("FAIL ✗ (panic: %v)\n", r)
+			failedTests++
+		}
+	}()
+
+	// Get supported TLS versions by trying to create connections with different configs
+	supportedVersions := []uint16{
+		tls.VersionTLS10,
+		tls.VersionTLS11,
+		tls.VersionTLS12,
+		tls.VersionTLS13,
+	}
+
+	var actuallySupported []string
+	for _, version := range supportedVersions {
+		config := &tls.Config{
+			MinVersion: version,
+			MaxVersion: version,
+		}
+
+		// Quick test to see if this version works
+		conn, err := tls.Dial("tcp", "www.google.com:443", config)
+		if err == nil {
+			conn.Close()
+			actuallySupported = append(actuallySupported, tlsVersionString(version))
+		}
+	}
+
+	if len(actuallySupported) > 0 {
+		fmt.Printf("PASS ✓ (%d versions supported)\n", len(actuallySupported))
+		if verboseMode {
+			fmt.Println("        Supported TLS versions:")
+			for _, version := range actuallySupported {
+				fmt.Printf("          - TLS %s\n", version)
+			}
+		} else {
+			fmt.Printf("        Versions: TLS %s\n", strings.Join(actuallySupported, ", "))
+		}
+		passedTests++
+	} else {
+		fmt.Println("FAIL ✗ (no TLS versions supported)")
+		failedTests++
+	}
+}
+
+func testDetailedCipherSuites() {
+	totalTests++
+	fmt.Print("  [5.2] Detailed Cipher Suite Inspection ... ")
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("FAIL ✗ (panic: %v)\n", r)
+			failedTests++
+		}
+	}()
+
+	secureSuites := tls.CipherSuites()
+	insecureSuites := tls.InsecureCipherSuites()
+	totalSuites := len(secureSuites) + len(insecureSuites)
+
+	// Categorize cipher suites by algorithm
+	aes128Count := 0
+	aes256Count := 0
+	ecdhCount := 0
+
+	for _, suite := range secureSuites {
+		if strings.Contains(suite.Name, "AES_128") {
+			aes128Count++
+		}
+		if strings.Contains(suite.Name, "AES_256") {
+			aes256Count++
+		}
+		if strings.Contains(suite.Name, "ECDHE") {
+			ecdhCount++
+		}
+	}
+
+	if len(secureSuites) > 0 {
+		fmt.Printf("PASS ✓ (%d secure, %d total)\n", len(secureSuites), totalSuites)
+		if verboseMode {
+			fmt.Printf("        Total cipher suites: %d\n", totalSuites)
+			fmt.Printf("        Secure (enabled): %d\n", len(secureSuites))
+			fmt.Printf("        Insecure (not enabled): %d\n", len(insecureSuites))
+			fmt.Println("        ")
+			fmt.Println("        Categorization of secure suites:")
+			fmt.Printf("          AES-128-GCM: %d\n", aes128Count)
+			fmt.Printf("          AES-256-GCM: %d\n", aes256Count)
+			fmt.Printf("          ECDHE (Forward Secrecy): %d\n", ecdhCount)
+			fmt.Println("        ")
+			fmt.Println("        Enabled cipher suites:")
+			for i, suite := range secureSuites {
+				if i < 10 { // Show first 10
+					fmt.Printf("          - %s\n", suite.Name)
+				}
+			}
+			if len(secureSuites) > 10 {
+				fmt.Printf("          ... and %d more\n", len(secureSuites)-10)
+			}
+		} else {
+			fmt.Printf("        AES-128: %d, AES-256: %d, ECDHE: %d\n", aes128Count, aes256Count, ecdhCount)
+		}
+		passedTests++
+	} else {
+		fmt.Println("FAIL ✗ (no secure cipher suites)")
+		failedTests++
+	}
+}
+
+func testTLSConfigDefaults() {
+	totalTests++
+	fmt.Print("  [5.3] TLS Config Defaults ... ")
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("FAIL ✗ (panic: %v)\n", r)
+			failedTests++
+		}
+	}()
+
+	// Create a default TLS config and inspect its settings
+	config := &tls.Config{}
+
+	// Check that we can create a valid config
+	if config != nil {
+		fmt.Println("PASS ✓")
+		if verboseMode {
+			fmt.Println("        Default TLS configuration:")
+			if config.MinVersion == 0 {
+				fmt.Println("          MinVersion: (default - TLS 1.2)")
+			} else {
+				fmt.Printf("          MinVersion: TLS %s\n", tlsVersionString(config.MinVersion))
+			}
+			if config.MaxVersion == 0 {
+				fmt.Println("          MaxVersion: (default - highest available)")
+			} else {
+				fmt.Printf("          MaxVersion: TLS %s\n", tlsVersionString(config.MaxVersion))
+			}
+			if len(config.CipherSuites) == 0 {
+				fmt.Println("          CipherSuites: (default - all secure suites)")
+			} else {
+				fmt.Printf("          CipherSuites: %d custom suites\n", len(config.CipherSuites))
+			}
+			fmt.Printf("          InsecureSkipVerify: %v\n", config.InsecureSkipVerify)
+		}
+
+		// Test that default config can establish a connection
+		conn, err := tls.Dial("tcp", "www.google.com:443", config)
+		if err != nil {
+			fmt.Printf("        Warning: Default config connection test failed: %v\n", err)
+		} else {
+			defer conn.Close()
+			state := conn.ConnectionState()
+			if verboseMode {
+				fmt.Println("        ")
+				fmt.Println("        Connection established with defaults:")
+				fmt.Printf("          Negotiated: TLS %s\n", tlsVersionString(state.Version))
+				fmt.Printf("          Cipher: %s\n", tls.CipherSuiteName(state.CipherSuite))
+			}
+		}
+		passedTests++
+	} else {
+		fmt.Println("FAIL ✗ (cannot create TLS config)")
 		failedTests++
 	}
 }

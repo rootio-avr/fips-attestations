@@ -194,7 +194,7 @@ docker run --rm golang-1.25-jammy-ubuntu-22.04-fips-test-image:latest /app/test/
 
 **Features**:
 - 20 cryptographic operation tests (SHA, RSA, ECDSA, HMAC, secure random)
-- 12 TLS/HTTPS connection tests (TLS 1.3, cipher suites, certificates)
+- 15 TLS/HTTPS connection tests (TLS 1.3, protocol versions, cipher suites, certificates, configuration)
 - Real-world scenarios (document signing, password hashing, HTTPS clients)
 - AES-GCM restriction validation (blocked in app layer, works in TLS)
 
