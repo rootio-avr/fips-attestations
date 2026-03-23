@@ -63,8 +63,6 @@ This POC explicitly addresses every requirement from Section 6:
 | **Attestation** | `supply-chain/slsa-provenance-*.json` | Verify SLSA attestation |
 | **Contrast Test** | `[go\|java]/Evidence/contrast-test-results.md` | Review side-by-side comparison |
 
-**Detailed Mapping:** See [SECTION-6-CHECKLIST.md](SECTION-6-CHECKLIST.md) for line-by-line traceability.
-
 ---
 
 ## 10-Minute Validation Guide
@@ -260,7 +258,6 @@ cat python/3.12-bookworm-slim-fips/Evidence/contrast-test-results.md
 **Total Time:** ~10 minutes
 **Validation Complete:** ✅ All Section 6 requirements verified
 
-**📋 Validation Report:** See [10-MINUTE-VALIDATION-REPORT.md](10-MINUTE-VALIDATION-REPORT.md) for complete execution results and evidence from this workflow.
 
 ---
 
@@ -926,7 +923,6 @@ docker build \
 - [Node.js 18.20.8 (Bookworm) README](node/18.20.8-bookworm-slim-fips/README.md)
 
 ### Compliance Documentation
-- [Section 6 Checklist Mapping](SECTION-6-CHECKLIST.md)
 - [Go POC Validation Report](golang/1.25-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md)
 - [Java 8 POC Validation Report](java/8-jdk-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md)
 - [Java 11 POC Validation Report](java/11-jdk-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md)
