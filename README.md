@@ -1,14 +1,14 @@
 # Root FIPS / STIG Proof of Concept
 
-**Version:** 1.1
-**Date:** 2026-03-13
+**Version:** 1.2
+**Date:** 2026-03-23
 **Status:** Production-Ready POC
 
 ---
 
 ## Executive Summary
 
-This repository contains a complete, customer-ready Proof of Concept (POC) package that fully satisfies **Section 6 (FIPS / STIG Verification)** requirements. It demonstrates production-realistic, lean container images (Ubuntu 22.04 for Go, Debian 12 Bookworm for Java) with comprehensive FIPS enforcement, STIG baseline compatibility, and complete supply chain security.
+This repository contains a complete, customer-ready Proof of Concept (POC) package that fully satisfies **Section 6 (FIPS / STIG Verification)** requirements. It demonstrates production-realistic, lean container images (Ubuntu 22.04 for Go and Java LTS images JDK 8/11/17/21; Debian 12 Bookworm for Java 19) with comprehensive FIPS enforcement, STIG baseline compatibility, and complete supply chain security.
 
 **Key Achievements:**
 - ✅ **FIPS 140-3 Enforcement** at OS and application runtime levels
@@ -24,15 +24,19 @@ This POC uses **wolfSSL FIPS v5.8.2 (Certificate #4718)** as the cryptographic f
 
 ## What We Are Delivering
 
-### Two Production-Ready Images
+### Six Production-Ready Images
 
 | Image | Base | Runtime | FIPS Module | Tag |
 |-------|------|---------|-------------|-----|
 | **golang** | Ubuntu 22.04 LTS | golang-fips/go v1.25 | wolfSSL FIPS v5.8.2 | 1.25-jammy-ubuntu-22.04-fips |
+| **java** | Ubuntu 22.04 LTS | Eclipse Temurin OpenJDK 8 | wolfSSL FIPS v5.8.2 | 8-jdk-jammy-ubuntu-22.04-fips |
+| **java** | Ubuntu 22.04 LTS | Eclipse Temurin OpenJDK 11 | wolfSSL FIPS v5.8.2 | 11-jdk-jammy-ubuntu-22.04-fips |
+| **java** | Ubuntu 22.04 LTS | Eclipse Temurin OpenJDK 17 | wolfSSL FIPS v5.8.2 | 17-jdk-jammy-ubuntu-22.04-fips |
+| **java** | Ubuntu 22.04 LTS | Eclipse Temurin OpenJDK 21 | wolfSSL FIPS v5.8.2 | 21-jdk-jammy-ubuntu-22.04-fips |
 | **java** | Debian 12 LTS | OpenJDK 19 | wolfSSL FIPS v5.8.2 | 19-jdk-bookworm-slim-fips |
 
 Each image provides:
-- ✅ Lean and hardened base (Ubuntu 22.04 LTS for Go; Debian 12 Bookworm Slim for Java)
+- ✅ Lean and hardened base (Ubuntu 22.04 LTS for Go and Jammy Java images; Debian 12 Bookworm Slim for Java 19)
 - ✅ FIPS mode enforcement at multiple layers
 - ✅ Cryptographic operations routed through wolfSSL FIPS
 - ✅ Signed with cosign for image integrity
@@ -80,7 +84,13 @@ docker --version
 # Pull Go FIPS image
 docker pull cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 
-# Pull Java FIPS image
+# Pull Java FIPS images (Ubuntu 22.04 Jammy LTS matrix)
+docker pull cr.root.io/java:8-jdk-jammy-ubuntu-22.04-fips
+docker pull cr.root.io/java:11-jdk-jammy-ubuntu-22.04-fips
+docker pull cr.root.io/java:17-jdk-jammy-ubuntu-22.04-fips
+docker pull cr.root.io/java:21-jdk-jammy-ubuntu-22.04-fips
+
+# Pull Java FIPS image (Debian 12 Bookworm)
 docker pull cr.root.io/java:19-jdk-bookworm-slim-fips
 ```
 
@@ -93,10 +103,25 @@ docker pull cr.root.io/java:19-jdk-bookworm-slim-fips
 
 ```bash
 # Verify Go image signature
-cosign verify cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 
-# Verify Java image signature
-cosign verify cr.root.io/java:19-jdk-bookworm-slim-fips
+# Verify Java Jammy image signatures
+for TAG in 8-jdk-jammy-ubuntu-22.04-fips 11-jdk-jammy-ubuntu-22.04-fips \
+           17-jdk-jammy-ubuntu-22.04-fips 21-jdk-jammy-ubuntu-22.04-fips; do
+  cosign verify \
+    --certificate-identity-regexp '.*' \
+    --certificate-oidc-issuer-regexp '.*' \
+    cr.root.io/java:${TAG}
+done
+
+# Verify Java Bookworm image signature
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  cr.root.io/java:19-jdk-bookworm-slim-fips
 ```
 
 See [supply-chain/Cosign-Verification-Instructions.md](supply-chain/Cosign-Verification-Instructions.md) for detailed verification steps.
@@ -126,9 +151,11 @@ docker run --rm \
 
 ### Step 4: Run Java FIPS Validation (3 minutes)
 
+The same validation commands work across all Java variants. Use the tag matching your target JDK version.
+
 ```bash
-# Run default FIPS demo (startup FIPS validation + java -version)
-docker run --rm cr.root.io/java:19-jdk-bookworm-slim-fips
+# Run default FIPS demo — substitute any Jammy tag (8/11/17/21) or the Bookworm tag (19)
+docker run --rm cr.root.io/java:21-jdk-jammy-ubuntu-22.04-fips
 
 # Expected output:
 # ✅ wolfJCE/wolfJSSE providers loaded at positions 1 and 2
@@ -140,8 +167,9 @@ docker run --rm cr.root.io/java:19-jdk-bookworm-slim-fips
 ```
 
 ```bash
-# Run complete diagnostic suite (4 tests via diagnostic runner)
-cd java/19-jdk-bookworm-slim-fips
+# Run complete diagnostic suite for any variant (4 tests via diagnostic runner)
+# Replace NN with 8, 11, 17, or 21 for Jammy images; use 19-jdk-bookworm-slim-fips for Bookworm
+cd java/21-jdk-jammy-ubuntu-22.04-fips
 ./diagnostic.sh
 
 # Expected: ✅ Test Suites Passed: 4/4, ALL TESTS PASSED
@@ -211,7 +239,58 @@ golang/1.25-jammy-ubuntu-22.04-fips/
 └── entrypoint.sh                      # Container entrypoint
 ```
 
-### Java Image (java)
+### Java Images — Ubuntu 22.04 Jammy LTS Matrix
+
+The four Jammy Java images (JDK 8, 11, 17, 21) share an identical directory structure. Replace `NN` with the JDK version:
+
+```
+java/NN-jdk-jammy-ubuntu-22.04-fips/   # NN = 8 | 11 | 17 | 21
+├── README.md                          # Complete image documentation
+├── ATTESTATION.md                     # FIPS/supply-chain attestation statement
+├── ARCHITECTURE.md                    # Provider and JNI layer design
+├── DEVELOPER-GUIDE.md                 # Integration patterns and examples
+├── EXAMPLES.md                        # Runnable usage examples
+├── FIPS-vs-NON-FIPS-MODES.md          # Behaviour comparison guide
+├── KEYSTORE-TRUST-STORE-GUIDE.md      # WKS / JKS keystore reference
+├── POC-VALIDATION-REPORT.md           # Detailed compliance report
+├── STIG-Template.xml                  # Container-adapted Ubuntu STIG
+├── SCAP-Results.xml                   # Raw OpenSCAP scan output
+├── SCAP-Results.html                  # Human-readable scan report
+├── SCAP-SUMMARY.md                    # Scan results summary
+├── diagnostic.sh                      # Diagnostic runner (runs diagnostics/)
+├── diagnostics/
+│   ├── run-all-tests.sh              # Master test runner (4 tests)
+│   ├── test-java-algorithm-enforcement.sh # Algorithm enforcement
+│   ├── test-java-fips-validation.sh  # FIPS component validation
+│   ├── test-java-algorithms.sh       # Algorithm suite (SHA-256/384/512)
+│   ├── test-os-fips-status.sh        # OS FIPS status
+│   └── test-contrast-fips-enabled-vs-disabled.sh # Contrast test (host-side)
+├── demos-image/
+│   ├── build.sh                      # Build demos image
+│   └── src/
+│       ├── WolfJceBlockingDemo.java  # JCE algorithm enforcement demo
+│       ├── WolfJsseBlockingDemo.java # TLS protocol/cipher demo
+│       ├── MD5AvailabilityDemo.java  # MD5 context policy explanation
+│       └── KeyStoreFormatDemo.java   # WKS vs JKS keystore demo
+├── Evidence/
+│   ├── contrast-test-results.md      # Side-by-side comparison
+│   ├── diagnostic_results.txt        # Full run-all-tests.sh output
+│   └── test-execution-summary.md
+├── compliance/
+│   ├── SBOM-java-NN-jdk-jammy-ubuntu-22.04-fips.spdx.json
+│   ├── vex-java-NN-jdk-jammy-ubuntu-22.04-fips.json
+│   ├── slsa-provenance-java-NN-jdk-jammy-ubuntu-22.04-fips.json
+│   └── CHAIN-OF-CUSTODY.md
+├── supply-chain/
+│   └── Cosign-Verification-Instructions.md  # Image-specific cosign guide
+├── Dockerfile                         # Multi-stage build
+├── build.sh                           # Build script
+├── docker-entrypoint.sh               # Container entrypoint
+├── java.security                      # FIPS-configured Java security policy
+└── java.security.original             # Unmodified upstream policy (reference)
+```
+
+### Java Image — Debian 12 Bookworm
 
 ```
 java/19-jdk-bookworm-slim-fips/
@@ -260,13 +339,33 @@ java/19-jdk-bookworm-slim-fips/
 
 ```
 supply-chain/
-├── Cosign-Verification-Instructions.md # Complete verification guide
-├── SBOM-golang-1.25-jammy-ubuntu-22.04-fips.spdx.json      # Go image SBOM (SPDX 2.3)
-├── SBOM-java-19-jdk-bookworm-slim-fips.spdx.json    # Java image SBOM (SPDX 2.3)
-├── VEX-golang-1.25-jammy-ubuntu-22.04-fips.json            # Go image VEX (OpenVEX v0.2.0)
-├── VEX-java-19-jdk-bookworm-slim-fips.json          # Java image VEX (OpenVEX v0.2.0)
-└── verify-all.sh                      # Automated verification script
+├── Cosign-Verification-Instructions.md                       # Verification guide for all images
+├── verify-all.sh                                             # Automated verification script (all images)
+│
+├── SBOM-golang-1.25-jammy-ubuntu-22.04-fips.spdx.json        # Go image SBOM (SPDX 2.3)
+├── VEX-golang-1.25-jammy-ubuntu-22.04-fips.json              # Go image VEX (OpenVEX v0.2.0)
+│
+├── SBOM-java-8-jdk-jammy-ubuntu-22.04-fips.spdx.json         # Java 8 SBOM (SPDX 2.3)
+├── vex-java-8-jdk-jammy-ubuntu-22.04-fips.json               # Java 8 VEX (OpenVEX v0.2.0)
+├── slsa-provenance-java-8-jdk-jammy-ubuntu-22.04-fips.json   # Java 8 SLSA provenance
+│
+├── SBOM-java-11-jdk-jammy-ubuntu-22.04-fips.spdx.json        # Java 11 SBOM (SPDX 2.3)
+├── vex-java-11-jdk-jammy-ubuntu-22.04-fips.json              # Java 11 VEX (OpenVEX v0.2.0)
+├── slsa-provenance-java-11-jdk-jammy-ubuntu-22.04-fips.json  # Java 11 SLSA provenance
+│
+├── SBOM-java-17-jdk-jammy-ubuntu-22.04-fips.spdx.json        # Java 17 SBOM (SPDX 2.3)
+├── vex-java-17-jdk-jammy-ubuntu-22.04-fips.json              # Java 17 VEX (OpenVEX v0.2.0)
+├── slsa-provenance-java-17-jdk-jammy-ubuntu-22.04-fips.json  # Java 17 SLSA provenance
+│
+├── SBOM-java-21-jdk-jammy-ubuntu-22.04-fips.spdx.json        # Java 21 SBOM (SPDX 2.3)
+├── vex-java-21-jdk-jammy-ubuntu-22.04-fips.json              # Java 21 VEX (OpenVEX v0.2.0)
+├── slsa-provenance-java-21-jdk-jammy-ubuntu-22.04-fips.json  # Java 21 SLSA provenance
+│
+├── SBOM-java-19-jdk-bookworm-slim-fips.spdx.json             # Java 19 SBOM (SPDX 2.3)
+└── vex-java-19-jdk-bookworm-slim-fips.json                   # Java 19 VEX (OpenVEX v0.2.0)
 ```
+
+Note: Per-image Cosign guides and `CHAIN-OF-CUSTODY.md` also live under each image's own directories at `java/NN-jdk-jammy-ubuntu-22.04-fips/supply-chain/` and `java/NN-jdk-jammy-ubuntu-22.04-fips/compliance/`.
 
 ---
 
@@ -285,19 +384,61 @@ docker inspect --format='{{index .RepoDigests 0}}' \
 # Pull by digest (immutable reference)
 docker pull cr.root.io/golang@sha256:<digest>
 
-# Verify signature
+# Verify signature (keyless)
 cosign verify \
-  --key cosign.pub \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
   cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 
 # Verify SLSA attestation
 cosign verify-attestation \
   --type slsaprovenance \
-  --key cosign.pub \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
   cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
 ```
 
-### Java Image
+### Java Images — Ubuntu 22.04 Jammy LTS Matrix
+
+The same commands apply to all four Jammy images. Substitute the tag for your target JDK version.
+
+```bash
+# Image references
+#   cr.root.io/java:8-jdk-jammy-ubuntu-22.04-fips
+#   cr.root.io/java:11-jdk-jammy-ubuntu-22.04-fips
+#   cr.root.io/java:17-jdk-jammy-ubuntu-22.04-fips
+#   cr.root.io/java:21-jdk-jammy-ubuntu-22.04-fips
+
+TAG=21-jdk-jammy-ubuntu-22.04-fips   # replace with target version
+
+# Get image digest
+docker inspect --format='{{index .RepoDigests 0}}' \
+  cr.root.io/java:${TAG}
+
+# Pull by digest (immutable reference)
+docker pull cr.root.io/java@sha256:<digest>
+
+# Verify signature (keyless)
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  cr.root.io/java:${TAG}
+
+# Verify SLSA attestation
+cosign verify-attestation \
+  --type slsaprovenance \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  cr.root.io/java:${TAG}
+```
+
+Per-image Cosign guides with pinned digests:
+- [Java 8 Cosign Guide](java/8-jdk-jammy-ubuntu-22.04-fips/supply-chain/Cosign-Verification-Instructions.md)
+- [Java 11 Cosign Guide](java/11-jdk-jammy-ubuntu-22.04-fips/supply-chain/Cosign-Verification-Instructions.md)
+- [Java 17 Cosign Guide](java/17-jdk-jammy-ubuntu-22.04-fips/supply-chain/Cosign-Verification-Instructions.md)
+- [Java 21 Cosign Guide](java/21-jdk-jammy-ubuntu-22.04-fips/supply-chain/Cosign-Verification-Instructions.md)
+
+### Java Image — Debian 12 Bookworm
 
 ```bash
 # Image reference
@@ -310,19 +451,21 @@ docker inspect --format='{{index .RepoDigests 0}}' \
 # Pull by digest (immutable reference)
 docker pull cr.root.io/java@sha256:<digest>
 
-# Verify signature
+# Verify signature (keyless)
 cosign verify \
-  --key cosign.pub \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
   cr.root.io/java:19-jdk-bookworm-slim-fips
 
 # Verify SLSA attestation
 cosign verify-attestation \
   --type slsaprovenance \
-  --key cosign.pub \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
   cr.root.io/java:19-jdk-bookworm-slim-fips
 ```
 
-See [supply-chain/Cosign-Verification-Instructions.md](supply-chain/Cosign-Verification-Instructions.md) for complete verification workflows.
+See [supply-chain/Cosign-Verification-Instructions.md](supply-chain/Cosign-Verification-Instructions.md) for complete verification workflows covering all images.
 
 ---
 
@@ -370,6 +513,8 @@ For environments requiring strict FIPS 140-3 certification compliance, wolfSSL c
 
 ### Java Image FIPS Stack
 
+Applies to all Java variants (Ubuntu 22.04 Jammy JDK 8/11/17/21 and Debian 12 Bookworm JDK 19):
+
 ```
 ┌─────────────────────────────────────────┐
 │   Java Application (User Code)         │
@@ -378,8 +523,8 @@ For environments requiring strict FIPS 140-3 certification compliance, wolfSSL c
 │   Security Providers                   │   wolfJSSE at position 2
 ├─────────────────────────────────────────┤
 │   wolfJCE / wolfJSSE (JNI providers)   │ ← java.security policy blocks
-│   Debian 12 Bookworm Slim base         │   MD5/SHA-1 in TLS/cert/JAR;
-│                                        │   DES/RC4 hard-blocked by wolfJCE
+│   Eclipse Temurin (Jammy) or OpenJDK   │   MD5/SHA-1 in TLS/cert/JAR;
+│   (Bookworm) base image                │   DES/RC4 hard-blocked by wolfJCE
 ├─────────────────────────────────────────┤
 │   wolfSSL FIPS v5.8.2 (JNI)            │ ← Certificate #4718
 │   (native FIPS module)                 │   FIPS POST on init
@@ -407,10 +552,17 @@ This is **validation-level evidence** suitable for POC evaluation and procuremen
 ### Prerequisites
 
 ```bash
-# Create wolfSSL password file (required for commercial FIPS package)
-echo 'your-wolfssl-password' > golang/1.25-jammy-ubuntu-22.04-fips/.wolfssl_password
-echo 'your-wolfssl-password' > java/19-jdk-bookworm-slim-fips/.wolfssl_password
-chmod 600 golang/1.25-jammy-ubuntu-22.04-fips/.wolfssl_password java/19-jdk-bookworm-slim-fips/.wolfssl_password
+# Create wolfSSL password file (required for commercial FIPS package) for each image directory
+for DIR in \
+  golang/1.25-jammy-ubuntu-22.04-fips \
+  java/8-jdk-jammy-ubuntu-22.04-fips \
+  java/11-jdk-jammy-ubuntu-22.04-fips \
+  java/17-jdk-jammy-ubuntu-22.04-fips \
+  java/21-jdk-jammy-ubuntu-22.04-fips \
+  java/19-jdk-bookworm-slim-fips; do
+  echo 'your-wolfssl-password' > ${DIR}/.wolfssl_password
+  chmod 600 ${DIR}/.wolfssl_password
+done
 ```
 
 ### Build Go Image
@@ -426,7 +578,22 @@ docker build \
   .
 ```
 
-### Build Java Image
+### Build Java Jammy Images (JDK 8 / 11 / 17 / 21)
+
+```bash
+# Replace NN with 8, 11, 17, or 21
+NN=21
+cd java/${NN}-jdk-jammy-ubuntu-22.04-fips
+./build.sh
+
+# Or manual build
+docker build \
+  --secret id=wolfssl_password,src=.wolfssl_password \
+  -t cr.root.io/java:${NN}-jdk-jammy-ubuntu-22.04-fips \
+  .
+```
+
+### Build Java Bookworm Image (JDK 19)
 
 ```bash
 cd java/19-jdk-bookworm-slim-fips
@@ -445,15 +612,27 @@ docker build \
 
 ### Image-Specific Documentation
 - [Go Image README](golang/1.25-jammy-ubuntu-22.04-fips/README.md)
-- [Java Image README](java/19-jdk-bookworm-slim-fips/README.md)
+- [Java 8 (Jammy) README](java/8-jdk-jammy-ubuntu-22.04-fips/README.md)
+- [Java 11 (Jammy) README](java/11-jdk-jammy-ubuntu-22.04-fips/README.md)
+- [Java 17 (Jammy) README](java/17-jdk-jammy-ubuntu-22.04-fips/README.md)
+- [Java 21 (Jammy) README](java/21-jdk-jammy-ubuntu-22.04-fips/README.md)
+- [Java 19 (Bookworm) README](java/19-jdk-bookworm-slim-fips/README.md)
 
 ### Compliance Documentation
 - [Section 6 Checklist Mapping](SECTION-6-CHECKLIST.md)
 - [Go POC Validation Report](golang/1.25-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md)
-- [Java POC Validation Report](java/19-jdk-bookworm-slim-fips/POC-VALIDATION-REPORT.md)
+- [Java 8 POC Validation Report](java/8-jdk-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md)
+- [Java 11 POC Validation Report](java/11-jdk-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md)
+- [Java 17 POC Validation Report](java/17-jdk-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md)
+- [Java 21 POC Validation Report](java/21-jdk-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md)
+- [Java 19 POC Validation Report](java/19-jdk-bookworm-slim-fips/POC-VALIDATION-REPORT.md)
 
 ### Supply Chain Security
-- [Cosign Verification Instructions](supply-chain/Cosign-Verification-Instructions.md)
+- [Cosign Verification Instructions (all images)](supply-chain/Cosign-Verification-Instructions.md)
+- [Java 8 Cosign Guide](java/8-jdk-jammy-ubuntu-22.04-fips/supply-chain/Cosign-Verification-Instructions.md)
+- [Java 11 Cosign Guide](java/11-jdk-jammy-ubuntu-22.04-fips/supply-chain/Cosign-Verification-Instructions.md)
+- [Java 17 Cosign Guide](java/17-jdk-jammy-ubuntu-22.04-fips/supply-chain/Cosign-Verification-Instructions.md)
+- [Java 21 Cosign Guide](java/21-jdk-jammy-ubuntu-22.04-fips/supply-chain/Cosign-Verification-Instructions.md)
 - [SBOM Files](supply-chain/)
 - [VEX Statements](supply-chain/)
 
@@ -478,7 +657,8 @@ Components:
 - wolfSSL FIPS: Commercial License (required)
 - wolfProvider: GPL v3
 - golang-fips/go: BSD-style (Go License)
-- OpenJDK 19: GPL v2 with Classpath Exception
+- OpenJDK 8 / 11 / 17 / 19 / 21: GPL v2 with Classpath Exception
+- Eclipse Temurin (JDK 8/11/17/21): GPL v2 with Classpath Exception
 
 ---
 
@@ -487,8 +667,8 @@ Components:
 - **Author:** Root Security Team
 - **Classification:** PUBLIC
 - **Distribution:** UNLIMITED
-- **Version:** 1.1
-- **Last Updated:** 2026-03-13
+- **Version:** 1.2
+- **Last Updated:** 2026-03-23
 
 ---
 

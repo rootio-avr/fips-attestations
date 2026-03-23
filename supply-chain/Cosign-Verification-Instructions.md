@@ -24,22 +24,18 @@ The following images have been signed with cosign:
 
 | Image Name | Tag | Digest | ECR Repository |
 |------------|-----|--------|----------------|
-| java | 19-jdk-bookworm-slim-fips | sha256:73047fef8b4f7345504ef0478682edbce7f69150dbfd88eafcc22ffb264a29e9 | root-reg/java |
 | golang | 1.25-jammy-ubuntu-22.04-fips | sha256:d48386da5fcaea2cfc40a659ab16d37bd27619a031210e2e394b8685b02b5fad | root-reg/golang |
+| java | 8-jdk-jammy-ubuntu-22.04-fips | sha256:f29735f2ed8029032a67155e46399765e4281b214b12c8761033df0fbae82f19 | root-reg/java |
+| java | 11-jdk-jammy-ubuntu-22.04-fips | sha256:76dc68a85aeee6ccd070a2f5fbc9aaf1df7423643c46ea2b4559bf9fa1bcc569 | root-reg/java |
+| java | 17-jdk-jammy-ubuntu-22.04-fips | sha256:27480e4d6689457e21a968f3647b1689641df098d162ec836e4fb0f5d3accae0 | root-reg/java |
+| java | 21-jdk-jammy-ubuntu-22.04-fips | sha256:5b20e08d1e9421556f8225d92f75da2b8d9dca72dbdfe748558b72091d2cb231 | root-reg/java |
+| java | 19-jdk-bookworm-slim-fips | sha256:73047fef8b4f7345504ef0478682edbce7f69150dbfd88eafcc22ffb264a29e9 | root-reg/java |
 
 ## Verification Methods
 
 ### Method 1: Verify Using Tag (Simple)
 
 Verify the image using its tag. This is straightforward but note the warning that tags can change.
-
-**Java Image:**
-```bash
-cosign verify \
-  --certificate-identity-regexp '.*' \
-  --certificate-oidc-issuer-regexp '.*' \
-  <redacted_root_ecr_base>/root-reg/java:19-jdk-bookworm-slim-fips
-```
 
 **Golang Image:**
 ```bash
@@ -49,17 +45,41 @@ cosign verify \
   <redacted_root_ecr_base>/root-reg/golang:1.25-jammy-ubuntu-22.04-fips
 ```
 
-### Method 2: Verify Using Digest (Recommended)
+**Java Jammy Images (JDK 8 / 11 / 17 / 21):**
+```bash
+# Replace NN with 8, 11, 17, or 21
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/java:8-jdk-jammy-ubuntu-22.04-fips
 
-Verify using the image digest for immutable verification.
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/java:11-jdk-jammy-ubuntu-22.04-fips
 
-**Java Image:**
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/java:17-jdk-jammy-ubuntu-22.04-fips
+
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/java:21-jdk-jammy-ubuntu-22.04-fips
+```
+
+**Java Bookworm Image (JDK 19):**
 ```bash
 cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
-  <redacted_root_ecr_base>/root-reg/java:19-jdk-bookworm-slim-fips:sha256:73047fef8b4f7345504ef0478682edbce7f69150dbfd88eafcc22ffb264a29e9                     
+  <redacted_root_ecr_base>/root-reg/java:19-jdk-bookworm-slim-fips
 ```
+
+### Method 2: Verify Using Digest (Recommended)
+
+Verify using the image digest for immutable verification.
 
 **Golang Image:**
 ```bash
@@ -67,6 +87,46 @@ cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
   <redacted_root_ecr_base>/root-reg/golang@sha256:d48386da5fcaea2cfc40a659ab16d37bd27619a031210e2e394b8685b02b5fad
+```
+
+**Java 8 (Jammy):**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/java@sha256:f29735f2ed8029032a67155e46399765e4281b214b12c8761033df0fbae82f19
+```
+
+**Java 11 (Jammy):**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/java@sha256:76dc68a85aeee6ccd070a2f5fbc9aaf1df7423643c46ea2b4559bf9fa1bcc569
+```
+
+**Java 17 (Jammy):**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/java@sha256:27480e4d6689457e21a968f3647b1689641df098d162ec836e4fb0f5d3accae0
+```
+
+**Java 21 (Jammy):**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/java@sha256:5b20e08d1e9421556f8225d92f75da2b8d9dca72dbdfe748558b72091d2cb231
+```
+
+**Java 19 (Bookworm):**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/java@sha256:73047fef8b4f7345504ef0478682edbce7f69150dbfd88eafcc22ffb264a29e9
 ```
 
 ### Expected Output
@@ -77,10 +137,10 @@ Successful verification will output JSON with signature details:
 [{
   "critical": {
     "identity": {
-      "docker-reference": "<redacted_root_ecr_base>/root-reg/java:19-jdk-bookworm-slim-fips"
+      "docker-reference": "<redacted_root_ecr_base>/root-reg/java:21-jdk-jammy-ubuntu-22.04-fips"
     },
     "image": {
-      "docker-manifest-digest": "sha256:73047fef8b4f7345504ef0478682edbce7f69150dbfd88eafcc22ffb264a29e9"
+      "docker-manifest-digest": "sha256:5b20e08d1e9421556f8225d92f75da2b8d9dca72dbdfe748558b72091d2cb231"
     },
     "type": "https://sigstore.dev/cosign/sign/v1"
   },
@@ -90,24 +150,39 @@ Successful verification will output JSON with signature details:
 
 ## Verifying Proxy Images (cr.root.io)
 
-The cr.root.io proxy is read-only and doesn't store signature artifacts. To verify images pulled from the proxy:
+The cr.root.io proxy is read-only and doesn't store signature artifacts. To verify images pulled from the proxy, always verify against the ECR URL directly using the image digest.
 
-1. **Pull from proxy** (for runtime use):
-   ```bash
-   docker pull cr.root.io/java:19-jdk-bookworm-slim-fips
-   ```
+The same pattern applies to all images. Example with each variant:
 
-2. **Verify against ECR** using the same digest:
-   ```bash
-   # Get the digest from the pulled image
-   docker inspect cr.root.io/java:19-jdk-bookworm-slim-fips --format '{{index .RepoDigests 0}}'
+**Java 21 (Jammy):**
+```bash
+docker pull cr.root.io/java:21-jdk-jammy-ubuntu-22.04-fips
+docker inspect cr.root.io/java:21-jdk-jammy-ubuntu-22.04-fips --format '{{index .RepoDigests 0}}'
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/java@sha256:5b20e08d1e9421556f8225d92f75da2b8d9dca72dbdfe748558b72091d2cb231
+```
 
-   # Verify using the ECR reference
-   cosign verify \
-     --certificate-identity-regexp '.*' \
-     --certificate-oidc-issuer-regexp '.*' \
-     <redacted_root_ecr_base>/root-reg/java@sha256:73047fef8b4f7345504ef0478682edbce7f69150dbfd88eafcc22ffb264a29e9
-   ```
+**Java 19 (Bookworm):**
+```bash
+docker pull cr.root.io/java:19-jdk-bookworm-slim-fips
+docker inspect cr.root.io/java:19-jdk-bookworm-slim-fips --format '{{index .RepoDigests 0}}'
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/java@sha256:73047fef8b4f7345504ef0478682edbce7f69150dbfd88eafcc22ffb264a29e9
+```
+
+**Golang:**
+```bash
+docker pull cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
+docker inspect cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips --format '{{index .RepoDigests 0}}'
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/golang@sha256:d48386da5fcaea2cfc40a659ab16d37bd27619a031210e2e394b8685b02b5fad
+```
 
 ## Advanced Commands
 
@@ -115,7 +190,27 @@ The cr.root.io proxy is read-only and doesn't store signature artifacts. To veri
 
 Show the supply chain security artifacts attached to an image:
 
-**Java:**
+**Java 8 (Jammy):**
+```bash
+cosign tree <redacted_root_ecr_base>/root-reg/java:8-jdk-jammy-ubuntu-22.04-fips
+```
+
+**Java 11 (Jammy):**
+```bash
+cosign tree <redacted_root_ecr_base>/root-reg/java:11-jdk-jammy-ubuntu-22.04-fips
+```
+
+**Java 17 (Jammy):**
+```bash
+cosign tree <redacted_root_ecr_base>/root-reg/java:17-jdk-jammy-ubuntu-22.04-fips
+```
+
+**Java 21 (Jammy):**
+```bash
+cosign tree <redacted_root_ecr_base>/root-reg/java:21-jdk-jammy-ubuntu-22.04-fips
+```
+
+**Java 19 (Bookworm):**
 ```bash
 cosign tree <redacted_root_ecr_base>/root-reg/java:19-jdk-bookworm-slim-fips
 ```
@@ -127,14 +222,14 @@ cosign tree <redacted_root_ecr_base>/root-reg/golang:1.25-jammy-ubuntu-22.04-fip
 
 Example output:
 ```
-📦 Supply Chain Security Related artifacts for an image: <redacted_root_ecr_base>/root-reg/java:19-jdk-bookworm-slim-fips
-└── 🔗 https://sigstore.dev/cosign/sign/v1 artifacts via OCI referrer: <redacted_root_ecr_base>/root-reg/java@sha256:6972503a1f2083a3c49d2c8aa1bd914c325bbe5884887f7d003e8286c8996218
-   └── 🍒 sha256:26f1f642c6c31b76789cfea296e26558ac80e1363701c6f5856ec69fbf3ba306
+📦 Supply Chain Security Related artifacts for an image: <redacted_root_ecr_base>/root-reg/java:21-jdk-jammy-ubuntu-22.04-fips
+└── 🔗 https://sigstore.dev/cosign/sign/v1 artifacts via OCI referrer: <redacted_root_ecr_base>/root-reg/java@sha256:<referrer-digest>
+   └── 🍒 sha256:<signature-digest>
 ```
 
 ### List All Signature Artifacts in ECR
 
-**Java signatures:**
+**Java signatures (all variants share the root-reg/java repository):**
 ```bash
 aws ecr describe-images \
   --repository-name root-reg/java \
