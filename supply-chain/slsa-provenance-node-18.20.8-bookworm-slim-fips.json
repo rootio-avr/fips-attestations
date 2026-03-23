@@ -1,0 +1,81 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://slsa.dev/container-build/v1",
+      "externalParameters": {
+        "arch": "amd64",
+        "baseImage": {
+          "architecture": "amd64",
+          "digest": "496d8d3f30af43e144cfa851a302b2298643dfa77beecf508332557d42c5f0a7",
+          "image": "cr.root.io/node:18.20.8-bookworm-slim-fips"
+        },
+        "builder": "kaniko",
+        "outputImage": "905418475464.dkr.ecr.us-east-1.amazonaws.com/remediated-images:avr_5d865100c1b94245b757330b52779ca8_rootio",
+        "packagesUpgraded": []
+      },
+      "internalParameters": {
+        "workflow": {
+          "avr_id": "avr_5d865100c1b94245b757330b52779ca8",
+          "dockerfile_key": "org_90fb24fefd6542c08d28a2f84982d578/avr_5d865100c1b94245b757330b52779ca8_Dockerfile",
+          "is_truncated": false,
+          "post_scan_id": "ascn_cee571370c4145ccb7fd114e259e5b65",
+          "pre_scan_id": "ascn_b6a31d1c45154279b4e352efdb2e0bb1"
+        }
+      },
+      "resolvedDependencies": [
+        {
+          "uri": "cr.root.io/node:18.20.8-bookworm-slim-fips",
+          "digest": {
+            "sha256": "496d8d3f30af43e144cfa851a302b2298643dfa77beecf508332557d42c5f0a7"
+          },
+          "localName": "base-image",
+          "annotations": {
+            "architecture": "amd64",
+            "type": "container-image"
+          }
+        },
+        {
+          "digest": {
+            "sha256": ""
+          },
+          "localName": "dockerfile",
+          "annotations": {
+            "s3_key": "org_90fb24fefd6542c08d28a2f84982d578/avr_5d865100c1b94245b757330b52779ca8_Dockerfile",
+            "type": "dockerfile"
+          }
+        }
+      ]
+    },
+    "runDetails": {
+      "builder": {
+        "id": "https://github.com/GoogleContainerTools/kaniko",
+        "version": {
+          "image": "gcr.io/kaniko-project/executor",
+          "tag": "debug"
+        }
+      },
+      "metadata": {
+        "invocationId": "avr_5d865100c1b94245b757330b52779ca8",
+        "startedOn": "2026-03-23T14:03:40.642Z",
+        "finishedOn": "2026-03-23T14:08:43.276650879Z"
+      },
+      "byproducts": null
+    }
+  },
+  "subject": [
+    {
+      "name": "905418475464.dkr.ecr.us-east-1.amazonaws.com/remediated-images:avr_5d865100c1b94245b757330b52779ca8_rootio",
+      "digest": {
+        "sha256": "496d8d3f30af43e144cfa851a302b2298643dfa77beecf508332557d42c5f0a7"
+      }
+    },
+    {
+      "name": "cr.root.io/node:18.20.8-bookworm-slim-fips_rootio",
+      "digest": {
+        "sha256": "496d8d3f30af43e144cfa851a302b2298643dfa77beecf508332557d42c5f0a7"
+      }
+    }
+  ],
+  "predicateType": "https://slsa.dev/provenance/v1"
+}
