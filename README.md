@@ -1,6 +1,6 @@
 # Root FIPS / STIG Proof of Concept
 
-**Version:** 1.3
+**Version:** 1.4
 **Date:** 2026-03-23
 **Status:** Production-Ready POC
 
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-This repository contains a complete, customer-ready Proof of Concept (POC) package that fully satisfies **Section 6 (FIPS / STIG Verification)** requirements. It demonstrates production-realistic, lean container images (Ubuntu 22.04 for Go and Java LTS images JDK 8/11/17/21; Debian 12 Bookworm for Java 19 and Python 3.12) with comprehensive FIPS enforcement, STIG baseline compatibility, and complete supply chain security.
+This repository contains a complete, customer-ready Proof of Concept (POC) package that fully satisfies **Section 6 (FIPS / STIG Verification)** requirements. It demonstrates production-realistic, lean container images (Ubuntu 22.04 for Go and Java LTS images JDK 8/11/17/21; Debian 12 Bookworm for Java 19, Python 3.12, and Node.js 16/18) with comprehensive FIPS enforcement, STIG baseline compatibility, and complete supply chain security.
 
 **Key Achievements:**
 - ✅ **FIPS 140-3 Enforcement** at OS and application runtime levels
@@ -24,7 +24,7 @@ This POC uses **wolfSSL FIPS v5.8.2 (Certificate #4718)** as the cryptographic f
 
 ## What We Are Delivering
 
-### Seven Production-Ready Images
+### Nine Production-Ready Images
 
 | Image | Base | Runtime | FIPS Module | Tag |
 |-------|------|---------|-------------|-----|
@@ -35,9 +35,11 @@ This POC uses **wolfSSL FIPS v5.8.2 (Certificate #4718)** as the cryptographic f
 | **java** | Ubuntu 22.04 LTS | Eclipse Temurin OpenJDK 21 | wolfSSL FIPS v5.8.2 | 21-jdk-jammy-ubuntu-22.04-fips |
 | **java** | Debian 12 LTS | OpenJDK 19 | wolfSSL FIPS v5.8.2 | 19-jdk-bookworm-slim-fips |
 | **python** | Debian 12 LTS | Python 3.12 + wolfProvider | wolfSSL FIPS v5.8.2 | 3.12-bookworm-slim-fips |
+| **node** | Debian 12 LTS | Node.js 16.20.1 + wolfProvider ⚠️ EOL | wolfSSL FIPS v5.8.2 | 16.20.1-bookworm-slim-fips |
+| **node** | Debian 12 LTS | Node.js 18.20.8 LTS + wolfProvider | wolfSSL FIPS v5.8.2 | 18.20.8-bookworm-slim-fips |
 
 Each image provides:
-- ✅ Lean and hardened base (Ubuntu 22.04 LTS for Go and Jammy Java images; Debian 12 Bookworm Slim for Java 19 and Python 3.12)
+- ✅ Lean and hardened base (Ubuntu 22.04 LTS for Go and Jammy Java images; Debian 12 Bookworm Slim for Java 19, Python 3.12, and Node.js 16/18)
 - ✅ FIPS mode enforcement at multiple layers
 - ✅ Cryptographic operations routed through wolfSSL FIPS
 - ✅ Signed with cosign for image integrity
@@ -96,6 +98,10 @@ docker pull cr.root.io/java:19-jdk-bookworm-slim-fips
 
 # Pull Python FIPS image (Debian 12 Bookworm)
 docker pull cr.root.io/python:3.12-bookworm-slim-fips
+
+# Pull Node.js FIPS images (Debian 12 Bookworm)
+docker pull cr.root.io/node:16.20.1-bookworm-slim-fips   # ⚠️ EOL — legacy compatibility only
+docker pull cr.root.io/node:18.20.8-bookworm-slim-fips
 ```
 
 **Note:** Replace `cr.root.io` with your registry:
@@ -132,6 +138,14 @@ cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
   cr.root.io/python:3.12-bookworm-slim-fips
+
+# Verify Node.js image signatures
+for TAG in 16.20.1-bookworm-slim-fips 18.20.8-bookworm-slim-fips; do
+  cosign verify \
+    --certificate-identity-regexp '.*' \
+    --certificate-oidc-issuer-regexp '.*' \
+    cr.root.io/node:${TAG}
+done
 ```
 
 See [supply-chain/Cosign-Verification-Instructions.md](supply-chain/Cosign-Verification-Instructions.md) for detailed verification steps.
@@ -204,7 +218,27 @@ cd python/3.12-bookworm-slim-fips
 # Expected: ✅ All test suites passed
 ```
 
-### Step 6: Review Evidence Bundle (1 minute)
+### Step 6: Run Node.js FIPS Validation (2 minutes)
+
+```bash
+# Run FIPS check (default entrypoint)
+docker run --rm cr.root.io/node:18.20.8-bookworm-slim-fips
+
+# Expected output:
+# ✅ wolfProvider loaded and active
+# ✅ FIPS POST completed successfully
+# ✅ FIPS mode: 1 (crypto.getFips())
+# ✅ SHA-256/384/512: AVAILABLE via wolfProvider
+# ✅ MD5/SHA-1: blocked in TLS cipher negotiation
+
+# Run complete diagnostic suite
+cd node/18.20.8-bookworm-slim-fips
+./diagnostic.sh
+
+# Expected: ✅ All test suites passed
+```
+
+### Step 7: Review Evidence Bundle (1 minute)
 
 ```bash
 # View POC validation reports
@@ -413,6 +447,50 @@ python/3.12-bookworm-slim-fips/
 └── src/fips_init_check.py             # FIPS initialisation check
 ```
 
+### Node.js Images — Debian 12 Bookworm
+
+The two Bookworm Node.js images (16 EOL and 18 LTS) share an identical directory structure. Replace `VV` with the full version:
+
+```
+node/VV-bookworm-slim-fips/   # VV = 16.20.1 | 18.20.8
+├── README.md                          # Complete image documentation
+├── ATTESTATION.md                     # FIPS/supply-chain attestation statement
+├── ARCHITECTURE.md                    # wolfProvider and OpenSSL 3.x layer design
+├── POC-VALIDATION-REPORT.md           # Detailed compliance report
+├── diagnostic.sh                      # Diagnostic runner (runs diagnostics/)
+├── diagnostics/
+│   ├── run-all-tests.sh              # Master test runner
+│   ├── test-fips-verification.js     # FIPS provider verification
+│   ├── test-crypto-operations.js     # Cryptographic operations test
+│   ├── test-backend-verification.js  # OpenSSL backend check
+│   ├── test-library-compatibility.js # Library compatibility
+│   ├── test-connectivity.js          # TLS connectivity test
+│   └── test-images/basic-test-image/ # Standalone test image
+├── demos-image/
+│   ├── build.sh                      # Build demos image
+│   └── demos/
+│       ├── hash_algorithm_demo.js    # Algorithm enforcement demo
+│       ├── tls_ssl_client_demo.js    # TLS protocol demo
+│       ├── certificate_validation_demo.js # Certificate validation
+│       └── https_request_demo.js     # HTTPS via Node.js built-ins
+├── Evidence/
+│   ├── contrast-test-results.md      # Side-by-side FIPS on/off comparison (18 only)
+│   ├── diagnostic_results.txt        # Full diagnostic run output (18 only)
+│   └── test-execution-summary.md     # (18 only)
+├── compliance/
+│   ├── SBOM-node-VV-bookworm-slim-fips.spdx.json
+│   ├── vex-node-VV-bookworm-slim-fips.json
+│   ├── slsa-provenance-node-VV-bookworm-slim-fips.json
+│   └── CHAIN-OF-CUSTODY.md
+├── supply-chain/
+│   └── Cosign-Verification-Instructions.md  # Image-specific cosign guide
+├── Dockerfile                         # Multi-stage build
+├── build.sh                           # Build script
+├── docker-entrypoint.sh               # Container entrypoint
+├── openssl.cnf                        # wolfProvider OpenSSL configuration
+└── src/fips_init_check.js             # FIPS initialisation check
+```
+
 ### Supply Chain (Consolidated)
 
 ```
@@ -444,10 +522,18 @@ supply-chain/
 │
 ├── SBOM-python-3.12-bookworm-slim-fips.spdx.json             # Python 3.12 SBOM (CycloneDX 1.6)
 ├── vex-provenance-python-3.12-bookworm-slim-fips.json        # Python 3.12 VEX (CycloneDX 1.6)
-└── slsa-provenance-python-3.12-bookworm-slim-fips.json       # Python 3.12 SLSA provenance
+├── slsa-provenance-python-3.12-bookworm-slim-fips.json       # Python 3.12 SLSA provenance
+│
+├── SBOM-node-16.20.1-bookworm-slim-fips.spdx.json            # Node.js 16 SBOM (SPDX 2.3)
+├── vex-node-16.20.1-bookworm-slim-fips.json                  # Node.js 16 VEX (CycloneDX 1.6)
+├── slsa-provenance-node-16.20.1-bookworm-slim-fips.json      # Node.js 16 SLSA provenance
+│
+├── SBOM-node-18.20.8-bookworm-slim-fips.spdx.json            # Node.js 18 SBOM (SPDX 2.3)
+├── vex-node-18.20.8-bookworm-slim-fips.json                  # Node.js 18 VEX (CycloneDX 1.6)
+└── slsa-provenance-node-18.20.8-bookworm-slim-fips.json      # Node.js 18 SLSA provenance
 ```
 
-Note: Per-image Cosign guides and `CHAIN-OF-CUSTODY.md` also live under each image's own directories at `java/NN-jdk-jammy-ubuntu-22.04-fips/supply-chain/`, `java/NN-jdk-jammy-ubuntu-22.04-fips/compliance/`, `python/3.12-bookworm-slim-fips/supply-chain/`, and `python/3.12-bookworm-slim-fips/compliance/`.
+Note: Per-image Cosign guides and `CHAIN-OF-CUSTODY.md` also live under each image's own directories at `java/NN-jdk-jammy-ubuntu-22.04-fips/supply-chain/`, `java/NN-jdk-jammy-ubuntu-22.04-fips/compliance/`, `python/3.12-bookworm-slim-fips/supply-chain/`, `python/3.12-bookworm-slim-fips/compliance/`, `node/VV-bookworm-slim-fips/supply-chain/`, and `node/VV-bookworm-slim-fips/compliance/`.
 
 ---
 
@@ -576,6 +662,44 @@ cosign verify-attestation \
 
 See [Python Cosign Guide](python/3.12-bookworm-slim-fips/supply-chain/Cosign-Verification-Instructions.md) for the image-specific guide with pinned digest.
 
+### Node.js Images — Debian 12 Bookworm
+
+The same commands apply to both Node.js images. Substitute the tag for your target version.
+
+```bash
+# Image references
+#   cr.root.io/node:16.20.1-bookworm-slim-fips  (⚠️ EOL — legacy compatibility only)
+#   cr.root.io/node:18.20.8-bookworm-slim-fips
+
+TAG=18.20.8-bookworm-slim-fips   # replace with target version
+
+# Get image digest
+docker inspect --format='{{index .RepoDigests 0}}' \
+  cr.root.io/node:${TAG}
+
+# Pull by digest (immutable reference)
+# Node 16: sha256:49ea1c95fc97f4a71be5ca289659e3f4c7b8be2313624fbd1c332d62143f82aa
+# Node 18: sha256:211ae007634b11e825ce5788eabfb13552d973d6dc90daa49bac13586e82e9cd
+docker pull cr.root.io/node@sha256:<digest>
+
+# Verify signature (keyless)
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  cr.root.io/node:${TAG}
+
+# Verify SLSA attestation
+cosign verify-attestation \
+  --type slsaprovenance \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  cr.root.io/node:${TAG}
+```
+
+Per-image Cosign guides with pinned digests:
+- [Node.js 16 Cosign Guide](node/16.20.1-bookworm-slim-fips/supply-chain/Cosign-Verification-Instructions.md)
+- [Node.js 18 Cosign Guide](node/18.20.8-bookworm-slim-fips/supply-chain/Cosign-Verification-Instructions.md)
+
 See [supply-chain/Cosign-Verification-Instructions.md](supply-chain/Cosign-Verification-Instructions.md) for complete verification workflows covering all images.
 
 ---
@@ -640,6 +764,26 @@ For environments requiring strict FIPS 140-3 certification compliance, wolfSSL c
 └─────────────────────────────────────────┘
 ```
 
+### Node.js Image FIPS Stack
+
+Applies to both Node.js images (16.20.1 EOL and 18.20.8 LTS on Debian 12 Bookworm Slim):
+
+```
+┌─────────────────────────────────────────┐
+│   Node.js Application (User Code)      │
+├─────────────────────────────────────────┤
+│   Node.js crypto / tls / https         │ ← standard library APIs
+│   (Debian 12 Bookworm Slim base)       │   routed via OpenSSL 3.x
+├─────────────────────────────────────────┤
+│   OpenSSL 3.x (system)                 │ ← OPENSSL_CONF → wolfProvider
+├─────────────────────────────────────────┤
+│   wolfProvider 1.0.2 (OSSL provider)   │ ← Provider: fips
+├─────────────────────────────────────────┤
+│   wolfSSL FIPS v5.8.2                   │ ← Certificate #4718
+│   (native FIPS module)                 │   FIPS POST on init
+└─────────────────────────────────────────┘
+```
+
 ### Java Image FIPS Stack
 
 Applies to all Java variants (Ubuntu 22.04 Jammy JDK 8/11/17/21 and Debian 12 Bookworm JDK 19):
@@ -689,7 +833,9 @@ for DIR in \
   java/17-jdk-jammy-ubuntu-22.04-fips \
   java/21-jdk-jammy-ubuntu-22.04-fips \
   java/19-jdk-bookworm-slim-fips \
-  python/3.12-bookworm-slim-fips; do
+  python/3.12-bookworm-slim-fips \
+  node/16.20.1-bookworm-slim-fips \
+  node/18.20.8-bookworm-slim-fips; do
   echo 'your-wolfssl-password' > ${DIR}/.wolfssl_password
   chmod 600 ${DIR}/.wolfssl_password
 done
@@ -749,6 +895,21 @@ docker build \
   .
 ```
 
+### Build Node.js Images (16.20.1 EOL / 18.20.8 LTS)
+
+```bash
+# Replace VV with 16.20.1 or 18.20.8
+VV=18.20.8
+cd node/${VV}-bookworm-slim-fips
+./build.sh
+
+# Or manual build
+docker build \
+  --secret id=wolfssl_password,src=.wolfssl_password \
+  -t cr.root.io/node:${VV}-bookworm-slim-fips \
+  .
+```
+
 ---
 
 ## Support and Documentation
@@ -761,6 +922,8 @@ docker build \
 - [Java 21 (Jammy) README](java/21-jdk-jammy-ubuntu-22.04-fips/README.md)
 - [Java 19 (Bookworm) README](java/19-jdk-bookworm-slim-fips/README.md)
 - [Python 3.12 (Bookworm) README](python/3.12-bookworm-slim-fips/README.md)
+- [Node.js 16.20.1 (Bookworm) README](node/16.20.1-bookworm-slim-fips/README.md)
+- [Node.js 18.20.8 (Bookworm) README](node/18.20.8-bookworm-slim-fips/README.md)
 
 ### Compliance Documentation
 - [Section 6 Checklist Mapping](SECTION-6-CHECKLIST.md)
@@ -771,6 +934,8 @@ docker build \
 - [Java 21 POC Validation Report](java/21-jdk-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md)
 - [Java 19 POC Validation Report](java/19-jdk-bookworm-slim-fips/POC-VALIDATION-REPORT.md)
 - [Python 3.12 POC Validation Report](python/3.12-bookworm-slim-fips/POC-VALIDATION-REPORT.md)
+- [Node.js 16.20.1 POC Validation Report](node/16.20.1-bookworm-slim-fips/POC-VALIDATION-REPORT.md)
+- [Node.js 18.20.8 POC Validation Report](node/18.20.8-bookworm-slim-fips/POC-VALIDATION-REPORT.md)
 
 ### Supply Chain Security
 - [Cosign Verification Instructions (all images)](supply-chain/Cosign-Verification-Instructions.md)
@@ -779,6 +944,8 @@ docker build \
 - [Java 17 Cosign Guide](java/17-jdk-jammy-ubuntu-22.04-fips/supply-chain/Cosign-Verification-Instructions.md)
 - [Java 21 Cosign Guide](java/21-jdk-jammy-ubuntu-22.04-fips/supply-chain/Cosign-Verification-Instructions.md)
 - [Python 3.12 Cosign Guide](python/3.12-bookworm-slim-fips/supply-chain/Cosign-Verification-Instructions.md)
+- [Node.js 16 Cosign Guide](node/16.20.1-bookworm-slim-fips/supply-chain/Cosign-Verification-Instructions.md)
+- [Node.js 18 Cosign Guide](node/18.20.8-bookworm-slim-fips/supply-chain/Cosign-Verification-Instructions.md)
 - [SBOM Files](supply-chain/)
 - [VEX Statements](supply-chain/)
 
@@ -806,6 +973,7 @@ Components:
 - OpenJDK 8 / 11 / 17 / 19 / 21: GPL v2 with Classpath Exception
 - Eclipse Temurin (JDK 8/11/17/21): GPL v2 with Classpath Exception
 - Python 3.12: PSF License v2
+- Node.js 16.20.1 / 18.20.8: MIT License
 
 ---
 
@@ -814,7 +982,7 @@ Components:
 - **Author:** Root Security Team
 - **Classification:** PUBLIC
 - **Distribution:** UNLIMITED
-- **Version:** 1.3
+- **Version:** 1.4
 - **Last Updated:** 2026-03-23
 
 ---

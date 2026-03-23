@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Automated Verification Script for FIPS POC Images
-# Version: 1.2
+# Version: 1.3
 # Date: 2026-03-23
 
 set -e
@@ -15,6 +15,8 @@ JAVA17_IMAGE="${REGISTRY}/java:17-jdk-jammy-ubuntu-22.04-fips"
 JAVA21_IMAGE="${REGISTRY}/java:21-jdk-jammy-ubuntu-22.04-fips"
 JAVA19_IMAGE="${REGISTRY}/java:19-jdk-bookworm-slim-fips"
 PYTHON_IMAGE="${REGISTRY}/python:3.12-bookworm-slim-fips"
+NODE16_IMAGE="${REGISTRY}/node:16.20.1-bookworm-slim-fips"
+NODE18_IMAGE="${REGISTRY}/node:18.20.8-bookworm-slim-fips"
 PUBLIC_KEY="${PUBLIC_KEY:-cosign.pub}"
 
 # Colors for output
@@ -99,6 +101,8 @@ echo "  4. $JAVA17_IMAGE"
 echo "  5. $JAVA21_IMAGE"
 echo "  6. $JAVA19_IMAGE"
 echo "  7. $PYTHON_IMAGE"
+echo "  8. $NODE16_IMAGE"
+echo "  9. $NODE18_IMAGE"
 echo ""
 echo "================================================================================"
 echo ""
@@ -209,14 +213,42 @@ PYTHON_SBOM_RESULT=$?
 
 echo ""
 
+# Verify Node.js 16 (Bookworm) image
+echo "Verifying Node.js 16.20.1 (Bookworm) Image"
+echo "--------------------------------------------------------------------------------"
+verify_signature "$NODE16_IMAGE" "Node.js 16 image"
+NODE16_SIG_RESULT=$?
+
+verify_attestation "$NODE16_IMAGE" "Node.js 16 image" "slsaprovenance"
+NODE16_SLSA_RESULT=$?
+
+verify_attestation "$NODE16_IMAGE" "Node.js 16 image" "spdx"
+NODE16_SBOM_RESULT=$?
+
+echo ""
+
+# Verify Node.js 18 (Bookworm) image
+echo "Verifying Node.js 18.20.8 (Bookworm) Image"
+echo "--------------------------------------------------------------------------------"
+verify_signature "$NODE18_IMAGE" "Node.js 18 image"
+NODE18_SIG_RESULT=$?
+
+verify_attestation "$NODE18_IMAGE" "Node.js 18 image" "slsaprovenance"
+NODE18_SLSA_RESULT=$?
+
+verify_attestation "$NODE18_IMAGE" "Node.js 18 image" "spdx"
+NODE18_SBOM_RESULT=$?
+
+echo ""
+
 # Summary
 echo "================================================================================"
 echo "Verification Summary"
 echo "================================================================================"
 echo ""
 
-# 3 checks per image (signature + SLSA + SBOM) × 7 images = 21 checks
-TOTAL_CHECKS=21
+# 3 checks per image (signature + SLSA + SBOM) × 9 images = 27 checks
+TOTAL_CHECKS=27
 PASSED_CHECKS=0
 
 if [ $GO_SIG_RESULT -eq 0 ]; then ((PASSED_CHECKS++)); fi
@@ -247,12 +279,20 @@ if [ $PYTHON_SIG_RESULT -eq 0 ]; then ((PASSED_CHECKS++)); fi
 if [ $PYTHON_SLSA_RESULT -eq 0 ]; then ((PASSED_CHECKS++)); fi
 if [ $PYTHON_SBOM_RESULT -eq 0 ]; then ((PASSED_CHECKS++)); fi
 
+if [ $NODE16_SIG_RESULT -eq 0 ]; then ((PASSED_CHECKS++)); fi
+if [ $NODE16_SLSA_RESULT -eq 0 ]; then ((PASSED_CHECKS++)); fi
+if [ $NODE16_SBOM_RESULT -eq 0 ]; then ((PASSED_CHECKS++)); fi
+
+if [ $NODE18_SIG_RESULT -eq 0 ]; then ((PASSED_CHECKS++)); fi
+if [ $NODE18_SLSA_RESULT -eq 0 ]; then ((PASSED_CHECKS++)); fi
+if [ $NODE18_SBOM_RESULT -eq 0 ]; then ((PASSED_CHECKS++)); fi
+
 echo "Checks Passed: $PASSED_CHECKS/$TOTAL_CHECKS"
 echo ""
 
 # Determine overall pass/fail based on all image signatures being valid
 ALL_SIGS_VALID=true
-for RESULT in $GO_SIG_RESULT $JAVA8_SIG_RESULT $JAVA11_SIG_RESULT $JAVA17_SIG_RESULT $JAVA21_SIG_RESULT $JAVA19_SIG_RESULT $PYTHON_SIG_RESULT; do
+for RESULT in $GO_SIG_RESULT $JAVA8_SIG_RESULT $JAVA11_SIG_RESULT $JAVA17_SIG_RESULT $JAVA21_SIG_RESULT $JAVA19_SIG_RESULT $PYTHON_SIG_RESULT $NODE16_SIG_RESULT $NODE18_SIG_RESULT; do
     if [ "$RESULT" -ne 0 ]; then
         ALL_SIGS_VALID=false
         break

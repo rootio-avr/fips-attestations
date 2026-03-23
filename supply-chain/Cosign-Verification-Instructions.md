@@ -31,6 +31,8 @@ The following images have been signed with cosign:
 | java | 21-jdk-jammy-ubuntu-22.04-fips | sha256:5b20e08d1e9421556f8225d92f75da2b8d9dca72dbdfe748558b72091d2cb231 | root-reg/java |
 | java | 19-jdk-bookworm-slim-fips | sha256:73047fef8b4f7345504ef0478682edbce7f69150dbfd88eafcc22ffb264a29e9 | root-reg/java |
 | python | 3.12-bookworm-slim-fips | sha256:bf8e621d764abb9bf11f917c04997c385fa66f098621a8ce71846a6bbbb3e859 | root-reg/python |
+| node | 16.20.1-bookworm-slim-fips ⚠️ EOL | sha256:49ea1c95fc97f4a71be5ca289659e3f4c7b8be2313624fbd1c332d62143f82aa | root-reg/node |
+| node | 18.20.8-bookworm-slim-fips | sha256:211ae007634b11e825ce5788eabfb13552d973d6dc90daa49bac13586e82e9cd | root-reg/node |
 
 ## Verification Methods
 
@@ -84,6 +86,22 @@ cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
   <redacted_root_ecr_base>/root-reg/python:3.12-bookworm-slim-fips
+```
+
+**Node.js 16 Image (⚠️ EOL — legacy compatibility only):**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/node:16.20.1-bookworm-slim-fips
+```
+
+**Node.js 18 Image:**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/node:18.20.8-bookworm-slim-fips
 ```
 
 ### Method 2: Verify Using Digest (Recommended)
@@ -144,6 +162,22 @@ cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
   <redacted_root_ecr_base>/root-reg/python@sha256:bf8e621d764abb9bf11f917c04997c385fa66f098621a8ce71846a6bbbb3e859
+```
+
+**Node.js 16.20.1 (Bookworm — ⚠️ EOL):**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/node@sha256:49ea1c95fc97f4a71be5ca289659e3f4c7b8be2313624fbd1c332d62143f82aa
+```
+
+**Node.js 18.20.8 (Bookworm):**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/node@sha256:211ae007634b11e825ce5788eabfb13552d973d6dc90daa49bac13586e82e9cd
 ```
 
 ### Expected Output
@@ -211,6 +245,26 @@ cosign verify \
   <redacted_root_ecr_base>/root-reg/golang@sha256:d48386da5fcaea2cfc40a659ab16d37bd27619a031210e2e394b8685b02b5fad
 ```
 
+**Node.js 16.20.1 (Bookworm — ⚠️ EOL):**
+```bash
+docker pull cr.root.io/node:16.20.1-bookworm-slim-fips
+docker inspect cr.root.io/node:16.20.1-bookworm-slim-fips --format '{{index .RepoDigests 0}}'
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/node@sha256:49ea1c95fc97f4a71be5ca289659e3f4c7b8be2313624fbd1c332d62143f82aa
+```
+
+**Node.js 18.20.8 (Bookworm):**
+```bash
+docker pull cr.root.io/node:18.20.8-bookworm-slim-fips
+docker inspect cr.root.io/node:18.20.8-bookworm-slim-fips --format '{{index .RepoDigests 0}}'
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/node@sha256:211ae007634b11e825ce5788eabfb13552d973d6dc90daa49bac13586e82e9cd
+```
+
 ## Advanced Commands
 
 ### View Signature Artifacts
@@ -252,6 +306,16 @@ cosign tree <redacted_root_ecr_base>/root-reg/python:3.12-bookworm-slim-fips
 cosign tree <redacted_root_ecr_base>/root-reg/golang:1.25-jammy-ubuntu-22.04-fips
 ```
 
+**Node.js 16.20.1 (Bookworm — ⚠️ EOL):**
+```bash
+cosign tree <redacted_root_ecr_base>/root-reg/node:16.20.1-bookworm-slim-fips
+```
+
+**Node.js 18.20.8 (Bookworm):**
+```bash
+cosign tree <redacted_root_ecr_base>/root-reg/node:18.20.8-bookworm-slim-fips
+```
+
 Example output:
 ```
 📦 Supply Chain Security Related artifacts for an image: <redacted_root_ecr_base>/root-reg/java:21-jdk-jammy-ubuntu-22.04-fips
@@ -283,6 +347,15 @@ aws ecr describe-images \
 ```bash
 aws ecr describe-images \
   --repository-name root-reg/golang \
+  --region us-east-1 \
+  --query 'imageDetails[?imageSizeInBytes < `10000`].[imageDigest, imageSizeInBytes, imageManifestMediaType]' \
+  --output table
+```
+
+**Node.js signatures (both 16 and 18 share the root-reg/node repository):**
+```bash
+aws ecr describe-images \
+  --repository-name root-reg/node \
   --region us-east-1 \
   --query 'imageDetails[?imageSizeInBytes < `10000`].[imageDigest, imageSizeInBytes, imageManifestMediaType]' \
   --output table
