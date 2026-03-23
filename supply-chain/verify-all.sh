@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Automated Verification Script for FIPS POC Images
-# Version: 1.1
+# Version: 1.2
 # Date: 2026-03-23
 
 set -e
@@ -14,6 +14,7 @@ JAVA11_IMAGE="${REGISTRY}/java:11-jdk-jammy-ubuntu-22.04-fips"
 JAVA17_IMAGE="${REGISTRY}/java:17-jdk-jammy-ubuntu-22.04-fips"
 JAVA21_IMAGE="${REGISTRY}/java:21-jdk-jammy-ubuntu-22.04-fips"
 JAVA19_IMAGE="${REGISTRY}/java:19-jdk-bookworm-slim-fips"
+PYTHON_IMAGE="${REGISTRY}/python:3.12-bookworm-slim-fips"
 PUBLIC_KEY="${PUBLIC_KEY:-cosign.pub}"
 
 # Colors for output
@@ -97,6 +98,7 @@ echo "  3. $JAVA11_IMAGE"
 echo "  4. $JAVA17_IMAGE"
 echo "  5. $JAVA21_IMAGE"
 echo "  6. $JAVA19_IMAGE"
+echo "  7. $PYTHON_IMAGE"
 echo ""
 echo "================================================================================"
 echo ""
@@ -193,14 +195,28 @@ JAVA19_SBOM_RESULT=$?
 
 echo ""
 
+# Verify Python image
+echo "Verifying Python 3.12 (Bookworm) Image"
+echo "--------------------------------------------------------------------------------"
+verify_signature "$PYTHON_IMAGE" "Python 3.12 image"
+PYTHON_SIG_RESULT=$?
+
+verify_attestation "$PYTHON_IMAGE" "Python 3.12 image" "slsaprovenance"
+PYTHON_SLSA_RESULT=$?
+
+verify_attestation "$PYTHON_IMAGE" "Python 3.12 image" "spdx"
+PYTHON_SBOM_RESULT=$?
+
+echo ""
+
 # Summary
 echo "================================================================================"
 echo "Verification Summary"
 echo "================================================================================"
 echo ""
 
-# 3 checks per image (signature + SLSA + SBOM) × 6 images = 18 checks
-TOTAL_CHECKS=18
+# 3 checks per image (signature + SLSA + SBOM) × 7 images = 21 checks
+TOTAL_CHECKS=21
 PASSED_CHECKS=0
 
 if [ $GO_SIG_RESULT -eq 0 ]; then ((PASSED_CHECKS++)); fi
@@ -227,12 +243,16 @@ if [ $JAVA19_SIG_RESULT -eq 0 ]; then ((PASSED_CHECKS++)); fi
 if [ $JAVA19_SLSA_RESULT -eq 0 ]; then ((PASSED_CHECKS++)); fi
 if [ $JAVA19_SBOM_RESULT -eq 0 ]; then ((PASSED_CHECKS++)); fi
 
+if [ $PYTHON_SIG_RESULT -eq 0 ]; then ((PASSED_CHECKS++)); fi
+if [ $PYTHON_SLSA_RESULT -eq 0 ]; then ((PASSED_CHECKS++)); fi
+if [ $PYTHON_SBOM_RESULT -eq 0 ]; then ((PASSED_CHECKS++)); fi
+
 echo "Checks Passed: $PASSED_CHECKS/$TOTAL_CHECKS"
 echo ""
 
 # Determine overall pass/fail based on all image signatures being valid
 ALL_SIGS_VALID=true
-for RESULT in $GO_SIG_RESULT $JAVA8_SIG_RESULT $JAVA11_SIG_RESULT $JAVA17_SIG_RESULT $JAVA21_SIG_RESULT $JAVA19_SIG_RESULT; do
+for RESULT in $GO_SIG_RESULT $JAVA8_SIG_RESULT $JAVA11_SIG_RESULT $JAVA17_SIG_RESULT $JAVA21_SIG_RESULT $JAVA19_SIG_RESULT $PYTHON_SIG_RESULT; do
     if [ "$RESULT" -ne 0 ]; then
         ALL_SIGS_VALID=false
         break

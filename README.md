@@ -1,6 +1,6 @@
 # Root FIPS / STIG Proof of Concept
 
-**Version:** 1.2
+**Version:** 1.3
 **Date:** 2026-03-23
 **Status:** Production-Ready POC
 
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-This repository contains a complete, customer-ready Proof of Concept (POC) package that fully satisfies **Section 6 (FIPS / STIG Verification)** requirements. It demonstrates production-realistic, lean container images (Ubuntu 22.04 for Go and Java LTS images JDK 8/11/17/21; Debian 12 Bookworm for Java 19) with comprehensive FIPS enforcement, STIG baseline compatibility, and complete supply chain security.
+This repository contains a complete, customer-ready Proof of Concept (POC) package that fully satisfies **Section 6 (FIPS / STIG Verification)** requirements. It demonstrates production-realistic, lean container images (Ubuntu 22.04 for Go and Java LTS images JDK 8/11/17/21; Debian 12 Bookworm for Java 19 and Python 3.12) with comprehensive FIPS enforcement, STIG baseline compatibility, and complete supply chain security.
 
 **Key Achievements:**
 - ✅ **FIPS 140-3 Enforcement** at OS and application runtime levels
@@ -24,7 +24,7 @@ This POC uses **wolfSSL FIPS v5.8.2 (Certificate #4718)** as the cryptographic f
 
 ## What We Are Delivering
 
-### Six Production-Ready Images
+### Seven Production-Ready Images
 
 | Image | Base | Runtime | FIPS Module | Tag |
 |-------|------|---------|-------------|-----|
@@ -34,9 +34,10 @@ This POC uses **wolfSSL FIPS v5.8.2 (Certificate #4718)** as the cryptographic f
 | **java** | Ubuntu 22.04 LTS | Eclipse Temurin OpenJDK 17 | wolfSSL FIPS v5.8.2 | 17-jdk-jammy-ubuntu-22.04-fips |
 | **java** | Ubuntu 22.04 LTS | Eclipse Temurin OpenJDK 21 | wolfSSL FIPS v5.8.2 | 21-jdk-jammy-ubuntu-22.04-fips |
 | **java** | Debian 12 LTS | OpenJDK 19 | wolfSSL FIPS v5.8.2 | 19-jdk-bookworm-slim-fips |
+| **python** | Debian 12 LTS | Python 3.12 + wolfProvider | wolfSSL FIPS v5.8.2 | 3.12-bookworm-slim-fips |
 
 Each image provides:
-- ✅ Lean and hardened base (Ubuntu 22.04 LTS for Go and Jammy Java images; Debian 12 Bookworm Slim for Java 19)
+- ✅ Lean and hardened base (Ubuntu 22.04 LTS for Go and Jammy Java images; Debian 12 Bookworm Slim for Java 19 and Python 3.12)
 - ✅ FIPS mode enforcement at multiple layers
 - ✅ Cryptographic operations routed through wolfSSL FIPS
 - ✅ Signed with cosign for image integrity
@@ -92,6 +93,9 @@ docker pull cr.root.io/java:21-jdk-jammy-ubuntu-22.04-fips
 
 # Pull Java FIPS image (Debian 12 Bookworm)
 docker pull cr.root.io/java:19-jdk-bookworm-slim-fips
+
+# Pull Python FIPS image (Debian 12 Bookworm)
+docker pull cr.root.io/python:3.12-bookworm-slim-fips
 ```
 
 **Note:** Replace `cr.root.io` with your registry:
@@ -122,6 +126,12 @@ cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
   cr.root.io/java:19-jdk-bookworm-slim-fips
+
+# Verify Python image signature
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  cr.root.io/python:3.12-bookworm-slim-fips
 ```
 
 See [supply-chain/Cosign-Verification-Instructions.md](supply-chain/Cosign-Verification-Instructions.md) for detailed verification steps.
@@ -175,22 +185,42 @@ cd java/21-jdk-jammy-ubuntu-22.04-fips
 # Expected: ✅ Test Suites Passed: 4/4, ALL TESTS PASSED
 ```
 
-### Step 5: Review Evidence Bundle (2 minutes)
+### Step 5: Run Python FIPS Validation (2 minutes)
 
 ```bash
-# View Go POC validation report
-cat golang/1.25-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md
+# Run FIPS check (default entrypoint)
+docker run --rm cr.root.io/python:3.12-bookworm-slim-fips
 
-# View Java POC validation report
+# Expected output:
+# ✅ wolfProvider loaded and active
+# ✅ FIPS POST completed successfully
+# ✅ SHA-256/384/512: AVAILABLE via wolfProvider
+# ✅ MD5/SHA-1: BLOCKED in FIPS mode
+
+# Run complete diagnostic suite
+cd python/3.12-bookworm-slim-fips
+./diagnostic.sh
+
+# Expected: ✅ All test suites passed
+```
+
+### Step 6: Review Evidence Bundle (1 minute)
+
+```bash
+# View POC validation reports
+cat golang/1.25-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md
 cat java/19-jdk-bookworm-slim-fips/POC-VALIDATION-REPORT.md
+cat python/3.12-bookworm-slim-fips/POC-VALIDATION-REPORT.md
 
 # View SCAP scan results (HTML)
 firefox golang/1.25-jammy-ubuntu-22.04-fips/SCAP-Results.html
 firefox java/19-jdk-bookworm-slim-fips/SCAP-Results.html
+firefox python/3.12-bookworm-slim-fips/SCAP-Results.html
 
 # View contrast test evidence
 cat golang/1.25-jammy-ubuntu-22.04-fips/Evidence/contrast-test-results.md
 cat java/19-jdk-bookworm-slim-fips/Evidence/contrast-test-results.md
+cat python/3.12-bookworm-slim-fips/Evidence/contrast-test-results.md
 ```
 
 **Total Time:** ~10 minutes
@@ -335,6 +365,54 @@ java/19-jdk-bookworm-slim-fips/
 └── java.security.fips                 # Java security policy
 ```
 
+### Python Image — Debian 12 Bookworm
+
+```
+python/3.12-bookworm-slim-fips/
+├── README.md                          # Complete image documentation
+├── ATTESTATION.md                     # FIPS/supply-chain attestation statement
+├── ARCHITECTURE.md                    # wolfProvider / OpenSSL 3 layer design
+├── DEVELOPER-GUIDE.md                 # Integration patterns and examples
+├── POC-VALIDATION-REPORT.md           # Detailed compliance report
+├── STIG-Template.xml                  # Container-adapted Debian STIG
+├── SCAP-Results.xml                   # Raw OpenSCAP scan output
+├── SCAP-Results.html                  # Human-readable scan report
+├── SCAP-SUMMARY.md                    # Scan results summary
+├── diagnostic.sh                      # Diagnostic runner
+├── diagnostics/
+│   ├── run-all-tests.sh              # Master test runner
+│   ├── test-fips-verification.py     # FIPS provider verification
+│   ├── test-crypto-operations.py     # Cryptographic operations test
+│   ├── test-backend-verification.py  # OpenSSL backend check
+│   ├── test-library-compatibility.py # Library compatibility
+│   ├── test-connectivity.py          # TLS connectivity test
+│   ├── test-python-fips-status.sh    # OS/runtime FIPS status
+│   └── test-images/basic-test-image/ # Standalone test image
+├── demos-image/
+│   ├── build.sh                      # Build demos image
+│   └── demos/
+│       ├── hash_algorithm_demo.py    # Algorithm enforcement demo
+│       ├── tls_ssl_client_demo.py    # TLS protocol demo
+│       ├── certificate_validation_demo.py # Certificate validation
+│       └── requests_library_demo.py  # HTTP/TLS via requests lib
+├── Evidence/
+│   ├── contrast-test-results.md      # Side-by-side FIPS on/off comparison
+│   ├── diagnostic_results.txt        # Full diagnostic run output
+│   └── test-execution-summary.md
+├── compliance/
+│   ├── SBOM-python-3.12-bookworm-slim-fips.spdx.json
+│   ├── vex-provenance-python-3.12-bookworm-slim-fips.json
+│   ├── slsa-provenance-python-3.12-bookworm-slim-fips.json
+│   └── CHAIN-OF-CUSTODY.md
+├── supply-chain/
+│   └── Cosign-Verification-Instructions.md  # Image-specific cosign guide
+├── Dockerfile                         # Multi-stage build
+├── build.sh                           # Build script
+├── docker-entrypoint.sh               # Container entrypoint
+├── openssl.cnf                        # wolfProvider OpenSSL configuration
+└── src/fips_init_check.py             # FIPS initialisation check
+```
+
 ### Supply Chain (Consolidated)
 
 ```
@@ -362,10 +440,14 @@ supply-chain/
 ├── slsa-provenance-java-21-jdk-jammy-ubuntu-22.04-fips.json  # Java 21 SLSA provenance
 │
 ├── SBOM-java-19-jdk-bookworm-slim-fips.spdx.json             # Java 19 SBOM (SPDX 2.3)
-└── vex-java-19-jdk-bookworm-slim-fips.json                   # Java 19 VEX (OpenVEX v0.2.0)
+├── vex-java-19-jdk-bookworm-slim-fips.json                   # Java 19 VEX (OpenVEX v0.2.0)
+│
+├── SBOM-python-3.12-bookworm-slim-fips.spdx.json             # Python 3.12 SBOM (CycloneDX 1.6)
+├── vex-provenance-python-3.12-bookworm-slim-fips.json        # Python 3.12 VEX (CycloneDX 1.6)
+└── slsa-provenance-python-3.12-bookworm-slim-fips.json       # Python 3.12 SLSA provenance
 ```
 
-Note: Per-image Cosign guides and `CHAIN-OF-CUSTODY.md` also live under each image's own directories at `java/NN-jdk-jammy-ubuntu-22.04-fips/supply-chain/` and `java/NN-jdk-jammy-ubuntu-22.04-fips/compliance/`.
+Note: Per-image Cosign guides and `CHAIN-OF-CUSTODY.md` also live under each image's own directories at `java/NN-jdk-jammy-ubuntu-22.04-fips/supply-chain/`, `java/NN-jdk-jammy-ubuntu-22.04-fips/compliance/`, `python/3.12-bookworm-slim-fips/supply-chain/`, and `python/3.12-bookworm-slim-fips/compliance/`.
 
 ---
 
@@ -465,6 +547,35 @@ cosign verify-attestation \
   cr.root.io/java:19-jdk-bookworm-slim-fips
 ```
 
+### Python Image — Debian 12 Bookworm
+
+```bash
+# Image reference
+Image: cr.root.io/python:3.12-bookworm-slim-fips
+
+# Get image digest
+docker inspect --format='{{index .RepoDigests 0}}' \
+  cr.root.io/python:3.12-bookworm-slim-fips
+
+# Pull by digest (immutable reference)
+docker pull cr.root.io/python@sha256:30a6858af7461a8eb374212a6708c6b1b094906a0a96ceee61654fc6606f4eb2
+
+# Verify signature (keyless)
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  cr.root.io/python:3.12-bookworm-slim-fips
+
+# Verify SLSA attestation
+cosign verify-attestation \
+  --type slsaprovenance \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  cr.root.io/python:3.12-bookworm-slim-fips
+```
+
+See [Python Cosign Guide](python/3.12-bookworm-slim-fips/supply-chain/Cosign-Verification-Instructions.md) for the image-specific guide with pinned digest.
+
 See [supply-chain/Cosign-Verification-Instructions.md](supply-chain/Cosign-Verification-Instructions.md) for complete verification workflows covering all images.
 
 ---
@@ -508,6 +619,24 @@ For environments requiring strict FIPS 140-3 certification compliance, wolfSSL c
 ├─────────────────────────────────────────┤
 │   wolfSSL FIPS v5.8.2                   │ ← Certificate #4718
 │   (--disable-sha for strict policy)     │   (blocks SHA-1 at library)
+└─────────────────────────────────────────┘
+```
+
+### Python Image FIPS Stack
+
+```
+┌─────────────────────────────────────────┐
+│   Python Application (User Code)       │
+├─────────────────────────────────────────┤
+│   Python ssl / hashlib / cryptography  │ ← standard library APIs
+│   (Debian 12 Bookworm Slim base)       │   routed via OpenSSL 3.x
+├─────────────────────────────────────────┤
+│   OpenSSL 3.x (system)                 │ ← OPENSSL_CONF → wolfProvider
+├─────────────────────────────────────────┤
+│   wolfProvider 1.0.2 (OSSL provider)   │ ← Provider: fips
+├─────────────────────────────────────────┤
+│   wolfSSL FIPS v5.8.2                   │ ← Certificate #4718
+│   (native FIPS module)                 │   FIPS POST on init
 └─────────────────────────────────────────┘
 ```
 
@@ -559,7 +688,8 @@ for DIR in \
   java/11-jdk-jammy-ubuntu-22.04-fips \
   java/17-jdk-jammy-ubuntu-22.04-fips \
   java/21-jdk-jammy-ubuntu-22.04-fips \
-  java/19-jdk-bookworm-slim-fips; do
+  java/19-jdk-bookworm-slim-fips \
+  python/3.12-bookworm-slim-fips; do
   echo 'your-wolfssl-password' > ${DIR}/.wolfssl_password
   chmod 600 ${DIR}/.wolfssl_password
 done
@@ -606,6 +736,19 @@ docker build \
   .
 ```
 
+### Build Python Image
+
+```bash
+cd python/3.12-bookworm-slim-fips
+./build.sh
+
+# Or manual build
+docker build \
+  --secret id=wolfssl_password,src=.wolfssl_password \
+  -t cr.root.io/python:3.12-bookworm-slim-fips \
+  .
+```
+
 ---
 
 ## Support and Documentation
@@ -617,6 +760,7 @@ docker build \
 - [Java 17 (Jammy) README](java/17-jdk-jammy-ubuntu-22.04-fips/README.md)
 - [Java 21 (Jammy) README](java/21-jdk-jammy-ubuntu-22.04-fips/README.md)
 - [Java 19 (Bookworm) README](java/19-jdk-bookworm-slim-fips/README.md)
+- [Python 3.12 (Bookworm) README](python/3.12-bookworm-slim-fips/README.md)
 
 ### Compliance Documentation
 - [Section 6 Checklist Mapping](SECTION-6-CHECKLIST.md)
@@ -626,6 +770,7 @@ docker build \
 - [Java 17 POC Validation Report](java/17-jdk-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md)
 - [Java 21 POC Validation Report](java/21-jdk-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md)
 - [Java 19 POC Validation Report](java/19-jdk-bookworm-slim-fips/POC-VALIDATION-REPORT.md)
+- [Python 3.12 POC Validation Report](python/3.12-bookworm-slim-fips/POC-VALIDATION-REPORT.md)
 
 ### Supply Chain Security
 - [Cosign Verification Instructions (all images)](supply-chain/Cosign-Verification-Instructions.md)
@@ -633,6 +778,7 @@ docker build \
 - [Java 11 Cosign Guide](java/11-jdk-jammy-ubuntu-22.04-fips/supply-chain/Cosign-Verification-Instructions.md)
 - [Java 17 Cosign Guide](java/17-jdk-jammy-ubuntu-22.04-fips/supply-chain/Cosign-Verification-Instructions.md)
 - [Java 21 Cosign Guide](java/21-jdk-jammy-ubuntu-22.04-fips/supply-chain/Cosign-Verification-Instructions.md)
+- [Python 3.12 Cosign Guide](python/3.12-bookworm-slim-fips/supply-chain/Cosign-Verification-Instructions.md)
 - [SBOM Files](supply-chain/)
 - [VEX Statements](supply-chain/)
 
@@ -659,6 +805,7 @@ Components:
 - golang-fips/go: BSD-style (Go License)
 - OpenJDK 8 / 11 / 17 / 19 / 21: GPL v2 with Classpath Exception
 - Eclipse Temurin (JDK 8/11/17/21): GPL v2 with Classpath Exception
+- Python 3.12: PSF License v2
 
 ---
 
@@ -667,7 +814,7 @@ Components:
 - **Author:** Root Security Team
 - **Classification:** PUBLIC
 - **Distribution:** UNLIMITED
-- **Version:** 1.2
+- **Version:** 1.3
 - **Last Updated:** 2026-03-23
 
 ---

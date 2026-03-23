@@ -30,6 +30,7 @@ The following images have been signed with cosign:
 | java | 17-jdk-jammy-ubuntu-22.04-fips | sha256:27480e4d6689457e21a968f3647b1689641df098d162ec836e4fb0f5d3accae0 | root-reg/java |
 | java | 21-jdk-jammy-ubuntu-22.04-fips | sha256:5b20e08d1e9421556f8225d92f75da2b8d9dca72dbdfe748558b72091d2cb231 | root-reg/java |
 | java | 19-jdk-bookworm-slim-fips | sha256:73047fef8b4f7345504ef0478682edbce7f69150dbfd88eafcc22ffb264a29e9 | root-reg/java |
+| python | 3.12-bookworm-slim-fips | sha256:30a6858af7461a8eb374212a6708c6b1b094906a0a96ceee61654fc6606f4eb2 | root-reg/python |
 
 ## Verification Methods
 
@@ -75,6 +76,14 @@ cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
   <redacted_root_ecr_base>/root-reg/java:19-jdk-bookworm-slim-fips
+```
+
+**Python Image:**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/python:3.12-bookworm-slim-fips
 ```
 
 ### Method 2: Verify Using Digest (Recommended)
@@ -129,6 +138,14 @@ cosign verify \
   <redacted_root_ecr_base>/root-reg/java@sha256:73047fef8b4f7345504ef0478682edbce7f69150dbfd88eafcc22ffb264a29e9
 ```
 
+**Python 3.12 (Bookworm):**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/python@sha256:30a6858af7461a8eb374212a6708c6b1b094906a0a96ceee61654fc6606f4eb2
+```
+
 ### Expected Output
 
 Successful verification will output JSON with signature details:
@@ -174,6 +191,16 @@ cosign verify \
   <redacted_root_ecr_base>/root-reg/java@sha256:73047fef8b4f7345504ef0478682edbce7f69150dbfd88eafcc22ffb264a29e9
 ```
 
+**Python 3.12 (Bookworm):**
+```bash
+docker pull cr.root.io/python:3.12-bookworm-slim-fips
+docker inspect cr.root.io/python:3.12-bookworm-slim-fips --format '{{index .RepoDigests 0}}'
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/python@sha256:30a6858af7461a8eb374212a6708c6b1b094906a0a96ceee61654fc6606f4eb2
+```
+
 **Golang:**
 ```bash
 docker pull cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips
@@ -215,6 +242,11 @@ cosign tree <redacted_root_ecr_base>/root-reg/java:21-jdk-jammy-ubuntu-22.04-fip
 cosign tree <redacted_root_ecr_base>/root-reg/java:19-jdk-bookworm-slim-fips
 ```
 
+**Python 3.12 (Bookworm):**
+```bash
+cosign tree <redacted_root_ecr_base>/root-reg/python:3.12-bookworm-slim-fips
+```
+
 **Golang:**
 ```bash
 cosign tree <redacted_root_ecr_base>/root-reg/golang:1.25-jammy-ubuntu-22.04-fips
@@ -233,6 +265,15 @@ Example output:
 ```bash
 aws ecr describe-images \
   --repository-name root-reg/java \
+  --region us-east-1 \
+  --query 'imageDetails[?imageSizeInBytes < `10000`].[imageDigest, imageSizeInBytes, imageManifestMediaType]' \
+  --output table
+```
+
+**Python signatures:**
+```bash
+aws ecr describe-images \
+  --repository-name root-reg/python \
   --region us-east-1 \
   --query 'imageDetails[?imageSizeInBytes < `10000`].[imageDigest, imageSizeInBytes, imageManifestMediaType]' \
   --output table
