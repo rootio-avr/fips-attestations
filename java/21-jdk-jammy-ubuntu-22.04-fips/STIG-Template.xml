@@ -1,0 +1,664 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  STIG Template for java:21-jdk-jammy-ubuntu-22.04-fips
+
+  Base: DISA STIG for Ubuntu 22.04 (Jammy)
+  Adaptation: Container Environment (Docker/Kubernetes)
+  Date: 2026-03-04
+  Version: 1.0
+
+  This template adapts DISA STIG controls for containerized Ubuntu 22.04 (Jammy),
+  documenting container-appropriate exclusions and justifications.
+
+  Key Adaptations:
+  - Kernel-level controls: Host responsibility
+  - Boot loader controls: Not applicable (no direct boot)
+  - Systemd services: Limited (minimal container runtime)
+  - Physical access: Not applicable (virtual environment)
+  - Network services: Application-specific only
+
+  Reference: https://public.cyber.mil/stigs/downloads/
+-->
+
+<Benchmark xmlns="http://checklists.nist.gov/xccdf/1.2"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           id="java-stig-baseline"
+           xml:lang="en">
+
+  <status date="2026-03-19">accepted</status>
+
+  <title>STIG Baseline for java Container Image</title>
+
+  <description>
+    This STIG baseline template applies DISA Security Technical Implementation Guide
+    controls to the java container image (Ubuntu 22.04 Jammy with OpenJDK 21 and wolfSSL FIPS).
+
+    Container Scope:
+    - Application runtime security
+    - Cryptographic enforcement
+    - Audit logging
+    - Access controls
+    - Package management
+
+    Host Responsibilities (Out of Scope):
+    - Kernel hardening
+    - Boot process security
+    - Physical security
+    - Host network configuration
+    - Host-level services
+  </description>
+
+  <version>1.0</version>
+  <metadata>
+    <creator>Root Security Team</creator>
+    <publisher>Root</publisher>
+    <contributor>DISA STIG</contributor>
+    <source>DISA STIG for Ubuntu 22.04 (Jammy)</source>
+  </metadata>
+
+  <!-- Profile: Container FIPS Baseline -->
+  <Profile id="container-fips-baseline">
+    <title>Container FIPS Baseline</title>
+    <description>
+      Baseline profile for FIPS-compliant containerized applications on Ubuntu 22.04 (Jammy).
+      Includes only controls applicable to container runtime environments.
+    </description>
+
+    <!-- Select applicable rules -->
+    <select idref="SV-238197" selected="true"/> <!-- FIPS mode enabled -->
+    <select idref="SV-238198" selected="true"/> <!-- Crypto algorithms -->
+    <select idref="SV-238199" selected="true"/> <!-- Audit logging -->
+    <select idref="SV-238200" selected="true"/> <!-- Package integrity -->
+    <select idref="SV-238201" selected="true"/> <!-- Least privilege -->
+    <select idref="SV-238202" selected="true"/> <!-- File permissions -->
+    <select idref="SV-238203" selected="false"/> <!-- Kernel modules (N/A) -->
+    <select idref="SV-238204" selected="false"/> <!-- Boot loader (N/A) -->
+    <select idref="SV-238205" selected="false"/> <!-- Systemd services (N/A) -->
+  </Profile>
+
+  <!-- =================================================================== -->
+  <!-- CATEGORY I: HIGH SEVERITY                                           -->
+  <!-- =================================================================== -->
+
+  <Group id="V-238197">
+    <title>SRG-OS-000033-GPOS-00014</title>
+    <description>
+      The Ubuntu operating system must implement FIPS-validated cryptographic mechanisms.
+    </description>
+
+    <Rule id="SV-238197r653787_rule" severity="high">
+      <version>UBTU-22-010001</version>
+      <title>Ubuntu must use FIPS-validated cryptographic mechanisms.</title>
+
+      <description>
+        Use of weak or untested encryption algorithms undermines the purposes of utilizing
+        encryption to protect data. The operating system must implement cryptographic modules
+        adhering to the higher standards approved by the federal government.
+
+        Container Implementation:
+        - wolfSSL FIPS v5.2.3 (Certificate #4718)
+        - OpenJDK 21 runtime with Java Security providers
+        - wolfCrypt JNI (WolfCryptProvider) - JCE provider backed by wolfSSL FIPS
+        - wolfSSL JNI (WolfSSLProvider) - JSSE provider for TLS/SSL
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content-ref href="java-oval.xml" name="oval:fips:def:1"/>
+      </check-content-ref>
+      <check-content>
+        Verify FIPS mode is enabled in the container:
+
+        1. Check Java Security providers:
+        $ docker exec &lt;container&gt; grep "security.provider" /etc/java-21-openjdk/security/java.security
+
+        Expected output:
+        security.provider.1=com.wolfssl.provider.jce.WolfCryptProvider
+        security.provider.2=com.wolfssl.provider.jsse.WolfSSLProvider
+
+        2. Verify keystore type is FIPS-compliant:
+        $ docker exec &lt;container&gt; grep "keystore.type" /etc/java-21-openjdk/security/java.security
+
+        Expected: keystore.type=WKS
+
+        3. Run FIPS validation test:
+        $ docker run --rm java:21-jdk-jammy-ubuntu-22.04-fips
+
+        Expected: Container starts successfully with FIPS provider initialization logged.
+
+        If FIPS providers are not configured or validation fails, this is a finding.
+      </check-content>
+
+      <fix id="F-41366r653785_fix">
+        <fixtext fixref="F-41366r653785_fix">
+          Ensure container is built with FIPS-validated cryptographic modules:
+
+          1. Use wolfSSL FIPS v5.2.3 (Certificate #4718)
+          2. Build and install wolfCrypt JNI (JCE provider)
+          3. Build and install wolfSSL JNI (JSSE provider)
+          4. Configure java.security file:
+             - security.provider.1=com.wolfssl.provider.jce.WolfCryptProvider
+             - security.provider.2=com.wolfssl.provider.jsse.WolfSSLProvider
+             - keystore.type=WKS
+          5. Set algorithm blocking policies (jdk.tls.disabledAlgorithms, etc.)
+          6. Verify with FipsInitCheck.java and integrity-check.sh
+
+          Rebuild container if FIPS mode is not properly configured.
+        </fixtext>
+      </fix>
+
+      <ident system="http://cce.mitre.org">CCE-85877-2</ident>
+      <fixtext>Configure FIPS mode for the container</fixtext>
+    </Rule>
+
+    <!-- Implementation Status -->
+    <reference>
+      <dc:title>POC Validation Report</dc:title>
+      <dc:source>java/21-jdk-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md</dc:source>
+      <dc:subject>Test Case 3: OS FIPS Status Check</dc:subject>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238198">
+    <title>SRG-OS-000396-GPOS-00176</title>
+    <description>
+      The Ubuntu operating system must block non-FIPS approved cryptographic algorithms.
+    </description>
+
+    <Rule id="SV-238198r653790_rule" severity="high">
+      <version>UBTU-22-010002</version>
+      <title>Ubuntu must block MD5 and SHA-1 cryptographic hash functions.</title>
+
+      <description>
+        Unapproved mechanisms that are used for authentication to the cryptographic module are
+        not verified and therefore cannot be relied upon to provide confidentiality or integrity.
+
+        Container Implementation:
+        - MD5, MD4, MD2: Blocked via jdk.certpath.disabledAlgorithms and jdk.jar.disabledAlgorithms
+        - SHA-1: Blocked for TLS/JAR signing via jdk.tls.disabledAlgorithms
+        - DSA, RC4, DES, DESede: Blocked via jdk.tls.disabledAlgorithms
+        - Enforcement layer: java.security policy with wolfSSL FIPS backend
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify non-FIPS algorithms are blocked:
+
+          1. Check java.security policy for disabled algorithms:
+          $ docker exec &lt;container&gt; grep "disabledAlgorithms" /etc/java-21-openjdk/security/java.security
+
+          Expected entries:
+          jdk.tls.disabledAlgorithms=SSLv3, TLS1.0, TLS1.1, RC4, DES, MD5withRSA, DSA, ...
+          jdk.certpath.disabledAlgorithms=MD2, MD5, SHA1, ...
+          jdk.jar.disabledAlgorithms=MD2, MD5, SHA1, ...
+
+          2. Run algorithm enforcement test:
+          $ docker run --rm java:21-jdk-jammy-ubuntu-22.04-fips
+
+          Expected: Test output showing blocked algorithms (MD5, SHA-1, DSA, RC4, etc.)
+
+          If weak algorithms are not blocked, this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41367r653788_fix">
+        <fixtext>
+          Configure runtime to block non-FIPS algorithms:
+
+          1. Edit /etc/java-21-openjdk/security/java.security
+          2. Set jdk.tls.disabledAlgorithms to block weak ciphers (SSLv3, RC4, DES, etc.)
+          3. Set jdk.certpath.disabledAlgorithms to block weak hash functions (MD2, MD5, SHA1)
+          4. Set jdk.jar.disabledAlgorithms to block weak signatures
+          5. Configure wolfCrypt JNI and wolfSSL JNI as primary security providers
+          6. Verify enforcement with algorithm test suite
+
+          Test: docker run --rm java:21-jdk-jammy-ubuntu-22.04-fips
+        </fixtext>
+      </fix>
+    </Rule>
+
+    <reference>
+      <dc:title>POC Validation Report</dc:title>
+      <dc:source>java/21-jdk-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md</dc:source>
+      <dc:subject>Test Case 1: Algorithm Enforcement via Java</dc:subject>
+      <dc:subject>Test Case 2: Java Cryptographic Validation</dc:subject>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+  <!-- CATEGORY II: MEDIUM SEVERITY                                        -->
+  <!-- =================================================================== -->
+
+  <Group id="V-238199">
+    <title>SRG-OS-000057-GPOS-00027</title>
+    <description>
+      The Ubuntu operating system must generate audit records for privileged activities.
+    </description>
+
+    <Rule id="SV-238199r653793_rule" severity="medium">
+      <version>UBTU-22-010003</version>
+      <title>Ubuntu must log cryptographic operations and FIPS mode changes.</title>
+
+      <description>
+        Without generating audit records that are specific to the security and mission needs of
+        the organization, it would be difficult to establish, correlate, and investigate the events
+        relating to an incident or identify those responsible.
+
+        Container Implementation:
+        - Audit log: STDOUT/container logs via docker-entrypoint.sh
+        - Format: Structured logging with timestamps
+        - Events: Container start, FIPS validation, integrity checks, provider initialization
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify audit logging is configured:
+
+          1. View container startup logs:
+          $ docker logs &lt;container&gt;
+
+          Expected entries:
+          - FIPS library integrity verification
+          - wolfSSL FIPS provider initialization
+          - Java Security provider configuration
+          - FipsInitCheck validation results
+
+          2. Verify entrypoint script exists:
+          $ docker exec &lt;container&gt; ls -la /docker-entrypoint.sh
+
+          If startup validation logs are missing or FIPS checks are not logged, this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41368r653791_fix">
+        <fixtext>
+          Configure audit logging in entrypoint script:
+
+          1. Implement FIPS validation in docker-entrypoint.sh
+          2. Log integrity verification (integrity-check.sh)
+          3. Log Java Security provider initialization (FipsInitCheck.java)
+          4. Output all validation results to STDOUT for container logging
+          5. Include timestamps and clear status messages
+
+          Implementation: See docker-entrypoint.sh
+        </fixtext>
+      </fix>
+    </Rule>
+
+    <reference>
+      <dc:source>java/21-jdk-jammy-ubuntu-22.04-fips/docker-entrypoint.sh</dc:source>
+      <dc:subject>FIPS validation and logging implementation</dc:subject>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238200">
+    <title>SRG-OS-000366-GPOS-00153</title>
+    <description>
+      The Ubuntu operating system must use cryptographic mechanisms to protect the integrity
+      of audit information.
+    </description>
+
+    <Rule id="SV-238200r653796_rule" severity="medium">
+      <version>UBTU-22-010004</version>
+      <title>Ubuntu must verify package integrity using cryptographic signatures.</title>
+
+      <description>
+        Without cryptographic integrity protections, system packages could be replaced with
+        malicious versions that contain security vulnerabilities or backdoors.
+
+        Container Implementation:
+        - All packages from official Ubuntu Jammy repositories
+        - APT signature verification enabled (default in Ubuntu)
+        - SBOM provided for transparency
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify package integrity mechanisms:
+
+          1. Check APT configuration:
+          $ docker exec &lt;container&gt; apt-config dump | grep "APT::Get::AllowUnauthenticated"
+
+          Expected: APT::Get::AllowUnauthenticated "false"; (or not set, default is false)
+
+          2. Verify SBOM exists:
+          $ ls compliance/sbom-java-21-jdk-jammy-ubuntu-22.04-fips.spdx.json
+
+          3. Check image signature:
+          $ cosign verify --key cosign.pub java:21-jdk-jammy-ubuntu-22.04-fips
+
+          If packages are not verified or SBOM is missing, this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41369r653794_fix">
+        <fixtext>
+          Ensure package integrity verification:
+
+          1. Enable APT signature checking (default in Ubuntu Jammy)
+          2. Generate SBOM: ./compliance/generate-sbom.sh
+          3. Verify: cosign verify java:21-jdk-jammy-ubuntu-22.04-fips
+        </fixtext>
+      </fix>
+    </Rule>
+
+    <reference>
+      <dc:source>supply-chain/SBOM-java-21-jdk-jammy-ubuntu-22.04-fips.spdx.json</dc:source>
+      <dc:source>supply-chain/Cosign-Verification-Instructions.md</dc:source>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238201">
+    <title>SRG-OS-000480-GPOS-00227</title>
+    <description>
+      The Ubuntu operating system must enforce the principle of least privilege.
+    </description>
+
+    <Rule id="SV-238201r653799_rule" severity="medium">
+      <version>UBTU-22-010005</version>
+      <title>Ubuntu container must not run as root user.</title>
+
+      <description>
+        The principle of least privilege requires that processes operate with the minimum
+        set of privileges necessary to perform their function.
+
+        Container Implementation:
+        - Non-root user: appuser (UID 1001)
+        - Minimal capabilities
+        - Read-only root filesystem (where applicable)
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify container runs as non-root:
+
+          1. Check default user:
+          $ docker inspect java:21-jdk-jammy-ubuntu-22.04-fips | grep -i user
+
+          Expected: "User": "appuser" or "User": "1001"
+
+          2. Verify at runtime:
+          $ docker run --rm java:21-jdk-jammy-ubuntu-22.04-fips id
+
+          Expected: uid=1001(appuser) gid=1001(appuser)
+
+          If container runs as root (UID 0), this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41370r653797_fix">
+        <fixtext>
+          Configure non-root user in Dockerfile:
+
+          RUN groupadd -g 1001 appuser &amp;&amp; \
+              useradd -u 1001 -g appuser -s /bin/bash appuser
+
+          USER appuser
+
+          Rebuild image with non-root user configuration.
+        </fixtext>
+      </fix>
+    </Rule>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238202">
+    <title>SRG-OS-000480-GPOS-00228</title>
+    <description>
+      The Ubuntu operating system must set proper file and directory permissions.
+    </description>
+
+    <Rule id="SV-238202r653802_rule" severity="medium">
+      <version>UBTU-22-010006</version>
+      <title>Ubuntu must restrict file permissions to authorized users only.</title>
+
+      <description>
+        If files are accessible to unauthorized users, those users could potentially
+        modify or delete sensitive information.
+
+        Container Implementation:
+        - Application files: owned by appuser
+        - Sensitive configs: 0600 permissions
+        - Executables: 0755 permissions
+        - No world-writable files
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify file permissions:
+
+          1. Check for world-writable files:
+          $ docker run --rm java:21-jdk-jammy-ubuntu-22.04-fips \
+            find / -type f -perm -002 2>/dev/null
+
+          Expected: No output (no world-writable files)
+
+          2. Check sensitive file permissions:
+          $ docker exec &lt;container&gt; ls -la /etc/java-21-openjdk/security/java.security
+
+          Expected: -rw-r--r-- (0644 or stricter)
+
+          If unauthorized permissions exist, this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41371r653800_fix">
+        <fixtext>
+          Set proper file permissions in Dockerfile:
+
+          RUN chmod 755 /docker-entrypoint.sh &amp;&amp; \
+              chmod 755 /usr/local/bin/integrity-check.sh &amp;&amp; \
+              chmod 644 /etc/java-21-openjdk/security/java.security &amp;&amp; \
+              find /opt/wolfssl-fips/bin -name "*.class" -exec chmod 644 {} \;
+
+          Rebuild image with correct permissions.
+        </fixtext>
+      </fix>
+    </Rule>
+  </Group>
+
+  <!-- =================================================================== -->
+  <!-- CONTAINER-INAPPROPRIATE CONTROLS (NOT APPLICABLE)                   -->
+  <!-- =================================================================== -->
+
+  <Group id="V-238203">
+    <title>SRG-OS-000480-GPOS-00229</title>
+    <description>
+      EXCLUDED: Kernel module loading restrictions
+    </description>
+
+    <Rule id="SV-238203r653805_rule" severity="medium">
+      <version>UBTU-22-010007</version>
+      <title>Ubuntu must restrict loading of kernel modules.</title>
+
+      <description>
+        CONTAINER EXCLUSION:
+
+        Reason: Containers do not have direct access to load kernel modules.
+        Kernel module management is the responsibility of the host operating system.
+
+        Host Responsibility: The container host must implement kernel module restrictions
+        according to DISA STIG requirements.
+
+        Container Impact: None (kernel shared with host)
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          N/A - Host responsibility
+        </check-content>
+      </check>
+
+      <fix id="F-41372r653803_fix">
+        <fixtext>
+          N/A - Configure on container host according to DISA STIG requirements.
+        </fixtext>
+      </fix>
+    </Rule>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238204">
+    <title>SRG-OS-000480-GPOS-00230</title>
+    <description>
+      EXCLUDED: Boot loader password protection
+    </description>
+
+    <Rule id="SV-238204r653808_rule" severity="high">
+      <version>UBTU-22-010008</version>
+      <title>Ubuntu boot loader must be password protected.</title>
+
+      <description>
+        CONTAINER EXCLUSION:
+
+        Reason: Containers do not have a boot loader. Containers are started by the
+        container runtime (Docker, containerd, etc.), not through a boot process.
+
+        Host Responsibility: The container host boot loader must be password protected
+        according to DISA STIG requirements.
+
+        Container Impact: None (no boot process)
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          N/A - Host responsibility
+        </check-content>
+      </check>
+
+      <fix id="F-41373r653806_fix">
+        <fixtext>
+          N/A - Configure on container host according to DISA STIG requirements.
+        </fixtext>
+      </fix>
+    </Rule>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238205">
+    <title>SRG-OS-000480-GPOS-00231</title>
+    <description>
+      EXCLUDED: Systemd service hardening
+    </description>
+
+    <Rule id="SV-238205r653811_rule" severity="medium">
+      <version>UBTU-22-010009</version>
+      <title>Ubuntu must harden systemd services.</title>
+
+      <description>
+        CONTAINER EXCLUSION:
+
+        Reason: Minimal containers typically do not run systemd. This image uses a
+        simple entrypoint script instead of systemd for service management.
+
+        Container Alternative: Process supervision is handled by the container runtime
+        (Docker, Kubernetes) which provides:
+        - Process monitoring
+        - Automatic restart on failure
+        - Health checks
+        - Resource limits
+
+        Container Impact: Limited (systemd not present)
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify systemd is not running:
+
+          $ docker exec &lt;container&gt; ps aux | grep systemd
+
+          Expected: No systemd processes
+
+          Container uses entrypoint.sh for initialization instead.
+        </check-content>
+      </check>
+
+      <fix id="F-41374r653809_fix">
+        <fixtext>
+          N/A - Container uses entrypoint script instead of systemd.
+
+          Process supervision provided by container runtime (Docker/Kubernetes).
+        </fixtext>
+      </fix>
+    </Rule>
+  </Group>
+
+  <!-- =================================================================== -->
+  <!-- REFERENCES AND METADATA                                             -->
+  <!-- =================================================================== -->
+
+  <reference href="https://public.cyber.mil/stigs/">
+    <dc:publisher>DISA</dc:publisher>
+    <dc:source>Security Technical Implementation Guides</dc:source>
+    <dc:title>Ubuntu 22.04 (Jammy) STIG</dc:title>
+    <dc:subject>Security Technical Implementation Guide</dc:subject>
+  </reference>
+
+  <reference href="java/21-jdk-jammy-ubuntu-22.04-fips/POC-VALIDATION-REPORT.md">
+    <dc:publisher>Root</dc:publisher>
+    <dc:title>FIPS POC Validation Report</dc:title>
+    <dc:subject>Compliance Evidence</dc:subject>
+  </reference>
+
+  <reference href="SECTION-6-CHECKLIST.md">
+    <dc:publisher>Root</dc:publisher>
+    <dc:title>Section 6 Requirements Checklist</dc:title>
+    <dc:subject>Traceability Matrix</dc:subject>
+  </reference>
+
+  <!-- Implementation Notes -->
+  <notes>
+    <note id="container-scope">
+      <title>Container Scope and Limitations</title>
+      <content>
+        This STIG template focuses on controls applicable to containerized applications.
+        Many traditional OS-level controls are:
+
+        1. Host Responsibility:
+           - Kernel hardening
+           - Boot security
+           - Physical security
+           - Host network configuration
+
+        2. Not Applicable:
+           - Boot loader configuration (containers don't boot)
+           - Kernel module management (shared with host)
+           - System services (minimal container design)
+
+        3. Container Runtime Responsibility:
+           - Process isolation (namespaces, cgroups)
+           - Resource limits
+           - Network policies
+           - Security profiles (AppArmor, SELinux)
+
+        For complete STIG compliance, this container must be deployed on a
+        STIG-compliant host operating system.
+      </content>
+    </note>
+
+    <note id="fips-enforcement">
+      <title>FIPS Enforcement Strategy</title>
+      <content>
+        This container implements FIPS enforcement at multiple layers:
+
+        1. Library Level: wolfSSL FIPS v5.2.3 (Certificate #4718)
+        2. JCE Provider: wolfCrypt JNI (WolfCryptProvider) for cryptographic operations
+        3. JSSE Provider: wolfSSL JNI (WolfSSLProvider) for TLS/SSL
+        4. Runtime Level: OpenJDK 21 with Java Security provider configuration
+        5. Policy Level: java.security with disabled algorithms (MD5, SHA-1, RC4, DES, etc.)
+
+        This multi-layer approach provides defense-in-depth and ensures
+        cryptographic operations cannot bypass FIPS validation.
+      </content>
+    </note>
+  </notes>
+
+</Benchmark>

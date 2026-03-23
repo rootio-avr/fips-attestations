@@ -1,0 +1,81 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://slsa.dev/container-build/v1",
+      "externalParameters": {
+        "arch": "amd64",
+        "baseImage": {
+          "architecture": "amd64",
+          "digest": "26107d62fc1b30adaab5c482db14544fad82583718db5114a2bc612854095e9c",
+          "image": "cr.root.io/java:11-jdk-jammy-ubuntu-22.04-fips"
+        },
+        "builder": "kaniko",
+        "outputImage": "905418475464.dkr.ecr.us-east-1.amazonaws.com/remediated-images:avr_f83fa785664a48998e2280b9244f1147_rootio",
+        "packagesUpgraded": []
+      },
+      "internalParameters": {
+        "workflow": {
+          "avr_id": "avr_f83fa785664a48998e2280b9244f1147",
+          "dockerfile_key": "org_90fb24fefd6542c08d28a2f84982d578/avr_f83fa785664a48998e2280b9244f1147_Dockerfile",
+          "is_truncated": false,
+          "post_scan_id": "ascn_7a3b9fe7bd6e41b982ae8e8262c8c389",
+          "pre_scan_id": "ascn_150ca99603e24670aaa0c430f7fc9571"
+        }
+      },
+      "resolvedDependencies": [
+        {
+          "uri": "cr.root.io/java:11-jdk-jammy-ubuntu-22.04-fips",
+          "digest": {
+            "sha256": "26107d62fc1b30adaab5c482db14544fad82583718db5114a2bc612854095e9c"
+          },
+          "localName": "base-image",
+          "annotations": {
+            "architecture": "amd64",
+            "type": "container-image"
+          }
+        },
+        {
+          "digest": {
+            "sha256": ""
+          },
+          "localName": "dockerfile",
+          "annotations": {
+            "s3_key": "org_90fb24fefd6542c08d28a2f84982d578/avr_f83fa785664a48998e2280b9244f1147_Dockerfile",
+            "type": "dockerfile"
+          }
+        }
+      ]
+    },
+    "runDetails": {
+      "builder": {
+        "id": "https://github.com/GoogleContainerTools/kaniko",
+        "version": {
+          "image": "gcr.io/kaniko-project/executor",
+          "tag": "debug"
+        }
+      },
+      "metadata": {
+        "invocationId": "avr_f83fa785664a48998e2280b9244f1147",
+        "startedOn": "2026-03-19T11:32:54.281Z",
+        "finishedOn": "2026-03-19T11:38:09.531700771Z"
+      },
+      "byproducts": null
+    }
+  },
+  "subject": [
+    {
+      "name": "905418475464.dkr.ecr.us-east-1.amazonaws.com/remediated-images:avr_f83fa785664a48998e2280b9244f1147_rootio",
+      "digest": {
+        "sha256": "26107d62fc1b30adaab5c482db14544fad82583718db5114a2bc612854095e9c"
+      }
+    },
+    {
+      "name": "cr.root.io/java:11-jdk-jammy-ubuntu-22.04-fips_rootio",
+      "digest": {
+        "sha256": "26107d62fc1b30adaab5c482db14544fad82583718db5114a2bc612854095e9c"
+      }
+    }
+  ],
+  "predicateType": "https://slsa.dev/provenance/v1"
+}

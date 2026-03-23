@@ -1,0 +1,370 @@
+
+================================================================================
+[1m[0;36mDebian FIPS Java - Test Suite[0m
+================================================================================
+
+Running Test 1/4: Java Algorithm Enforcement (POC Requirement)...
+--------------------------------------------------------------------------------
+================================================================================
+Test: Java FIPS Algorithm Enforcement (FIPS POC Requirement)
+================================================================================
+
+POC Validation: Java Cryptographic Validation
+Requirement: FIPS-approved algorithms (SHA-256+) must succeed via wolfJCE
+
+[Test 1] Running Java FipsInitCheck Application
+--------------------------------------------------------------------------------
+[0;32m✓ PASS[0m - Java FipsInitCheck executed successfully
+
+Application Output (first 50 lines):
+Picked up JAVA_TOOL_OPTIONS: --add-modules=jdk.crypto.ec --add-exports=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED --add-opens=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/sun.security.provider=ALL-UNNAMED --add-opens=java.base/sun.security.util=ALL-UNNAMED --add-opens=java.base/sun.security.rsa=ALL-UNNAMED -Djava.library.path=/usr/lib/jni:/usr/local/lib
+
+Security Manager: None
+Loading original SUN...
+Original SUN loaded. Services available: 55
+Copying CertPathBuilder.PKIX with class: sun.security.provider.certpath.SunCertPathBuilder, attributes: null
+Copying Configuration.JavaLoginConfig with class: sun.security.provider.ConfigFile$Spi, attributes: null
+Copying CertStore.Collection with class: sun.security.provider.certpath.CollectionCertStore, attributes: null
+Copying CertificateFactory.X.509 with class: sun.security.provider.X509Factory, attributes: null
+Copying CertStore.com.sun.security.IndexedCollection with class: sun.security.provider.certpath.IndexedCollectionCertStore, attributes: null
+Copying Policy.JavaPolicy with class: sun.security.provider.PolicySpiFile, attributes: null
+FilteredSun initialized successfully with 6 services.
+Loading original SunRsaSign...
+Original SunRsaSign loaded. Services available: 19
+Copying KeyFactory.RSASSA-PSS with class: sun.security.rsa.RSAKeyFactory$PSS, attributes: java.security.interfaces.RSAPublicKey|java.security.interfaces.RSAPrivateKey
+Copying KeyFactory.RSA with class: sun.security.rsa.RSAKeyFactory$Legacy, attributes: null
+FilteredSunRsaSign initialized successfully with 2 services.
+Loading original SunEC...
+Original SunEC loaded. Services available: 42
+Copying KeyFactory.EC with class: sun.security.ec.ECKeyFactory, attributes: java.security.interfaces.ECPublicKey|java.security.interfaces.ECPrivateKey
+Copying AlgorithmParameters.EC with class: sun.security.util.ECParameters, attributes: java.security.interfaces.ECPublicKey|java.security.interfaces.ECPrivateKey
+FilteredSunEC initialized successfully with 2 services.
+
+Currently loaded security providers:
+	1. wolfJCE v1.9 - wolfCrypt JCE Provider
+	2. wolfJSSE v1.16 - wolfSSL JSSE Provider
+	3. FilteredSun v1.0 - Filtered SUN for non-crypto ops
+	4. FilteredSunRsaSign v1.0 - Filtered SunRsaSign for non-crypto ops
+	5. FilteredSunEC v1.0 - Filtered SunEC for non-crypto ops
+	6. SunJGSS v21.0 - Sun (Kerberos v5, SPNEGO)
+	7. SunSASL v21.0 - Sun SASL provider(implements client mechanisms for: DIGEST-MD5, EXTERNAL, PLAIN, CRAM-MD5, NTLM; server mechanisms for: DIGEST-MD5, CRAM-MD5, NTLM)
+	8. XMLDSig v21.0 - XMLDSig (DOM XMLSignatureFactory; DOM KeyInfoFactory; C14N 1.0, C14N 1.1, Exclusive C14N, Base64, Enveloped, XPath, XPath2, XSLT TransformServices)
+	9. JdkLDAP v21.0 - JdkLDAP Provider (implements LDAP CertStore)
+	10. JdkSASL v21.0 - JDK SASL provider(implements client and server mechanisms for GSSAPI)
+
+Verifying wolfSSL providers are registered...
+	wolfJCE provider verified at position 1
+	wolfJSSE provider verified at position 2
+
+Verifying system CA certs are in WKS format...
+	Checking cacerts file: /opt/java/openjdk/lib/security/cacerts
+	Successfully loaded 144 certificates from WKS format cacerts
+	System CA certificates verified as WKS format
+
+Forcing FIPS POST via MessageDigest invocation
+	FIPS POST test completed successfully
+
+Running sanity checks on java.security
+	Reading from: /opt/java/openjdk/conf/security/java.security
+	Active security providers (from java.security file):
+
+... (output truncated, full output in /tmp/java-output.log)
+
+
+[Test 2] Verify SHA-256 is available via wolfJCE
+[0;32m✓ PASS[0m - SHA-256 is available via wolfJCE (FIPS approved)
+
+[Test 3] Verify FIPS POST completed successfully
+[0;32m✓ PASS[0m - FIPS Power-On Self Test (POST) completed
+
+[Test 4] Verify wolfJCE and wolfJSSE providers at correct priority
+[0;32m✓ PASS[0m - wolfJCE at position 1, wolfJSSE at position 2
+
+[Test 5] Verify CA certificates in WKS format
+[0;32m✓ PASS[0m - CA certificates verified in WKS format
+
+================================================================================
+Test Summary: Java FIPS Algorithm Enforcement
+================================================================================
+Passed: 5
+Failed: 0
+
+[0;32m✓ ALL TESTS PASSED[0m
+
+FIPS POC Requirement: VERIFIED
+  ✓ Java Cryptographic Validation via JNI
+  ✓ SHA-256: AVAILABLE via wolfJCE (FIPS approved)
+  ✓ FIPS POST: Completed successfully
+  ✓ Provider Priority: wolfJCE=1, wolfJSSE=2
+  ✓ CA Certificates: WKS format verified
+
+[0;32m✓ Test 1 PASSED[0m
+
+Running Test 2/4: Java FIPS Validation...
+--------------------------------------------------------------------------------
+================================================================================
+Test: Java FIPS Validation
+================================================================================
+
+[Test 1] Java runtime exists
+[0;32m✓ PASS[0m - Java runtime available
+
+[Test 2] wolfSSL library exists
+[0;32m✓ PASS[0m - wolfSSL FIPS library found
+
+[Test 3] wolfCrypt JNI library exists
+[0;32m✓ PASS[0m - wolfCrypt JNI library found
+
+[Test 4] wolfSSL JNI library exists
+[0;32m✓ PASS[0m - wolfSSL JNI library found
+
+[Test 5] wolfCrypt JNI JAR file exists
+[0;32m✓ PASS[0m - wolfCrypt JNI JAR found
+
+[Test 6] wolfSSL JSSE JAR file exists
+[0;32m✓ PASS[0m - wolfSSL JSSE JAR found
+
+[Test 7] Filtered providers JAR file exists
+[0;32m✓ PASS[0m - Filtered providers JAR found
+
+[Test 8] FipsInitCheck application exists
+[0;32m✓ PASS[0m - FipsInitCheck application found
+
+[Test 9] Run Java FipsInitCheck application
+--------------------------------------------------------------------------------
+[0;32m✓ PASS[0m - FipsInitCheck executed successfully
+
+Application Output (first 30 lines):
+Picked up JAVA_TOOL_OPTIONS: --add-modules=jdk.crypto.ec --add-exports=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED --add-opens=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/sun.security.provider=ALL-UNNAMED --add-opens=java.base/sun.security.util=ALL-UNNAMED --add-opens=java.base/sun.security.rsa=ALL-UNNAMED -Djava.library.path=/usr/lib/jni:/usr/local/lib
+
+Security Manager: None
+Loading original SUN...
+Original SUN loaded. Services available: 55
+Copying CertPathBuilder.PKIX with class: sun.security.provider.certpath.SunCertPathBuilder, attributes: null
+Copying Configuration.JavaLoginConfig with class: sun.security.provider.ConfigFile$Spi, attributes: null
+Copying CertStore.Collection with class: sun.security.provider.certpath.CollectionCertStore, attributes: null
+Copying CertificateFactory.X.509 with class: sun.security.provider.X509Factory, attributes: null
+Copying CertStore.com.sun.security.IndexedCollection with class: sun.security.provider.certpath.IndexedCollectionCertStore, attributes: null
+Copying Policy.JavaPolicy with class: sun.security.provider.PolicySpiFile, attributes: null
+FilteredSun initialized successfully with 6 services.
+Loading original SunRsaSign...
+Original SunRsaSign loaded. Services available: 19
+Copying KeyFactory.RSASSA-PSS with class: sun.security.rsa.RSAKeyFactory$PSS, attributes: java.security.interfaces.RSAPublicKey|java.security.interfaces.RSAPrivateKey
+Copying KeyFactory.RSA with class: sun.security.rsa.RSAKeyFactory$Legacy, attributes: null
+FilteredSunRsaSign initialized successfully with 2 services.
+Loading original SunEC...
+Original SunEC loaded. Services available: 42
+Copying KeyFactory.EC with class: sun.security.ec.ECKeyFactory, attributes: java.security.interfaces.ECPublicKey|java.security.interfaces.ECPrivateKey
+Copying AlgorithmParameters.EC with class: sun.security.util.ECParameters, attributes: java.security.interfaces.ECPublicKey|java.security.interfaces.ECPrivateKey
+FilteredSunEC initialized successfully with 2 services.
+
+Currently loaded security providers:
+	1. wolfJCE v1.9 - wolfCrypt JCE Provider
+	2. wolfJSSE v1.16 - wolfSSL JSSE Provider
+	3. FilteredSun v1.0 - Filtered SUN for non-crypto ops
+	4. FilteredSunRsaSign v1.0 - Filtered SunRsaSign for non-crypto ops
+	5. FilteredSunEC v1.0 - Filtered SunEC for non-crypto ops
+	6. SunJGSS v21.0 - Sun (Kerberos v5, SPNEGO)
+
+... (output truncated, full output in /tmp/java-output.log)
+
+
+--------------------------------------------------------------------------------
+[Test 10] Verify SHA-256 available via wolfJCE
+[0;32m✓ PASS[0m - SHA-256 is available via wolfJCE
+
+[Test 11] Verify wolfJCE provider at position 1
+[0;32m✓ PASS[0m - wolfJCE provider at position 1
+
+[Test 12] Verify wolfJSSE provider at position 2
+[0;32m✓ PASS[0m - wolfJSSE provider at position 2
+
+================================================================================
+Test Summary
+================================================================================
+Passed: 12
+Failed: 0
+
+[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ Test 2 PASSED[0m
+
+Running Test 3/4: Java Algorithm Enforcement (POC Requirement)...
+--------------------------------------------------------------------------------
+================================================================================
+Test: Java Algorithm Enforcement (FIPS POC Requirement)
+================================================================================
+
+POC Validation: Algorithm Enforcement via Java API
+Requirement: FIPS-approved algorithms (SHA-256/384/512) must succeed via wolfJCE
+
+Note: Using Java API instead of OpenSSL CLI because JNI architecture
+      enforces FIPS at the Java provider level, not OpenSSL level.
+
+Compiling Java algorithm test program...
+[0;32m✓[0m Java test program compiled successfully
+
+[Test 1] SHA-256 Algorithm (FIPS approved - should SUCCEED)
+--------------------------------------------------------------------------------
+Command: java -cp /tmp:/opt/wolfssl-fips/bin:/usr/share/java/* AlgorithmTest SHA-256
+[0;32m✓ PASS[0m - SHA-256 is AVAILABLE via wolfJCE (FIPS approved)
+Result:
+Picked up JAVA_TOOL_OPTIONS: --add-modules=jdk.crypto.ec --add-exports=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED --add-opens=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/sun.security.provider=ALL-UNNAMED --add-opens=java.base/sun.security.util=ALL-UNNAMED --add-opens=java.base/sun.security.rsa=ALL-UNNAMED -Djava.library.path=/usr/lib/jni:/usr/local/lib
+Algorithm: SHA-256
+Provider: wolfJCE
+Hash: d28f392dc5c4c961e58bc298635fde78be11955f44ccdd737c929740686e6a8e
+
+[Test 2] SHA-384 Algorithm (FIPS approved - should SUCCEED)
+--------------------------------------------------------------------------------
+Command: java -cp /tmp:/opt/wolfssl-fips/bin:/usr/share/java/* AlgorithmTest SHA-384
+[0;32m✓ PASS[0m - SHA-384 is AVAILABLE via wolfJCE (FIPS approved)
+Result:
+Picked up JAVA_TOOL_OPTIONS: --add-modules=jdk.crypto.ec --add-exports=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED --add-opens=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/sun.security.provider=ALL-UNNAMED --add-opens=java.base/sun.security.util=ALL-UNNAMED --add-opens=java.base/sun.security.rsa=ALL-UNNAMED -Djava.library.path=/usr/lib/jni:/usr/local/lib
+Algorithm: SHA-384
+Provider: wolfJCE
+Hash: f59dd4a9bd26439fd88f32817e243d5eaf809219e96aa1cf6ce048912a7c0ec862c7b559e2a01bac40666dbea531c0d4
+
+[Test 3] SHA-512 Algorithm (FIPS approved - should SUCCEED)
+--------------------------------------------------------------------------------
+Command: java -cp /tmp:/opt/wolfssl-fips/bin:/usr/share/java/* AlgorithmTest SHA-512
+[0;32m✓ PASS[0m - SHA-512 is AVAILABLE via wolfJCE (FIPS approved)
+Result:
+Picked up JAVA_TOOL_OPTIONS: --add-modules=jdk.crypto.ec --add-exports=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED --add-opens=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/sun.security.provider=ALL-UNNAMED --add-opens=java.base/sun.security.util=ALL-UNNAMED --add-opens=java.base/sun.security.rsa=ALL-UNNAMED -Djava.library.path=/usr/lib/jni:/usr/local/lib
+Algorithm: SHA-512
+Provider: wolfJCE
+Hash: feb85f44bb0947c8b492ba002706f161eec59fe2f42cca952fe2c61b0ad169c21ee58269947ddc097b41014fe5a6d95e8075314208ffa96e9325d679a5f90e8f
+
+[Test 4] Verify wolfJCE provider is registered
+--------------------------------------------------------------------------------
+[0;32m✓ PASS[0m - Java runtime and libraries configured
+
+[Test 5] Verify Java runtime version
+--------------------------------------------------------------------------------
+[0;32m✓ PASS[0m - Java runtime available
+Picked up JAVA_TOOL_OPTIONS: --add-modules=jdk.crypto.ec --add-exports=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED --add-opens=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/sun.security.provider=ALL-UNNAMED --add-opens=java.base/sun.security.util=ALL-UNNAMED --add-opens=java.base/sun.security.rsa=ALL-UNNAMED -Djava.library.path=/usr/lib/jni:/usr/local/lib
+openjdk version "21.0.10" 2026-01-20 LTS
+OpenJDK Runtime Environment Temurin-21.0.10+7 (build 21.0.10+7-LTS)
+
+================================================================================
+Test Summary: Java Algorithm Enforcement
+================================================================================
+Passed: 5
+Failed: 0
+
+[0;32m✓ ALL TESTS PASSED[0m
+
+FIPS POC Requirement: VERIFIED
+  ✓ Algorithm Enforcement via Java API
+  ✓ SHA-256: AVAILABLE via wolfJCE (FIPS approved)
+  ✓ SHA-384: AVAILABLE via wolfJCE (FIPS approved)
+  ✓ SHA-512: AVAILABLE via wolfJCE (FIPS approved)
+
+Note: This test validates FIPS enforcement at the Java provider level
+      (wolfJCE) via JNI, not at the OpenSSL CLI level. The JNI
+      architecture provides FIPS compliance through native wolfSSL FIPS
+      140-3 certificate #4718 accessed via Java providers.
+
+[0;32m✓ Test 3 PASSED[0m
+
+Running Test 4/4: OS FIPS Status Check (POC Requirement)...
+--------------------------------------------------------------------------------
+================================================================================
+Test: Operating System FIPS Status Check (FIPS POC Requirement)
+================================================================================
+
+POC Validation: Operating System FIPS Status Check
+Requirement: OS must report FIPS mode enabled, kernel-level configuration verified
+
+[Test 1] Kernel FIPS Mode (/proc/sys/crypto/fips_enabled)
+--------------------------------------------------------------------------------
+Command: cat /proc/sys/crypto/fips_enabled
+[1;33m⚠ WARNING[0m - /proc/sys/crypto/fips_enabled not found
+Note: This is expected in containerized environments
+      FIPS enforcement is provided at the application/library level
+
+[Test 2] Kernel Boot Parameters (fips=1)
+--------------------------------------------------------------------------------
+Command: cat /proc/cmdline | grep fips
+[1;33m⚠ INFO[0m - Kernel not booted with fips=1 parameter
+Note: Expected in containers; host kernel controls this setting
+      Application-level FIPS enforcement is in effect
+
+[Test 3] System Cryptographic Policies (/etc/crypto-policies/)
+--------------------------------------------------------------------------------
+[1;33m⚠ INFO[0m - /etc/crypto-policies not found
+Note: This directory is specific to RHEL/Fedora systems
+      Ubuntu 22.04 uses different cryptographic policy mechanisms
+
+[Test 4] Java FIPS Providers via JNI
+--------------------------------------------------------------------------------
+Note: JNI architecture uses wolfJCE/wolfJSSE providers, not OpenSSL providers
+
+  wolfCrypt JNI library: [0;32m✓ FOUND[0m
+  wolfSSL JNI library: [0;32m✓ FOUND[0m
+  wolfCrypt JNI JAR: [0;32m✓ FOUND[0m
+  wolfSSL JSSE JAR: [0;32m✓ FOUND[0m
+
+[0;32m✓ PASS[0m - All Java FIPS provider components present
+
+[Test 5] Application-Level FIPS Environment Variables (Java)
+--------------------------------------------------------------------------------
+  JAVA_HOME: [0;32m✓ SET (path: /opt/java/openjdk)[0m
+  Java version: [0;32m✓ AVAILABLE (version: Picked up JAVA_TOOL_OPTIONS: --add-modules=jdk.crypto.ec --add-exports=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED --add-opens=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/sun.security.provider=ALL-UNNAMED --add-opens=java.base/sun.security.util=ALL-UNNAMED --add-opens=java.base/sun.security.rsa=ALL-UNNAMED -Djava.library.path=/usr/lib/jni:/usr/local/lib)[0m
+  LD_LIBRARY_PATH: [0;32m✓ SET (includes: /usr/local/lib:/usr/lib/jni)[0m
+  JAVA_LIBRARY_PATH: [0;32m✓ SET (includes: /usr/lib/jni:/usr/local/lib)[0m
+  Java security policy: [0;32m✓ EXISTS (path: /opt/java/openjdk/conf/security/java.security)[0m
+
+[0;32m✓ PASS[0m - All application-level FIPS environment variables configured
+
+[Test 6] wolfSSL FIPS Library Verification
+--------------------------------------------------------------------------------
+[0;32m✓[0m wolfSSL FIPS library found: /usr/local/lib/libwolfssl.so
+[0;32m✓[0m wolfSSL registered with ldconfig
+  	libwolfssl.so.44 (libc6,x86-64) => /usr/local/lib/libwolfssl.so.44
+[0;32m✓[0m wolfCrypt JNI library found
+[0;32m✓[0m wolfSSL JNI library found
+[0;32m✓ PASS[0m - wolfSSL FIPS infrastructure (JNI) present and loaded
+
+[Test 7] Runtime FIPS Algorithm Enforcement via Java
+--------------------------------------------------------------------------------
+Testing actual algorithm blocking at runtime via Java API...
+Note: JNI architecture enforces FIPS at Java provider level, not OpenSSL CLI
+
+  [0;32m✓[0m SHA-256: AVAILABLE via wolfJCE
+
+[0;32m✓ PASS[0m - Runtime FIPS algorithm enforcement is working via Java
+
+================================================================================
+Test Summary: Operating System FIPS Status
+================================================================================
+Passed:   4
+Failed:   0
+Warnings: 3
+
+[0;32m✓ OVERALL STATUS: PASSED[0m
+
+FIPS POC Requirement: VERIFIED
+
+Operating System FIPS Status (JNI Architecture):
+  ✓ Application-level FIPS enforcement: ACTIVE via Java providers
+  ✓ Java FIPS providers (wolfJCE/wolfJSSE): LOADED via JNI
+  ✓ wolfSSL FIPS module: PRESENT (FIPS 140-3 cert #4718)
+  ✓ JNI libraries: PRESENT (libwolfcryptjni.so, libwolfssljni.so)
+  ✓ Runtime algorithm enforcement: VERIFIED via Java API
+  ✓ FIPS environment variables: CONFIGURED
+
+Note: Some kernel-level checks reported warnings, which is expected in
+      containerized environments. FIPS enforcement is successfully
+      implemented at the Java provider level via JNI to native wolfSSL FIPS.
+
+[0;32m✓ Test 4 PASSED[0m
+
+================================================================================
+Final Test Summary
+================================================================================
+Test Suites Passed: 4/4
+Test Suites Failed: 0/4
+
+================================================================================
+[0;32m✓ ALL TESTS PASSED[0m
+================================================================================
+
