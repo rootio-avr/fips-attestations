@@ -1,0 +1,81 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://slsa.dev/container-build/v1",
+      "externalParameters": {
+        "arch": "amd64",
+        "baseImage": {
+          "architecture": "amd64",
+          "digest": "66cb281856794d06ecb7e559a7bb7d5df0d2cd4eb9238131eb85c321bb4a142a",
+          "image": "cr.root.io/java:21-jdk-jammy-fips"
+        },
+        "builder": "kaniko",
+        "outputImage": "905418475464.dkr.ecr.us-east-1.amazonaws.com/remediated-images:avr_aa67f07a96874bd68a43c56cd1a6cdab_rootio",
+        "packagesUpgraded": []
+      },
+      "internalParameters": {
+        "workflow": {
+          "avr_id": "avr_aa67f07a96874bd68a43c56cd1a6cdab",
+          "dockerfile_key": "org_90fb24fefd6542c08d28a2f84982d578/avr_aa67f07a96874bd68a43c56cd1a6cdab_Dockerfile",
+          "is_truncated": false,
+          "post_scan_id": "ascn_8f69a67739884f70a0e5053833f04869",
+          "pre_scan_id": "ascn_37bba9d20d154b938506fe017d215019"
+        }
+      },
+      "resolvedDependencies": [
+        {
+          "uri": "cr.root.io//java:21-jdk-jammy-fips",
+          "digest": {
+            "sha256": "66cb281856794d06ecb7e559a7bb7d5df0d2cd4eb9238131eb85c321bb4a142a"
+          },
+          "localName": "base-image",
+          "annotations": {
+            "architecture": "amd64",
+            "type": "container-image"
+          }
+        },
+        {
+          "digest": {
+            "sha256": ""
+          },
+          "localName": "dockerfile",
+          "annotations": {
+            "s3_key": "org_90fb24fefd6542c08d28a2f84982d578/avr_aa67f07a96874bd68a43c56cd1a6cdab_Dockerfile",
+            "type": "dockerfile"
+          }
+        }
+      ]
+    },
+    "runDetails": {
+      "builder": {
+        "id": "https://github.com/GoogleContainerTools/kaniko",
+        "version": {
+          "image": "gcr.io/kaniko-project/executor",
+          "tag": "debug"
+        }
+      },
+      "metadata": {
+        "invocationId": "avr_aa67f07a96874bd68a43c56cd1a6cdab",
+        "startedOn": "2026-03-19T09:13:51.105Z",
+        "finishedOn": "2026-03-19T09:19:38.285413167Z"
+      },
+      "byproducts": null
+    }
+  },
+  "subject": [
+    {
+      "name": "905418475464.dkr.ecr.us-east-1.amazonaws.com/remediated-images:avr_aa67f07a96874bd68a43c56cd1a6cdab_rootio",
+      "digest": {
+        "sha256": "66cb281856794d06ecb7e559a7bb7d5df0d2cd4eb9238131eb85c321bb4a142a"
+      }
+    },
+    {
+      "name": "cr.root.io//java:21-jdk-jammy-fips_rootio",
+      "digest": {
+        "sha256": "66cb281856794d06ecb7e559a7bb7d5df0d2cd4eb9238131eb85c321bb4a142a"
+      }
+    }
+  ],
+  "predicateType": "https://slsa.dev/provenance/v1"
+}
