@@ -30,7 +30,7 @@ The following images have been signed with cosign:
 | java | 17-jdk-jammy-ubuntu-22.04-fips | sha256:27480e4d6689457e21a968f3647b1689641df098d162ec836e4fb0f5d3accae0 | root-reg/java |
 | java | 21-jdk-jammy-ubuntu-22.04-fips | sha256:5b20e08d1e9421556f8225d92f75da2b8d9dca72dbdfe748558b72091d2cb231 | root-reg/java |
 | java | 19-jdk-bookworm-slim-fips | sha256:73047fef8b4f7345504ef0478682edbce7f69150dbfd88eafcc22ffb264a29e9 | root-reg/java |
-| python | 3.12-bookworm-slim-fips | sha256:30a6858af7461a8eb374212a6708c6b1b094906a0a96ceee61654fc6606f4eb2 | root-reg/python |
+| python | 3.12-bookworm-slim-fips | sha256:bf8e621d764abb9bf11f917c04997c385fa66f098621a8ce71846a6bbbb3e859 | root-reg/python |
 
 ## Verification Methods
 
@@ -143,7 +143,7 @@ cosign verify \
 cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
-  <redacted_root_ecr_base>/root-reg/python@sha256:30a6858af7461a8eb374212a6708c6b1b094906a0a96ceee61654fc6606f4eb2
+  <redacted_root_ecr_base>/root-reg/python@sha256:bf8e621d764abb9bf11f917c04997c385fa66f098621a8ce71846a6bbbb3e859
 ```
 
 ### Expected Output
@@ -198,7 +198,7 @@ docker inspect cr.root.io/python:3.12-bookworm-slim-fips --format '{{index .Repo
 cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
-  <redacted_root_ecr_base>/root-reg/python@sha256:30a6858af7461a8eb374212a6708c6b1b094906a0a96ceee61654fc6606f4eb2
+  <redacted_root_ecr_base>/root-reg/python@sha256:bf8e621d764abb9bf11f917c04997c385fa66f098621a8ce71846a6bbbb3e859
 ```
 
 **Golang:**

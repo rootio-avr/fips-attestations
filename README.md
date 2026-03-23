@@ -558,7 +558,7 @@ docker inspect --format='{{index .RepoDigests 0}}' \
   cr.root.io/python:3.12-bookworm-slim-fips
 
 # Pull by digest (immutable reference)
-docker pull cr.root.io/python@sha256:30a6858af7461a8eb374212a6708c6b1b094906a0a96ceee61654fc6606f4eb2
+docker pull cr.root.io/python@sha256:bf8e621d764abb9bf11f917c04997c385fa66f098621a8ce71846a6bbbb3e859
 
 # Verify signature (keyless)
 cosign verify \
