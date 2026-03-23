@@ -1,0 +1,481 @@
+
+================================================================================
+|                       Library Checksum Verification                         |
+================================================================================
+
+Verifying FIPS library integrity...
+
+Checking wolfSSL library...
+  ✓ OK: /usr/local/lib/libwolfssl.so
+  ✓ OK: /usr/local/lib/libwolfssl.so.44
+  ✓ OK: /usr/local/lib/libwolfssl.so.44.0.0
+
+Checking wolfProvider library...
+  ✓ OK: /usr/local/lib/libwolfprov.so
+  ✓ OK: /usr/local/lib/libwolfprov.so.0
+  ✓ OK: /usr/local/lib/libwolfprov.so.0.0.0
+
+Checking FIPS test executable...
+  ✓ OK: /test-fips
+
+✓ All integrity checks passed
+
+
+================================================================================
+|                       FIPS Known Answer Tests (KAT)                         |
+================================================================================
+
+✓ FIPS KAT passed successfully
+
+================================================================================
+|                        FIPS Container Verification                          |
+================================================================================
+
+
+======================================================================
+  Python wolfSSL FIPS 140-3 Initialization Check
+======================================================================
+
+======================================================================
+CHECK 1: SSL Version String
+======================================================================
+SSL Version: OpenSSL 3.0.18 30 Sep 2025
+✓ PASS: OpenSSL detected (provider-based approach)
+  Note: wolfProvider routes crypto operations to wolfSSL
+
+======================================================================
+CHECK 2: wolfSSL Library Presence
+======================================================================
+wolfSSL libraries found: 3
+  - /usr/local/lib/libwolfssl.so
+  - /usr/local/lib/libwolfssl.so.44
+  - /usr/local/lib/libwolfssl.so.44.0.0
+wolfProvider libraries found: 3
+  - /usr/local/lib/libwolfprov.so.0
+  - /usr/local/lib/libwolfprov.so.0.0.0
+  - /usr/local/lib/libwolfprov.so
+✓ PASS: Both wolfSSL and wolfProvider libraries found
+
+======================================================================
+CHECK 3: OpenSSL Binary Absence
+======================================================================
+⚠ WARNING: OpenSSL binaries found (expected for provider-based approach):
+  - /usr/bin/openssl
+  - /bin/openssl
+  Note: This is acceptable with wolfProvider approach
+
+======================================================================
+CHECK 4: SSL Module Capabilities
+======================================================================
+  ✓ HAS_TLSv1_2: True
+  ✓ HAS_TLSv1_3: True
+  ✓ HAS_SNI: True
+  ✓ HAS_ALPN: True
+  ✓ HAS_ECDH: True
+✓ PASS: All critical SSL capabilities available
+
+======================================================================
+CHECK 5: FIPS-Approved Algorithms
+======================================================================
+  ✓ SHA-256: Available (digest: 49952e97477df065...)
+  ✓ SHA-384: Available (digest: 4975ce2aa9c1179a...)
+  ✓ SHA-512: Available (digest: 20660e6ca8349051...)
+✓ PASS: All FIPS-approved hash algorithms available
+
+======================================================================
+CHECK 6: Cipher Suite Availability
+======================================================================
+Total cipher suites available: 14
+Sample cipher suites:
+  - TLS_AES_256_GCM_SHA384
+  - TLS_AES_128_GCM_SHA256
+  - ECDHE-ECDSA-AES256-GCM-SHA384
+  - ECDHE-RSA-AES256-GCM-SHA384
+  - ECDHE-ECDSA-AES128-GCM-SHA256
+  ... and 9 more
+
+FIPS-compliant AES-GCM ciphers: 8
+✓ PASS: Adequate cipher suites available
+
+======================================================================
+CHECK 7: SSL Context Creation
+======================================================================
+  Context created: <ssl.SSLContext object at 0x769a2bd87a50>
+  Verify mode: 2
+  Check hostname: True
+  Protocol: 16
+✓ PASS: SSL context created successfully
+
+======================================================================
+SUMMARY
+======================================================================
+  ✓ PASS: SSL Version String
+  ✓ PASS: wolfSSL Library Presence
+  ✓ PASS: OpenSSL Binary Absence
+  ✓ PASS: SSL Module Capabilities
+  ✓ PASS: FIPS-Approved Algorithms
+  ✓ PASS: Cipher Suite Availability
+  ✓ PASS: SSL Context Creation
+
+Results: 7/7 checks passed
+
+✓ ALL CHECKS PASSED - Python is properly configured for wolfSSL FIPS
+
+
+================================================================================
+|                         All Container Tests Passed                          |
+================================================================================
+
+Executing command: bash -c cd /diagnostics && ./run-all-tests.sh 2>&1
+
+
+[0;34m================================================================[0m
+[0;34m  Python wolfSSL FIPS 140-3 Diagnostic Test Suite[0m
+[0;34m================================================================[0m
+
+[1;33mRunning Test Suite 1: Backend Verification[0m
+[1;33m------------------------------------------------------------[0m
+/diagnostics/test-backend-verification.py:24: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  "timestamp": datetime.utcnow().isoformat() + "Z",
+============================================================
+Backend Verification Tests
+Architecture: Provider-based (wolfProvider)
+============================================================
+
+SSL Version String: OpenSSL 3.0.18 30 Sep 2025
+✅ 1.1 SSL Version Reporting: PASS
+   Details: Provider-based: OpenSSL 3.0.18 30 Sep 2025 (wolfProvider routes to wolfSSL)
+
+✅ 1.2 wolfSSL Libraries Present: PASS
+   Details: ✓ wolfSSL: /usr/local/lib/libwolfssl.so, /usr/local/lib/libwolfssl.so.44, /usr/local/lib/libwolfssl.so.44.0.0 | ✓ wolfProvider: /usr/local/lib/libwolfprov.so.0, /usr/local/lib/libwolfprov.so.0.0.0, /usr/local/lib/libwolfprov.so
+
+✅ 1.3 OpenSSL Configuration: PASS
+   Details: Config: /etc/ssl/openssl.cnf | ✓ wolfProvider configured | ✓ FIPS mode enabled
+
+SSL Module Capabilities:
+  HAS_TLSv1_2: True
+  HAS_TLSv1_3: True
+  HAS_SNI: True
+  HAS_ALPN: True
+  HAS_NPN: False
+  HAS_ECDH: True
+✅ 1.4 SSL Module Capabilities: PASS
+   Details: Critical features available. Optional: 3/3
+
+Available cipher suites: 14
+Sample ciphers:
+  - TLS_AES_256_GCM_SHA384
+  - TLS_AES_128_GCM_SHA256
+  - ECDHE-ECDSA-AES256-GCM-SHA384
+  - ECDHE-RSA-AES256-GCM-SHA384
+  - ECDHE-ECDSA-AES128-GCM-SHA256
+  ... and 9 more
+✅ 1.5 Available Ciphers: PASS
+   Details: 14 cipher suites available, 8 AES-GCM variants
+
+Provider list output:
+Providers:
+  libwolfprov
+    name: wolfSSL Provider
+    version: 1.0.2
+    status: active
+
+✅ 1.6 wolfProvider Loaded: PASS
+   Details: wolfProvider detected in OpenSSL provider list
+
+============================================================
+Test Summary
+============================================================
+Total Tests: 6
+Passed: 6
+Failed: 0
+Skipped: 0
+Pass Rate: 100.0%
+
+✅ ALL TESTS PASSED
+   Provider-based architecture verified successfully
+Results saved to: /diagnostics/results.json
+[0;32m✓ Backend Verification: PASSED[0m
+
+[1;33mRunning Test Suite 2: Connectivity Tests[0m
+[1;33m------------------------------------------------------------[0m
+============================================================
+Connectivity Tests
+============================================================
+
+✅ 2.1 HTTPS GET - Google: PASS
+   Details: Status: 200, Size: 81113 bytes, Time: 2164ms
+
+✅ 2.2 HTTPS GET - GitHub: PASS
+   Details: Status: 200, Size: 569014 bytes, Time: 578ms
+
+✅ 2.3 HTTPS GET - Python.org: PASS
+   Details: Status: 200, Size: 49101 bytes, Time: 109ms
+
+✅ 2.4 HTTPS GET - API Endpoint: PASS
+   Details: Status: 200, JSON API response, Time: 161ms
+
+  TLS Version: TLSv1.2
+  Cipher: ECDHE-ECDSA-AES128-GCM-SHA256
+✅ 2.5 TLS 1.2 Connection: PASS
+   Details: TLS TLSv1.2, Cipher: ECDHE-ECDSA-AES128-GCM-SHA256, Time: 125ms
+
+  TLS Version: TLSv1.3
+  Cipher: TLS_AES_256_GCM_SHA384
+✅ 2.6 TLS 1.3 Connection: PASS
+   Details: TLS TLSv1.3, Cipher: TLS_AES_256_GCM_SHA384, Time: 91ms
+
+  Subject: github.com
+  Issuer: Sectigo Public Server Authentication CA DV E36
+  Valid from: Mar  6 00:00:00 2026 GMT
+  Valid until: Jun  3 23:59:59 2026 GMT
+✅ 2.7 Certificate Chain Validation: PASS
+   Details: Valid cert chain, CN: github.com, Time: 118ms
+
+  Successful connections: 9/10
+  Failed connections: 1/10
+✅ 2.8 Concurrent Connections: PASS
+   Details: 9/10 connections successful, Total time: 6289ms
+
+============================================================
+Test Summary
+============================================================
+Total Tests: 8
+Passed: 8
+Failed: 0
+Skipped: 0
+Pass Rate: 100.0%
+
+✅ CONNECTIVITY TESTS PASSED
+Results saved to: /diagnostics/results.json
+[0;32m✓ Connectivity Tests: PASSED[0m
+
+[1;33mRunning Test Suite 3: FIPS Verification[0m
+[1;33m------------------------------------------------------------[0m
+============================================================
+FIPS Verification Tests
+============================================================
+
+  SSL Version: OpenSSL 3.0.18 30 Sep 2025
+✅ 3.1 FIPS Mode Status: PASS
+   Details: FIPS indicators: Provider-based approach (OpenSSL with wolfProvider), wolfSSL library present, FIPS test executable present, FIPS config present: /etc/ssl/openssl.cnf
+
+  Running FIPS Known Answer Tests...
+  Exit code: 0
+✅ 3.2 FIPS Self-Test Execution: PASS
+   Details: FIPS KATs passed successfully
+
+  Testing FIPS-approved hash algorithms:
+    ✓ SHA-256: Available
+    ✓ SHA-384: Available
+    ✓ SHA-512: Available
+
+  Checking for FIPS-approved cipher suites:
+    Found 8 AES-GCM cipher suites
+    Sample: TLS_AES_256_GCM_SHA384
+✅ 3.3 FIPS-Approved Algorithms: PASS
+   Details: FIPS algorithms available: SHA-256, SHA-384, SHA-512
+
+  Total cipher suites: 14
+  FIPS-compliant ciphers: 14
+    Examples: TLS_AES_256_GCM_SHA384, TLS_AES_128_GCM_SHA256, ECDHE-ECDSA-AES256-GCM-SHA384
+✅ 3.4 Cipher Suite FIPS Compliance: PASS
+   Details: 14 FIPS ciphers, 0 weak ciphers
+
+  SSL Version: OpenSSL 3.0.18 30 Sep 2025
+  Library: /usr/local/lib/libwolfssl.so
+  Size: 789,400 bytes
+✅ 3.5 FIPS Boundary Check: PASS
+   Details: wolfSSL 5.8.2 FIPS library validated at /usr/local/lib/libwolfssl.so
+
+  Testing MD5 blocking at OpenSSL level:
+    ✓ MD5 properly blocked at OpenSSL level
+  Testing SHA-1 status:
+    ℹ SHA-1 available (for legacy cert verification - FIPS-compliant)
+  Checking TLS cipher suites:
+    ✓ No MD5/SHA-1 cipher suites (0/14 total ciphers)
+  Checking Python hashlib MD5:
+    ℹ Python hashlib.md5() available: 098f6bcd4621d373... (built-in, not OpenSSL)
+✅ 3.6 Non-FIPS Algorithm Rejection: PASS
+   Details: MD5 blocked at OpenSSL level, no MD5/SHA-1 cipher suites, SHA-1 available for legacy support
+
+============================================================
+Test Summary
+============================================================
+Total Tests: 6
+Passed: 6
+Failed: 0
+Skipped: 0
+Pass Rate: 100.0%
+
+✅ FIPS VERIFICATION PASSED
+Results saved to: /diagnostics/results.json
+[0;32m✓ FIPS Verification: PASSED[0m
+
+[1;33mRunning Test Suite 4: Crypto Operations[0m
+[1;33m------------------------------------------------------------[0m
+============================================================
+Cryptographic Operations Tests
+============================================================
+
+  Context created: <ssl.SSLContext object at 0x777c782384d0>
+  Verify mode: 2
+  Check hostname: True
+  Protocol: 16
+✅ 4.1 Default SSL Context Creation: PASS
+   Details: Context created with secure defaults
+
+  Context protocol: 16
+  Minimum version: 771
+  Maximum version: 771
+✅ 4.2 Custom SSL Context - TLS 1.2: PASS
+   Details: TLS 1.2 context created successfully
+
+  Context protocol: 16
+  Minimum version: 772
+✅ 4.3 Custom SSL Context - TLS 1.3: PASS
+   Details: TLS 1.3 context created successfully
+
+  Setting ciphers: ECDHE+AESGCM:ECDHE+AESCCM:AES256-GCM-SHA384:AES128-GCM-SHA256
+  Ciphers set: 12
+  First cipher: TLS_AES_256_GCM_SHA384
+✅ 4.4 Cipher Suite Selection: PASS
+   Details: 12 cipher suites configured
+
+  Loading CA bundle: /etc/ssl/certs/ca-certificates.crt
+  Certificate store stats: {'x509': 142, 'crl': 0, 'x509_ca': 142}
+✅ 4.5 Certificate Loading - CA Bundle: PASS
+   Details: 142 CA certificates loaded
+
+  Connecting to www.google.com with SNI...
+  ✓ Connected: TLSv1.3
+✅ 4.6 SNI (Server Name Indication): PASS
+   Details: SNI connection successful to www.google.com
+
+  Setting ALPN protocols: ['h2', 'http/1.1']
+  ✓ ALPN protocols set successfully
+  Negotiated ALPN: h2
+✅ 4.7 ALPN Support: PASS
+   Details: ALPN negotiated: h2
+
+  First connection to www.google.com...
+  ✓ Session established
+  Second connection with session reuse...
+  Session reused: False
+✅ 4.8 Session Resumption: PASS
+   Details: Session not reused (server may not support resumption)
+
+  Connecting to www.google.com...
+  Subject CN: www.google.com
+  Issuer CN: WE2
+✅ 4.9 Peer Certificate Retrieval: PASS
+   Details: Certificate retrieved: www.google.com
+
+  Testing hostname verification with check_hostname=True...
+  ✓ Correct hostname verified: www.google.com
+  ✓ Wrong hostname correctly rejected: www.example.com
+✅ 4.10 Certificate Hostname Verification: PASS
+   Details: Hostname verification working correctly
+
+============================================================
+Test Summary
+============================================================
+Total Tests: 10
+Passed: 10
+Failed: 0
+Skipped: 0
+Pass Rate: 100.0%
+
+✅ CRYPTO OPERATIONS PASSED
+Results saved to: /diagnostics/results.json
+[0;32m✓ Crypto Operations: PASSED[0m
+
+[1;33mRunning Test Suite 5: Library Compatibility[0m
+[1;33m------------------------------------------------------------[0m
+/usr/local/lib/python3.12/site-packages/urllib3/connectionpool.py:1097: InsecureRequestWarning: Unverified HTTPS request is being made to host 'www.google.com'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/urllib3/connectionpool.py:1097: InsecureRequestWarning: Unverified HTTPS request is being made to host 'httpbin.org'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/urllib3/connectionpool.py:1097: InsecureRequestWarning: Unverified HTTPS request is being made to host 'www.google.com'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/urllib3/connectionpool.py:1097: InsecureRequestWarning: Unverified HTTPS request is being made to host 'www.github.com'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/urllib3/connectionpool.py:1097: InsecureRequestWarning: Unverified HTTPS request is being made to host 'github.com'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/urllib3/connectionpool.py:1097: InsecureRequestWarning: Unverified HTTPS request is being made to host 'www.python.org'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings
+  warnings.warn(
+============================================================
+Library Compatibility Tests
+============================================================
+
+============================================================
+Installing Test Libraries
+============================================================
+
+Installing from /diagnostics/requirements.txt...
+✓ Libraries installed successfully
+✓ requests 2.32.5 available
+✓ urllib3 2.6.3 available
+
+============================================================
+Running Tests
+============================================================
+
+  Testing requests.get() without verification...
+  Status code: 200
+  Response length: 81176 bytes
+✅ 5.1 Requests Library - Basic GET: PASS
+   Details: GET successful: 200, 81176 bytes
+
+  Testing requests.post() with JSON...
+  Status code: 200
+✅ 5.2 Requests Library - POST with JSON: PASS
+   Details: POST successful, JSON echoed correctly
+
+  Testing requests.Session()...
+  ✓ https://www.google.com: 200
+  ✓ https://www.github.com: 200
+  ✓ https://www.python.org: 200
+✅ 5.3 Requests Library - Session: PASS
+   Details: All 3 requests successful with session
+
+  Testing urllib3.PoolManager()...
+  Status: 200
+  Data length: 81180 bytes
+✅ 5.4 urllib3 - Direct Connection: PASS
+   Details: urllib3 request successful: 200
+
+⏭️  5.5 httpx - Synchronous Client: SKIP
+   Details: httpx library not available (optional)
+
+  Testing urllib.request.urlopen()...
+  Status: 200
+  Data length: 49101 bytes
+✅ 5.6 Standard Library - urllib.request: PASS
+   Details: urllib.request successful: 200, 49101 bytes
+
+============================================================
+Test Summary
+============================================================
+Total Tests: 6
+Passed: 5
+Failed: 0
+Skipped: 1
+Pass Rate: 100.0% (of 5 executed)
+
+✅ LIBRARY COMPATIBILITY PASSED
+Results saved to: /diagnostics/results.json
+[0;32m✓ Library Compatibility: PASSED[0m
+
+[0;34m================================================================[0m
+[0;34m  Test Summary[0m
+[0;34m================================================================[0m
+  Total Test Suites: 5
+  [0;32mPassed: 5[0m
+  [0;31mFailed: 0[0m
+
+  Pass Rate: 100%
+
+[0;32m✓ ALL TEST SUITES PASSED[0m
+[0;32m  Python wolfSSL FIPS implementation is ready for production[0m
+
