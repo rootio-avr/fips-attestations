@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nginx FIPS 140-3 Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-card {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-card h3 {
+            color: #667eea;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .info-card p {
+            color: #333;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .features {
+            margin-top: 30px;
+        }
+
+        .features h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .features ul {
+            list-style: none;
+        }
+
+        .features li {
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+            color: #555;
+        }
+
+        .features li:last-child {
+            border-bottom: none;
+        }
+
+        .features li::before {
+            content: "✓ ";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .endpoints {
+            margin-top: 30px;
+            background: #fef3c7;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .endpoints h3 {
+            color: #92400e;
+            margin-bottom: 12px;
+        }
+
+        .endpoints code {
+            background: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #333;
+        }
+
+        .endpoints p {
+            margin: 8px 0;
+            color: #78350f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 Nginx FIPS 140-3</h1>
+        <p class="subtitle">wolfSSL-Powered Cryptographic Module</p>
+
+        <div class="badge">✓ FIPS Validated</div>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>Nginx Version</h3>
+                <p>1.27.3</p>
+            </div>
+            <div class="info-card">
+                <h3>wolfSSL FIPS</h3>
+                <p>5.8.2</p>
+            </div>
+            <div class="info-card">
+                <h3>FIPS Certificate</h3>
+                <p>#4718</p>
+            </div>
+            <div class="info-card">
+                <h3>OpenSSL Version</h3>
+                <p>3.0.19</p>
+            </div>
+        </div>
+
+        <div class="features">
+            <h2>FIPS Compliance Features</h2>
+            <ul>
+                <li>TLS 1.2 and TLS 1.3 protocol support</li>
+                <li>FIPS-approved cipher suites (AES-GCM 128/256)</li>
+                <li>ECDHE key exchange with P-256/P-384 curves</li>
+                <li>SHA-256/SHA-384 cryptographic hashing</li>
+                <li>RSA 2048-bit minimum key sizes</li>
+                <li>wolfProvider integration with OpenSSL 3.x</li>
+                <li>Power-On Self Test (POST) validation</li>
+                <li>Continuous random number generator testing</li>
+            </ul>
+        </div>
+
+        <div class="endpoints">
+            <h3>📍 Available Endpoints</h3>
+            <p><code>GET /</code> - This demo page</p>
+            <p><code>GET /health</code> - Health check endpoint</p>
+            <p><code>GET /fips-info</code> - FIPS configuration details (strict-fips demo)</p>
+            <p><code>GET /ssl-info</code> - TLS connection info (tls-termination demo)</p>
+        </div>
+
+        <div class="footer">
+            <p><strong>Debian Bookworm Base Image</strong></p>
+            <p>Built with multi-stage Docker for optimized security</p>
+            <p style="margin-top: 10px; color: #999;">
+                This is a demonstration image showcasing FIPS 140-3 compliance.<br>
+                See README.md for configuration examples and usage instructions.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

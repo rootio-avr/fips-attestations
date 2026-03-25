@@ -1,0 +1,15 @@
+# FIPS Properties Configuration
+#
+# This file defines the FIPS enforcement properties for OpenSSL.
+# Included by openssl.cnf to enable FIPS-only algorithm selection.
+#
+# Key Setting:
+#   default_properties = fips=yes
+#     - Restricts all cryptographic operations to FIPS-approved algorithms
+#     - Blocks MD5, SHA-1 (except in approved legacy contexts), RC4, DES, 3DES
+#     - Allows AES, SHA-256, SHA-384, SHA-512, RSA, ECDSA, HMAC
+#
+################################################################################
+
+[fips_properties]
+default_properties = fips=yes

@@ -1,0 +1,667 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  STIG Template for nginx:1.27.3-debian-bookworm-fips
+
+  Base: DISA STIG for Debian (Bookworm)
+  Adaptation: Container Environment (Docker/Kubernetes)
+  Date: 2026-03-25
+  Version: 1.0
+
+  This template adapts DISA STIG controls for containerized Debian Bookworm,
+  documenting container-appropriate exclusions and justifications.
+
+  Key Adaptations:
+  - Kernel-level controls: Host responsibility
+  - Boot loader controls: Not applicable (no direct boot)
+  - Systemd services: Limited (minimal container runtime)
+  - Physical access: Not applicable (virtual environment)
+  - Network services: Application-specific only
+
+  Reference: https://public.cyber.mil/stigs/downloads/
+-->
+
+<Benchmark xmlns="http://checklists.nist.gov/xccdf/1.2"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           id="nginx-stig-baseline"
+           xml:lang="en">
+
+  <status date="2026-03-25">accepted</status>
+
+  <title>STIG Baseline for nginx Container Image</title>
+
+  <description>
+    This STIG baseline template applies DISA Security Technical Implementation Guide
+    controls to the nginx container image (Debian Bookworm with Nginx 1.27.3 and wolfSSL FIPS).
+
+    Container Scope:
+    - Application runtime security
+    - Cryptographic enforcement
+    - Audit logging
+    - Access controls
+    - Package management
+
+    Host Responsibilities (Out of Scope):
+    - Kernel hardening
+    - Boot process security
+    - Physical security
+    - Host network configuration
+    - Host-level services
+  </description>
+
+  <version>1.0</version>
+  <metadata>
+    <creator>Root Security Team</creator>
+    <publisher>Root</publisher>
+    <contributor>DISA STIG</contributor>
+    <source>DISA STIG for Debian (Bookworm)</source>
+  </metadata>
+
+  <!-- Profile: Container FIPS Baseline -->
+  <Profile id="container-fips-baseline">
+    <title>Container FIPS Baseline</title>
+    <description>
+      Baseline profile for FIPS-compliant containerized applications on Debian Bookworm.
+      Includes only controls applicable to container runtime environments.
+    </description>
+
+    <!-- Select applicable rules -->
+    <select idref="SV-238197" selected="true"/> <!-- FIPS mode enabled -->
+    <select idref="SV-238198" selected="true"/> <!-- Crypto algorithms -->
+    <select idref="SV-238199" selected="true"/> <!-- Audit logging -->
+    <select idref="SV-238200" selected="true"/> <!-- Package integrity -->
+    <select idref="SV-238201" selected="true"/> <!-- Least privilege -->
+    <select idref="SV-238202" selected="true"/> <!-- File permissions -->
+    <select idref="SV-238203" selected="false"/> <!-- Kernel modules (N/A) -->
+    <select idref="SV-238204" selected="false"/> <!-- Boot loader (N/A) -->
+    <select idref="SV-238205" selected="false"/> <!-- Systemd services (N/A) -->
+  </Profile>
+
+  <!-- =================================================================== -->
+  <!-- CATEGORY I: HIGH SEVERITY                                           -->
+  <!-- =================================================================== -->
+
+  <Group id="V-238197">
+    <title>SRG-OS-000033-GPOS-00014</title>
+    <description>
+      The Debian operating system must implement FIPS-validated cryptographic mechanisms.
+    </description>
+
+    <Rule id="SV-238197r653787_rule" severity="high">
+      <version>DEBIAN-BOOKWORM-010001</version>
+      <title>Debian must use FIPS-validated cryptographic mechanisms.</title>
+
+      <description>
+        Use of weak or untested encryption algorithms undermines the purposes of utilizing
+        encryption to protect data. The operating system must implement cryptographic modules
+        adhering to the higher standards approved by the federal government.
+
+        Container Implementation:
+        - wolfSSL FIPS v5.8.2 (Certificate #4718)
+        - Nginx 1.27.3 with SSL module
+        - wolfProvider v1.1.0 - OpenSSL 3.0+ provider routing to wolfSSL FIPS
+        - OpenSSL 3.0.19 provider interface with FIPS property filtering
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content-ref href="nginx-oval.xml" name="oval:fips:def:1"/>
+      </check-content-ref>
+      <check-content>
+        Verify FIPS mode is enabled in the container:
+
+        1. Check OpenSSL configuration:
+        $ docker exec &lt;container&gt; cat /etc/ssl/openssl.cnf | grep -A10 "fips_sect"
+
+        Expected output:
+        [fips_sect]
+        activate = 1
+        module = /usr/local/openssl/lib64/ossl-modules/wolfprov.so
+        fips = yes
+
+        [algorithm_sect]
+        default_properties = fips=yes
+
+        2. Verify OpenSSL provider status:
+        $ docker exec &lt;container&gt; openssl list -providers
+
+        Expected: wolfSSL Provider FIPS v1.1.0 (status: active)
+
+        3. Check container startup logs for FIPS POST:
+        $ docker logs &lt;container&gt; 2&gt;&amp;1 | grep "FIPS POST"
+
+        Expected: ✓ FIPS POST completed successfully
+
+        4. Test TLS connection with FIPS cipher:
+        $ echo "Q" | openssl s_client -connect localhost:443 -tls1_3 2&gt;&amp;1 | grep "Cipher"
+
+        Expected: Cipher is TLS_AES_256_GCM_SHA384
+
+        If FIPS provider is not configured or validation fails, this is a finding.
+      </check-content>
+
+      <fix id="F-41366r653785_fix">
+        <fixtext fixref="F-41366r653785_fix">
+          Ensure container is built with FIPS-validated cryptographic modules:
+
+          1. Use wolfSSL FIPS v5.8.2 (Certificate #4718)
+          2. Build and install wolfProvider v1.1.0 (OpenSSL provider)
+          3. Configure /etc/ssl/openssl.cnf:
+             - providers = provider_sect
+             - fips = fips_sect
+             - activate = 1
+             - module = /usr/local/openssl/lib64/ossl-modules/wolfprov.so
+             - default_properties = fips=yes (CRITICAL: enables FIPS property filtering)
+          4. Configure nginx with ssl_protocols TLSv1.2 TLSv1.3
+          5. Configure nginx with FIPS-approved cipher suites only
+          6. Verify FIPS POST passes on startup
+
+          Rebuild container if FIPS mode is not properly configured.
+        </fixtext>
+      </fix>
+
+      <ident system="http://cce.mitre.org">CCE-85877-2</ident>
+      <fixtext>Configure FIPS mode for the container</fixtext>
+    </Rule>
+
+    <!-- Implementation Status -->
+    <reference>
+      <dc:title>Test Execution Summary</dc:title>
+      <dc:source>nginx/1.27.3-debian-bookworm-fips/Evidence/test-execution-summary.md</dc:source>
+      <dc:subject>Test 3: Certificate Validation Tests</dc:subject>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238198">
+    <title>SRG-OS-000396-GPOS-00176</title>
+    <description>
+      The Debian operating system must block non-FIPS approved cryptographic algorithms.
+    </description>
+
+    <Rule id="SV-238198r653790_rule" severity="high">
+      <version>DEBIAN-BOOKWORM-010002</version>
+      <title>Debian must block MD5 and weak cryptographic hash functions.</title>
+
+      <description>
+        Unapproved mechanisms that are used for authentication to the cryptographic module are
+        not verified and therefore cannot be relied upon to provide confidentiality or integrity.
+
+        Container Implementation:
+        - MD5: Blocked at OpenSSL EVP API level via FIPS property filtering (default_properties=fips=yes)
+        - 3DES, RC4, DES: Blocked by wolfProvider (0 cipher suites available)
+        - TLS 1.0/1.1: Blocked (cannot negotiate - MD5-SHA1 digest unavailable)
+        - SHA-1 for new TLS: Blocked (0 SHA-1 cipher suites)
+        - SHA-1 for verification: Available (legacy cert verification - FIPS 140-3 compliant)
+        - Enforcement layer: OpenSSL 3.0.19 provider + nginx configuration
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify non-FIPS algorithms are blocked:
+
+          1. Test MD5 blocking at OpenSSL level:
+          $ docker exec &lt;container&gt; bash -c "echo -n 'test' | openssl dgst -md5"
+
+          Expected: Error setting digest
+
+          2. Check nginx SSL protocols configuration:
+          $ docker exec &lt;container&gt; cat /etc/nginx/nginx.conf | grep ssl_protocols
+
+          Expected: ssl_protocols TLSv1.2 TLSv1.3;
+
+          3. Test TLS 1.0 connection (should fail):
+          $ echo "Q" | timeout 3 openssl s_client -connect localhost:443 -tls1 2&gt;&amp;1 | grep "Cipher"
+
+          Expected: Cipher is (NONE)
+
+          4. Check available FIPS cipher suites:
+          $ docker exec &lt;container&gt; cat /etc/nginx/nginx.conf | grep ssl_ciphers
+
+          Expected: 14 FIPS-approved ciphers only (AES-GCM variants)
+
+          If MD5 or weak algorithms are available, this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41367r653788_fix">
+        <fixtext fixref="F-41367r653788_fix">
+          Configure OpenSSL FIPS property filtering and nginx SSL settings:
+
+          1. Edit /etc/ssl/openssl.cnf
+          2. Add algorithm section with FIPS property filtering:
+             [algorithm_sect]
+             default_properties = fips=yes
+
+          3. Configure nginx /etc/nginx/nginx.conf:
+             ssl_protocols TLSv1.2 TLSv1.3;
+             ssl_ciphers 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:...';
+
+          4. Verify MD5 blocking: echo -n 'test' | openssl dgst -md5
+          5. Verify TLS 1.0/1.1 cannot negotiate connections
+          6. Verify only 14 FIPS cipher suites available
+
+          Rebuild container with proper openssl.cnf and nginx.conf configuration.
+        </fixtext>
+      </fix>
+
+      <ident system="http://cce.mitre.org">CCE-85878-0</ident>
+      <fixtext>Configure algorithm blocking for the container</fixtext>
+    </Rule>
+
+    <!-- Implementation Status -->
+    <reference>
+      <dc:title>Test Execution Summary</dc:title>
+      <dc:source>nginx/1.27.3-debian-bookworm-fips/Evidence/test-execution-summary.md</dc:source>
+      <dc:subject>Test 1: TLS Protocol Tests &amp; Test 2: FIPS Cipher Tests</dc:subject>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238199">
+    <title>SRG-OS-000342-GPOS-00133</title>
+    <description>
+      The Debian operating system must generate audit records for privileged activities.
+    </description>
+
+    <Rule id="SV-238199r653793_rule" severity="medium">
+      <version>DEBIAN-BOOKWORM-020001</version>
+      <title>Debian must log security-relevant events.</title>
+
+      <description>
+        Audit logging ensures accountability and enables detection of security violations.
+
+        Container Implementation:
+        - Entrypoint validation: docker-entrypoint.sh
+        - FIPS POST execution: wolfSSL Known Answer Tests on every startup
+        - OpenSSL provider verification: wolfProvider status check
+        - Nginx configuration validation: nginx -t on startup
+        - Container logs: docker logs (stdout/stderr)
+        - Access logs: /var/log/nginx/access.log
+        - Error logs: /var/log/nginx/error.log
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify audit logging is configured:
+
+          1. Check entrypoint validation script exists:
+          $ docker exec &lt;container&gt; cat /docker-entrypoint.sh | grep "FIPS"
+
+          Expected: FIPS POST execution and provider verification present
+
+          2. View container startup logs:
+          $ docker logs &lt;container-id&gt;
+
+          Expected events:
+          - ✓ Running wolfSSL FIPS POST (Known Answer Tests)
+          - ✓ FIPS POST completed successfully
+          - ✓ wolfProvider loaded and active
+          - ✓ FIPS enforcement enabled (fips=yes)
+          - ✓ Nginx configuration is valid
+
+          3. Check nginx access logging:
+          $ docker exec &lt;container&gt; cat /etc/nginx/nginx.conf | grep access_log
+
+          Expected: access_log configured with SSL protocol and cipher logging
+
+          If logging is not configured or events are not logged, this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41368r653791_fix">
+        <fixtext fixref="F-41368r653791_fix">
+          Configure audit logging:
+
+          1. Ensure docker-entrypoint.sh executes FIPS validation checks
+          2. Ensure wolfSSL FIPS POST runs on startup
+          3. Ensure OpenSSL provider verification executes
+          4. Ensure nginx -t validates configuration
+          5. Configure access_log with SSL details
+          6. Verify all validation output goes to stdout/stderr
+          7. Container should exit on validation failure (fail-fast)
+
+          Rebuild container with proper entrypoint and logging configuration.
+        </fixtext>
+      </fix>
+
+      <ident system="http://cce.mitre.org">CCE-85879-8</ident>
+      <fixtext>Configure audit logging for the container</fixtext>
+    </Rule>
+
+    <!-- Implementation Status -->
+    <reference>
+      <dc:title>Diagnostic Results</dc:title>
+      <dc:source>nginx/1.27.3-debian-bookworm-fips/Evidence/diagnostic_results.txt</dc:source>
+      <dc:subject>Container Startup Verification</dc:subject>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+  <!-- CATEGORY II: MEDIUM SEVERITY                                        -->
+  <!-- =================================================================== -->
+
+  <Group id="V-238200">
+    <title>SRG-OS-000480-GPOS-00227</title>
+    <description>
+      The Debian operating system must verify package integrity.
+    </description>
+
+    <Rule id="SV-238200r653796_rule" severity="medium">
+      <version>DEBIAN-BOOKWORM-020002</version>
+      <title>Debian must verify package and library integrity.</title>
+
+      <description>
+        Package integrity verification ensures that software has not been tampered with.
+
+        Container Implementation:
+        - wolfSSL FIPS: In-core integrity hash validated via fips-hash.sh during build
+        - FIPS POST: Known Answer Tests validate cryptographic module on every startup
+        - SBOM generated: SPDX 2.3 format
+        - Image signed: Cosign signature
+        - VEX statement: Vulnerability tracking
+        - SLSA provenance: Build attestation
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify package integrity:
+
+          1. Verify FIPS POST execution:
+          $ docker logs &lt;container&gt; 2&gt;&amp;1 | grep "FIPS POST"
+
+          Expected: ✓ FIPS POST completed successfully
+
+          2. Check OpenSSL provider:
+          $ docker exec &lt;container&gt; openssl list -providers
+
+          Expected: wolfSSL Provider FIPS v1.1.0 (status: active)
+
+          3. Check for SBOM:
+          $ ls supply-chain/SBOM-nginx-1.27.3-debian-bookworm-fips.spdx.json
+
+          Expected: File exists
+
+          4. Verify image signature:
+          $ cosign verify nginx:1.27.3-debian-bookworm-fips
+
+          Expected: Signature valid
+
+          If integrity cannot be verified, this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41369r653794_fix">
+        <fixtext fixref="F-41369r653794_fix">
+          Configure package integrity verification:
+
+          1. Execute fips-hash.sh during wolfSSL build
+          2. Run FIPS POST (Known Answer Tests) on every container startup
+          3. Verify wolfProvider loads successfully
+          4. Generate SPDX SBOM
+          5. Generate VEX statement
+          6. Generate SLSA provenance
+          7. Sign image with Cosign
+
+          Rebuild container with integrity verification enabled.
+        </fixtext>
+      </fix>
+
+      <ident system="http://cce.mitre.org">CCE-85880-6</ident>
+      <fixtext>Configure package integrity verification</fixtext>
+    </Rule>
+
+    <!-- Implementation Status -->
+    <reference>
+      <dc:title>Supply Chain Documentation</dc:title>
+      <dc:source>nginx/1.27.3-debian-bookworm-fips/supply-chain/</dc:source>
+      <dc:subject>SBOM, VEX, SLSA, Cosign</dc:subject>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238201">
+    <title>SRG-OS-000480-GPOS-00228</title>
+    <description>
+      The Debian operating system must run processes as a non-root user where possible.
+    </description>
+
+    <Rule id="SV-238201r653799_rule" severity="medium">
+      <version>DEBIAN-BOOKWORM-020003</version>
+      <title>Debian must enforce least privilege principle.</title>
+
+      <description>
+        Running processes as non-root limits the impact of security vulnerabilities.
+
+        Container Implementation:
+        - Nginx master process: Runs as root (required for port 80/443 binding)
+        - Nginx worker processes: Run as nginx user (non-root)
+        - Container user directive: USER instruction may be used for non-privileged ports
+        - Capability dropping: Container runtime can drop unnecessary capabilities
+
+        Note: Nginx requires root for privileged ports (80, 443) but worker processes
+        run as unprivileged user. This is standard nginx architecture.
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify nginx worker processes run as non-root:
+
+          1. Check nginx configuration for user directive:
+          $ docker exec &lt;container&gt; grep "^user" /etc/nginx/nginx.conf
+
+          Expected: user nginx; (or similar non-root user)
+
+          2. Verify worker processes at runtime:
+          $ docker exec &lt;container&gt; ps aux | grep nginx
+
+          Expected:
+          - Master process: root (required for privileged ports)
+          - Worker processes: nginx user (non-root)
+
+          3. For non-privileged ports, verify container user:
+          $ docker inspect nginx:1.27.3-debian-bookworm-fips | grep User
+
+          If all processes run as root without justification, this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41370r653797_fix">
+        <fixtext fixref="F-41370r653797_fix">
+          Configure non-root execution:
+
+          1. Add user directive to nginx.conf: user nginx;
+          2. Ensure nginx user exists in container
+          3. For non-privileged ports: Use USER instruction in Dockerfile
+          4. Drop unnecessary capabilities at runtime
+          5. Verify: docker exec container ps aux | grep nginx
+
+          Rebuild container with proper user configuration.
+        </fixtext>
+      </fix>
+
+      <ident system="http://cce.mitre.org">CCE-85881-4</ident>
+      <fixtext>Configure non-root user for the container</fixtext>
+    </Rule>
+
+    <!-- Implementation Status -->
+    <reference>
+      <dc:title>Nginx Configuration</dc:title>
+      <dc:source>nginx/1.27.3-debian-bookworm-fips/demos-image/configs/</dc:source>
+      <dc:subject>Worker process user configuration</dc:subject>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238202">
+    <title>SRG-OS-000480-GPOS-00229</title>
+    <description>
+      The Debian operating system must restrict file permissions.
+    </description>
+
+    <Rule id="SV-238202r653802_rule" severity="medium">
+      <version>DEBIAN-BOOKWORM-020004</version>
+      <title>Debian must restrict file permissions to prevent unauthorized access.</title>
+
+      <description>
+        Proper file permissions prevent unauthorized modification of system files.
+
+        Container Implementation:
+        - wolfSSL libraries: 0644 (libwolfssl.so*)
+        - wolfProvider: 0644 (wolfprov.so)
+        - Configuration: 0644 (openssl.cnf, nginx.conf)
+        - Scripts: 0755 (docker-entrypoint.sh)
+        - SSL certificates: 0644 (self-signed.crt)
+        - SSL private keys: 0600 (self-signed.key)
+        - No world-writable files
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify file permissions:
+
+          1. Check for world-writable files:
+          $ docker run --rm nginx:1.27.3-debian-bookworm-fips find / -type f -perm -002 2&gt;/dev/null
+
+          Expected: No output (no world-writable files)
+
+          2. Check sensitive file permissions:
+          $ docker exec &lt;container&gt; ls -la /usr/local/lib/libwolfssl.so*
+          $ docker exec &lt;container&gt; ls -la /usr/local/openssl/lib64/ossl-modules/wolfprov.so
+          $ docker exec &lt;container&gt; ls -la /etc/ssl/openssl.cnf
+          $ docker exec &lt;container&gt; ls -la /etc/nginx/nginx.conf
+          $ docker exec &lt;container&gt; ls -la /etc/nginx/ssl/self-signed.key
+
+          Expected:
+          - Libraries: -rw-r--r-- (0644)
+          - Configuration: -rw-r--r-- (0644)
+          - Scripts: -rwxr-xr-x (0755)
+          - Private keys: -rw------- (0600)
+
+          If world-writable files exist or permissions are incorrect, this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41371r653800_fix">
+        <fixtext fixref="F-41371r653800_fix">
+          Configure proper file permissions:
+
+          1. Set library permissions: chmod 644 /usr/local/lib/libwolfssl.so*
+          2. Set provider permissions: chmod 644 /usr/local/openssl/lib64/ossl-modules/wolfprov.so
+          3. Set config permissions: chmod 644 /etc/ssl/openssl.cnf
+          4. Set nginx config: chmod 644 /etc/nginx/nginx.conf
+          5. Set script permissions: chmod 755 /docker-entrypoint.sh
+          6. Set private key: chmod 600 /etc/nginx/ssl/*.key
+          7. Remove world-writable: find / -type f -perm -002 -exec chmod o-w {} \;
+
+          Rebuild container with proper file permissions.
+        </fixtext>
+      </fix>
+
+      <ident system="http://cce.mitre.org">CCE-85882-2</ident>
+      <fixtext>Configure file permissions for the container</fixtext>
+    </Rule>
+
+    <!-- Implementation Status -->
+    <reference>
+      <dc:title>Container Build Process</dc:title>
+      <dc:source>nginx/1.27.3-debian-bookworm-fips/Dockerfile</dc:source>
+      <dc:subject>File permission configuration during build</dc:subject>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+  <!-- NOT APPLICABLE RULES (Container Exclusions)                         -->
+  <!-- =================================================================== -->
+
+  <Group id="V-238203">
+    <title>SRG-OS-000480-GPOS-00230</title>
+    <description>
+      Kernel module loading restrictions (NOT APPLICABLE - Host Responsibility)
+    </description>
+
+    <Rule id="SV-238203r653805_rule" severity="medium">
+      <version>DEBIAN-BOOKWORM-N/A-001</version>
+      <title>Kernel module loading (N/A for containers)</title>
+
+      <description>
+        NOT APPLICABLE: Containers share the host kernel and cannot load kernel modules independently.
+        This control is the responsibility of the container host.
+
+        Justification:
+        - Containers use the host kernel
+        - No independent kernel module loading capability
+        - Host-level security control
+
+        Mitigation: Deploy container on STIG-compliant host with proper kernel hardening.
+      </description>
+
+      <check-content>
+        This check is not applicable to containers. Verify host compliance instead.
+      </check-content>
+
+      <fix><fixtext>Configure kernel module restrictions on container host.</fixtext></fix>
+    </Rule>
+  </Group>
+
+  <Group id="V-238204">
+    <title>SRG-OS-000480-GPOS-00231</title>
+    <description>
+      Boot loader configuration (NOT APPLICABLE - No Boot Process)
+    </description>
+
+    <Rule id="SV-238204r653808_rule" severity="high">
+      <version>DEBIAN-BOOKWORM-N/A-002</version>
+      <title>Boot loader password (N/A for containers)</title>
+
+      <description>
+        NOT APPLICABLE: Containers do not have boot loaders. They are started by container runtime.
+
+        Justification:
+        - Containers don't boot; they are started by runtime (Docker, containerd)
+        - No GRUB or boot loader present
+        - Process execution, not boot sequence
+
+        Mitigation: N/A - containers use runtime start, not boot.
+      </description>
+
+      <check-content>
+        This check is not applicable to containers. No boot process exists.
+      </check-content>
+
+      <fix><fixtext>N/A - containers do not have boot loaders.</fixtext></fix>
+    </Rule>
+  </Group>
+
+  <Group id="V-238205">
+    <title>SRG-OS-000480-GPOS-00232</title>
+    <description>
+      Systemd service hardening (NOT APPLICABLE - Minimal Container)
+    </description>
+
+    <Rule id="SV-238205r653811_rule" severity="medium">
+      <version>DEBIAN-BOOKWORM-N/A-003</version>
+      <title>Systemd hardening (N/A for containers)</title>
+
+      <description>
+        NOT APPLICABLE: Minimal containers use entrypoint scripts, not systemd.
+
+        Justification:
+        - Minimal container uses entrypoint (/docker-entrypoint.sh)
+        - No systemd or init system
+        - Single-purpose application container
+
+        Mitigation: Process supervision handled by container runtime (Docker, Kubernetes).
+      </description>
+
+      <check-content>
+        This check is not applicable to containers. No systemd present.
+      </check-content>
+
+      <fix><fixtext>Use container runtime supervision instead of systemd.</fixtext></fix>
+    </Rule>
+  </Group>
+
+</Benchmark>
