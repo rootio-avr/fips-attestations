@@ -33,6 +33,7 @@ The following images have been signed with cosign:
 | python | 3.12-bookworm-slim-fips | sha256:bf8e621d764abb9bf11f917c04997c385fa66f098621a8ce71846a6bbbb3e859 | root-reg/python |
 | node | 16.20.1-bookworm-slim-fips ⚠️ EOL | sha256:49ea1c95fc97f4a71be5ca289659e3f4c7b8be2313624fbd1c332d62143f82aa | root-reg/node |
 | node | 18.20.8-bookworm-slim-fips | sha256:211ae007634b11e825ce5788eabfb13552d973d6dc90daa49bac13586e82e9cd | root-reg/node |
+| nginx | 1.27.3-debian-bookworm-fips | sha256:951cb515992a28a21451336e1fd937df0679de310079aad75b416d0003a70035 | root-reg/nginx |
 
 ## Verification Methods
 
@@ -102,6 +103,14 @@ cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
   <redacted_root_ecr_base>/root-reg/node:18.20.8-bookworm-slim-fips
+```
+
+**Nginx Image:**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/nginx:1.27.3-debian-bookworm-fips
 ```
 
 ### Method 2: Verify Using Digest (Recommended)
@@ -178,6 +187,14 @@ cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
   <redacted_root_ecr_base>/root-reg/node@sha256:211ae007634b11e825ce5788eabfb13552d973d6dc90daa49bac13586e82e9cd
+```
+
+**Nginx 1.27.3 (Bookworm):**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/nginx@sha256:951cb515992a28a21451336e1fd937df0679de310079aad75b416d0003a70035
 ```
 
 ### Expected Output
@@ -265,6 +282,16 @@ cosign verify \
   <redacted_root_ecr_base>/root-reg/node@sha256:211ae007634b11e825ce5788eabfb13552d973d6dc90daa49bac13586e82e9cd
 ```
 
+**Nginx 1.27.3 (Bookworm):**
+```bash
+docker pull cr.root.io/nginx:1.27.3-debian-bookworm-fips
+docker inspect cr.root.io/nginx:1.27.3-debian-bookworm-fips --format '{{index .RepoDigests 0}}'
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/nginx@sha256:951cb515992a28a21451336e1fd937df0679de310079aad75b416d0003a70035
+```
+
 ## Advanced Commands
 
 ### View Signature Artifacts
@@ -316,6 +343,11 @@ cosign tree <redacted_root_ecr_base>/root-reg/node:16.20.1-bookworm-slim-fips
 cosign tree <redacted_root_ecr_base>/root-reg/node:18.20.8-bookworm-slim-fips
 ```
 
+**Nginx 1.27.3 (Bookworm):**
+```bash
+cosign tree <redacted_root_ecr_base>/root-reg/nginx:1.27.3-debian-bookworm-fips
+```
+
 Example output:
 ```
 📦 Supply Chain Security Related artifacts for an image: <redacted_root_ecr_base>/root-reg/java:21-jdk-jammy-ubuntu-22.04-fips
@@ -356,6 +388,15 @@ aws ecr describe-images \
 ```bash
 aws ecr describe-images \
   --repository-name root-reg/node \
+  --region us-east-1 \
+  --query 'imageDetails[?imageSizeInBytes < `10000`].[imageDigest, imageSizeInBytes, imageManifestMediaType]' \
+  --output table
+```
+
+**Nginx signatures:**
+```bash
+aws ecr describe-images \
+  --repository-name root-reg/nginx \
   --region us-east-1 \
   --query 'imageDetails[?imageSizeInBytes < `10000`].[imageDigest, imageSizeInBytes, imageManifestMediaType]' \
   --output table

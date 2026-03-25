@@ -1,0 +1,81 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://slsa.dev/container-build/v1",
+      "externalParameters": {
+        "arch": "amd64",
+        "baseImage": {
+          "architecture": "amd64",
+          "digest": "b597a088c872e9688fa68500263bd57a13ccdf1c8e1a03bf0952cae747721846",
+          "image": "cr.root.io/nginx:1.27.3-debian-bookworm-fips"
+        },
+        "builder": "kaniko",
+        "outputImage": "905418475464.dkr.ecr.us-east-1.amazonaws.com/remediated-images:avr_983492fa6ffd4a6892ddd23fdab6d69b_rootio",
+        "packagesUpgraded": []
+      },
+      "internalParameters": {
+        "workflow": {
+          "avr_id": "avr_983492fa6ffd4a6892ddd23fdab6d69b",
+          "dockerfile_key": "org_90fb24fefd6542c08d28a2f84982d578/avr_983492fa6ffd4a6892ddd23fdab6d69b_Dockerfile",
+          "is_truncated": false,
+          "post_scan_id": "ascn_2bb5e363b00c4046ac0ea2927943f44d",
+          "pre_scan_id": "ascn_248f68c3af10491c8556caf6fa339721"
+        }
+      },
+      "resolvedDependencies": [
+        {
+          "uri": "cr.root.io/nginx:1.27.3-debian-bookworm-fips",
+          "digest": {
+            "sha256": "b597a088c872e9688fa68500263bd57a13ccdf1c8e1a03bf0952cae747721846"
+          },
+          "localName": "base-image",
+          "annotations": {
+            "architecture": "amd64",
+            "type": "container-image"
+          }
+        },
+        {
+          "digest": {
+            "sha256": ""
+          },
+          "localName": "dockerfile",
+          "annotations": {
+            "s3_key": "org_90fb24fefd6542c08d28a2f84982d578/avr_983492fa6ffd4a6892ddd23fdab6d69b_Dockerfile",
+            "type": "dockerfile"
+          }
+        }
+      ]
+    },
+    "runDetails": {
+      "builder": {
+        "id": "https://github.com/GoogleContainerTools/kaniko",
+        "version": {
+          "image": "gcr.io/kaniko-project/executor",
+          "tag": "debug"
+        }
+      },
+      "metadata": {
+        "invocationId": "avr_983492fa6ffd4a6892ddd23fdab6d69b",
+        "startedOn": "2026-03-25T12:36:34.562Z",
+        "finishedOn": "2026-03-25T12:40:23.096721339Z"
+      },
+      "byproducts": null
+    }
+  },
+  "subject": [
+    {
+      "name": "905418475464.dkr.ecr.us-east-1.amazonaws.com/remediated-images:avr_983492fa6ffd4a6892ddd23fdab6d69b_rootio",
+      "digest": {
+        "sha256": "b597a088c872e9688fa68500263bd57a13ccdf1c8e1a03bf0952cae747721846"
+      }
+    },
+    {
+      "name": "cr.root.io/nginx:1.27.3-debian-bookworm-fips_rootio",
+      "digest": {
+        "sha256": "b597a088c872e9688fa68500263bd57a13ccdf1c8e1a03bf0952cae747721846"
+      }
+    }
+  ],
+  "predicateType": "https://slsa.dev/provenance/v1"
+}

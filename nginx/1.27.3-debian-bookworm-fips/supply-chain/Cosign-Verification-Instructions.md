@@ -60,7 +60,7 @@ Then verify using the digest:
 cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
-  <redacted_root_ecr_base>/root-reg/nginx@sha256:<digest-from-above>
+  <redacted_root_ecr_base>/root-reg/nginx@sha256:951cb515992a28a21451336e1fd937df0679de310079aad75b416d0003a70035
 ```
 
 ### Expected Output
@@ -74,7 +74,7 @@ Successful verification will output JSON with signature details:
       "docker-reference": "<redacted_root_ecr_base>/root-reg/cr.root.io/nginx:1.27.3-debian-bookworm-fips"
     },
     "image": {
-      "docker-manifest-digest": "sha256:<image-digest>"
+      "docker-manifest-digest": "sha256:951cb515992a28a21451336e1fd937df0679de310079aad75b416d0003a70035"
     },
     "type": "https://sigstore.dev/cosign/sign/v1"
   },
@@ -101,7 +101,7 @@ The cr.root.io proxy is read-only and doesn't store signature artifacts. To veri
    cosign verify \
      --certificate-identity-regexp '.*' \
      --certificate-oidc-issuer-regexp '.*' \
-     <redacted_root_ecr_base>/root-reg/nginx@sha256:<digest-from-step-2>
+     <redacted_root_ecr_base>/root-reg/nginx@sha256:951cb515992a28a21451336e1fd937df0679de310079aad75b416d0003a70035
    ```
 
 ## Advanced Commands
@@ -117,7 +117,7 @@ cosign tree <redacted_root_ecr_base>/root-reg/cr.root.io/nginx:1.27.3-debian-boo
 Example output:
 ```
 📦 Supply Chain Security Related artifacts for an image: <redacted_root_ecr_base>/root-reg/cr.root.io/nginx:1.27.3-debian-bookworm-fips
-└── 🔗 https://sigstore.dev/cosign/sign/v1 artifacts via OCI referrer: <redacted_root_ecr_base>/root-reg/nginx@sha256:<digest>
+└── 🔗 https://sigstore.dev/cosign/sign/v1 artifacts via OCI referrer: <redacted_root_ecr_base>/root-reg/nginx@sha256:951cb515992a28a21451336e1fd937df0679de310079aad75b416d0003a70035
    └── 🍒 sha256:<signature-digest>
 ```
 
