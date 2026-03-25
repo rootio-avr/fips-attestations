@@ -312,7 +312,7 @@ trivy image --format spdx-json \
 {
   "@context": "https://openvex.dev/ns",
   "@id": "https://example.com/vex/python-fips-2026-03",
-  "author": "Focaloid Security Team",
+  "author": "Root FIPS Team",
   "timestamp": "2026-03-21T00:00:00Z",
   "version": 1,
   "statements": [
