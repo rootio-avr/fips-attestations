@@ -753,7 +753,7 @@ The `cr.root.io/node:18.20.8-bookworm-slim-fips` container image **satisfies all
 
 ## Document Metadata
 
-- **Author**: Focaloid Security Team
+- **Author**: Root Security Team
 - **Classification**: PUBLIC
 - **Distribution**: UNLIMITED
 - **Revision**: 1.0
