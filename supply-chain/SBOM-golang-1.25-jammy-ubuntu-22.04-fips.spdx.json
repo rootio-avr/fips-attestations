@@ -17,10 +17,10 @@
       ]
     },
     "component": {
-      "bom-ref": "pkg:oci/golang@sha256%3Ad48386da5fcaea2cfc40a659ab16d37bd27619a031210e2e394b8685b02b5fad?arch=amd64&repository_url=index.docker.io%2Frootioinc%2Fgolang",
+      "bom-ref": "pkg:oci/golang@sha256%3Ad48386da5fcaea2cfc40a659ab16d37bd27619a031210e2e394b8685b02b5fad?arch=amd64&repository_url=index.docker.io%2Fcr.root.io%2Fgolang",
       "type": "container",
-      "name": "rootioinc/golang:1.25-jammy-ubuntu-22.04-fips",
-      "purl": "pkg:oci/golang@sha256%3Ad48386da5fcaea2cfc40a659ab16d37bd27619a031210e2e394b8685b02b5fad?arch=amd64&repository_url=index.docker.io%2Frootioinc%2Fgolang",
+      "name": "cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips",
+      "purl": "pkg:oci/golang@sha256%3Ad48386da5fcaea2cfc40a659ab16d37bd27619a031210e2e394b8685b02b5fad?arch=amd64&repository_url=index.docker.io%2Fcr.root.io%2Fgolang",
       "properties": [
         {
           "name": "aquasecurity:trivy:DiffID",
@@ -108,11 +108,11 @@
         },
         {
           "name": "aquasecurity:trivy:RepoDigest",
-          "value": "rootioinc/golang@sha256:d48386da5fcaea2cfc40a659ab16d37bd27619a031210e2e394b8685b02b5fad"
+          "value": "cr.root.io/golang@sha256:d48386da5fcaea2cfc40a659ab16d37bd27619a031210e2e394b8685b02b5fad"
         },
         {
           "name": "aquasecurity:trivy:RepoTag",
-          "value": "rootioinc/golang:1.25-jammy-ubuntu-22.04-fips"
+          "value": "cr.root.io/golang:1.25-jammy-ubuntu-22.04-fips"
         },
         {
           "name": "aquasecurity:trivy:SchemaVersion",
@@ -601,7 +601,7 @@
       ]
     },
     {
-      "ref": "pkg:oci/golang@sha256%3Ad48386da5fcaea2cfc40a659ab16d37bd27619a031210e2e394b8685b02b5fad?arch=amd64&repository_url=index.docker.io%2Frootioinc%2Fgolang",
+      "ref": "pkg:oci/golang@sha256%3Ad48386da5fcaea2cfc40a659ab16d37bd27619a031210e2e394b8685b02b5fad?arch=amd64&repository_url=index.docker.io%2Fcr.root.io%2Fgolang",
       "dependsOn": [
         "0bd681c7-cacb-4fe8-b34d-d1ee23f273d1",
         "2197cc2f-c8dc-4191-93e9-5e7531e19147",
