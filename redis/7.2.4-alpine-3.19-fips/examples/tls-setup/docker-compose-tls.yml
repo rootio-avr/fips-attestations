@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  redis-fips-tls:
+    image: cr.root.io/redis:7.2.4-alpine-3.19-fips
+    container_name: redis-fips-tls
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-tls-data:/data
+      - ./redis-tls.conf:/etc/redis/redis.conf:ro
+      - ./certs:/certs:ro
+    command: redis-server /etc/redis/redis.conf
+    networks:
+      - redis-tls-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--tls", "--cert", "/certs/redis-cert.pem", "--key", "/certs/redis-key.pem", "--cacert", "/certs/ca-cert.pem", "PING"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    environment:
+      - FIPS_CHECK=true
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 512M
+
+  # Optional: Test client container
+  redis-client-tls:
+    image: cr.root.io/redis:7.2.4-alpine-3.19-fips
+    container_name: redis-client-tls
+    depends_on:
+      - redis-fips-tls
+    volumes:
+      - ./certs:/certs:ro
+    networks:
+      - redis-tls-network
+    entrypoint: /bin/sh
+    command: -c "sleep infinity"
+    profiles:
+      - client
+
+volumes:
+  redis-tls-data:
+    driver: local
+
+networks:
+  redis-tls-network:
+    driver: bridge
