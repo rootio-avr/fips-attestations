@@ -456,7 +456,7 @@ echo -n "test" | openssl dgst -sha256
 **Method:**
 ```bash
 # Check patch file exists
-ls -la /home/vysakh-k-s/focaloid/root/fips-image-latest/fips-attestations/redis/7.2.4-alpine-fips/patches/redis-fips-sha256-redis7.2.4.patch
+ls -la redis/7.2.4-alpine-fips/patches/redis-fips-sha256-redis7.2.4.patch
 
 # Verify modified functions in patch
 grep -E "(sha256hex|SHA256)" patches/redis-fips-sha256-redis7.2.4.patch
