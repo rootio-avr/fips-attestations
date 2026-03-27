@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  redis-fips-test:
+    image: redis-fips-test:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: redis-fips-test
+    networks:
+      - redis-test-network
+    # Override to run tests
+    command: /test-suite.sh
+
+networks:
+  redis-test-network:
+    driver: bridge

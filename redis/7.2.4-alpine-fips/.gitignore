@@ -1,0 +1,30 @@
+# wolfSSL Commercial Password (sensitive)
+wolfssl_password.txt
+
+# Build artifacts
+*.o
+*.so
+*.a
+*.tar.gz
+*.7z
+
+# Docker build cache
+.dockerignore
+
+# Test results
+test-results/
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db

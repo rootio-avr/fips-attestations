@@ -1,0 +1,219 @@
+--- redis-7.2.4-original/src/debug.c	2026-03-26 11:08:56.032332582 +0530
++++ redis-7.2.4/src/debug.c	2026-03-26 11:11:45.255568311 +0530
+@@ -30,7 +30,9 @@
+ 
+ #include "server.h"
+ #include "util.h"
+-#include "sha1.h"   /* SHA1 is used for DEBUG DIGEST */
++#include <openssl/evp.h>
++#include <openssl/sha.h>
++/* OpenSSL SHA-256 is used for FIPS-compliant DEBUG DIGEST */
+ #include "crc64.h"
+ #include "bio.h"
+ #include "quicklist.h"
+@@ -75,21 +77,30 @@
+ 
+ /* ================================= Debugging ============================== */
+ 
+-/* Compute the sha1 of string at 's' with 'len' bytes long.
+- * The SHA1 is then xored against the string pointed by digest.
++/* Compute the SHA-256 of string at 's' with 'len' bytes long using OpenSSL.
++ * The SHA-256 is then xored against the string pointed by digest.
+  * Since xor is commutative, this operation is used in order to
+  * "add" digests relative to unordered elements.
+  *
+- * So digest(a,b,c,d) will be the same of digest(b,a,c,d) */
++ * So digest(a,b,c,d) will be the same as digest(b,a,c,d) */
+ void xorDigest(unsigned char *digest, const void *ptr, size_t len) {
+-    SHA1_CTX ctx;
+-    unsigned char hash[20];
++    unsigned char hash[SHA256_DIGEST_LENGTH];
+     int j;
+ 
+-    SHA1Init(&ctx);
+-    SHA1Update(&ctx,ptr,len);
+-    SHA1Final(hash,&ctx);
++    /* Use OpenSSL EVP interface for FIPS compliance */
++    EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
++    if (mdctx == NULL) {
++        /* Fallback: use direct SHA256 if EVP fails */
++        SHA256((const unsigned char *)ptr, len, hash);
++    } else {
++        unsigned int hash_len = SHA256_DIGEST_LENGTH;
++        EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL);
++        EVP_DigestUpdate(mdctx, ptr, len);
++        EVP_DigestFinal_ex(mdctx, hash, &hash_len);
++        EVP_MD_CTX_free(mdctx);
++    }
+ 
++    /* XOR first 20 bytes to maintain backward compatibility with SHA-1 digest size */
+     for (j = 0; j < 20; j++)
+         digest[j] ^= hash[j];
+ }
+@@ -100,13 +111,13 @@
+     decrRefCount(o);
+ }
+ 
+-/* This function instead of just computing the SHA1 and xoring it
++/* This function instead of just computing the SHA-256 and xoring it
+  * against digest, also perform the digest of "digest" itself and
+  * replace the old value with the new one.
+  *
+  * So the final digest will be:
+  *
+- * digest = SHA1(digest xor SHA1(data))
++ * digest = SHA-256(digest xor SHA-256(data))
+  *
+  * This function is used every time we want to preserve the order so
+  * that digest(a,b,c,d) will be different than digest(b,c,d,a)
+@@ -115,12 +126,27 @@
+  * will lead to a different digest compared to "fo", "obar".
+  */
+ void mixDigest(unsigned char *digest, const void *ptr, size_t len) {
+-    SHA1_CTX ctx;
++    unsigned char hash[SHA256_DIGEST_LENGTH];
+ 
++    /* First: XOR with hash of input data */
+     xorDigest(digest,ptr,len);
+-    SHA1Init(&ctx);
+-    SHA1Update(&ctx,digest,20);
+-    SHA1Final(digest,&ctx);
++
++    /* Second: Hash the XORed digest using OpenSSL */
++    EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
++    if (mdctx == NULL) {
++        /* Fallback: use direct SHA256 if EVP fails */
++        SHA256(digest, 20, hash);
++    } else {
++        unsigned int hash_len = SHA256_DIGEST_LENGTH;
++        EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL);
++        EVP_DigestUpdate(mdctx, digest, 20);
++        EVP_DigestFinal_ex(mdctx, hash, &hash_len);
++        EVP_MD_CTX_free(mdctx);
++    }
++
++    /* Replace digest with new hash (first 20 bytes for compatibility) */
++    for (int j = 0; j < 20; j++)
++        digest[j] = hash[j];
+ }
+ 
+ void mixStringObjectDigest(unsigned char *digest, robj *o) {
+--- redis-7.2.4-original/src/eval.c	2026-03-26 11:08:56.033360897 +0530
++++ redis-7.2.4/src/eval.c	2026-03-26 11:14:08.506245294 +0530
+@@ -28,7 +28,9 @@
+  */
+ 
+ #include "server.h"
+-#include "sha1.h"
++#include <openssl/evp.h>
++#include <openssl/sha.h>
++/* OpenSSL SHA-256 is used for FIPS-compliant hashing */
+ #include "rand.h"
+ #include "cluster.h"
+ #include "monotonic.h"
+@@ -103,23 +105,32 @@
+  * Utility functions.
+  * ------------------------------------------------------------------------- */
+ 
+-/* Perform the SHA1 of the input string. We use this both for hashing script
+- * bodies in order to obtain the Lua function name, and in the implementation
+- * of redis.sha1().
+- *
+- * 'digest' should point to a 41 bytes buffer: 40 for SHA1 converted into an
+- * hexadecimal number, plus 1 byte for null term. */
+-void sha1hex(char *digest, char *script, size_t len) {
+-    SHA1_CTX ctx;
+-    unsigned char hash[20];
++/* Perform the SHA-256 of the input string using OpenSSL for FIPS compliance.
++ * We use this both for hashing script bodies in order to obtain the Lua
++ * function name, and in the implementation of redis.sha256().
++ *
++ * 'digest' should point to a 41 bytes buffer: 40 for SHA-256 (truncated)
++ * converted into an hexadecimal number, plus 1 byte for null term.
++ * We truncate SHA-256 to 20 bytes for backward compatibility with SHA-1. */
++void sha256hex(char *digest, char *script, size_t len) {
++    unsigned char hash[SHA256_DIGEST_LENGTH];
+     char *cset = "0123456789abcdef";
+-    int j;
++    unsigned int hash_len = SHA256_DIGEST_LENGTH;
+ 
+-    SHA1Init(&ctx);
+-    SHA1Update(&ctx,(unsigned char*)script,len);
+-    SHA1Final(hash,&ctx);
++    /* Use OpenSSL EVP interface for FIPS compliance */
++    EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
++    if (mdctx == NULL) {
++        /* Fallback: use direct SHA256 if EVP fails */
++        SHA256((unsigned char *)script, len, hash);
++    } else {
++        EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL);
++        EVP_DigestUpdate(mdctx, script, len);
++        EVP_DigestFinal_ex(mdctx, hash, &hash_len);
++        EVP_MD_CTX_free(mdctx);
++    }
+ 
+-    for (j = 0; j < 20; j++) {
++    /* Convert first 20 bytes to hex (40 chars) for backward compatibility */
++    for (int j = 0; j < 20; j++) {
+         digest[j*2] = cset[((hash[j]&0xF0)>>4)];
+         digest[j*2+1] = cset[(hash[j]&0xF)];
+     }
+@@ -285,13 +296,13 @@
+  * ------------------------------------------------------------------------- */
+ 
+ static void evalCalcFunctionName(int evalsha, sds script, char *out_funcname) {
+-    /* We obtain the script SHA1, then check if this function is already
++    /* We obtain the script SHA-256 hash, then check if this function is already
+      * defined into the Lua state */
+     out_funcname[0] = 'f';
+     out_funcname[1] = '_';
+     if (!evalsha) {
+         /* Hash the code if this is an EVAL call */
+-        sha1hex(out_funcname+2,script,sdslen(script));
++        sha256hex(out_funcname+2,script,sdslen(script));
+     } else {
+         /* We already have the SHA if it is an EVALSHA */
+         int j;
+@@ -426,7 +437,7 @@
+ 
+     funcname[0] = 'f';
+     funcname[1] = '_';
+-    sha1hex(funcname+2,body->ptr,sdslen(body->ptr));
++    sha256hex(funcname+2,body->ptr,sdslen(body->ptr));
+ 
+     if ((de = dictFind(lctx.lua_scripts,funcname+2)) != NULL) {
+         return dictGetKey(de);
+--- redis-7.2.4-original/src/script_lua.c	2026-03-26 11:08:56.049724925 +0530
++++ redis-7.2.4/src/script_lua.c	2026-03-26 11:14:43.329841797 +0530
+@@ -1030,8 +1030,9 @@
+     return luaRedisGenericCommand(lua,0);
+ }
+ 
+-/* This adds redis.sha1hex(string) to Lua scripts using the same hashing
+- * function used for sha1ing lua scripts. */
++/* This adds redis.sha1hex(string) to Lua scripts using SHA-256 hashing
++ * (for FIPS compliance) but maintaining backward compatible API name.
++ * Note: Uses SHA-256 internally but keeps sha1hex name for compatibility. */
+ static int luaRedisSha1hexCommand(lua_State *lua) {
+     int argc = lua_gettop(lua);
+     char digest[41];
+@@ -1044,7 +1045,7 @@
+     }
+ 
+     s = (char*)lua_tolstring(lua,1,&len);
+-    sha1hex(digest,s,len);
++    sha256hex(digest,s,len);  /* Uses SHA-256 for FIPS compliance */
+     lua_pushstring(lua,digest);
+     return 1;
+ }
+--- redis-7.2.4-original/src/server.h	2026-03-26 11:08:56.053025004 +0530
++++ redis-7.2.4/src/server.h	2026-03-26 11:15:31.731371117 +0530
+@@ -3348,7 +3348,7 @@
+ int ldbIsEnabled(void);
+ void ldbLog(sds entry);
+ void ldbLogRedisReply(char *reply);
+-void sha1hex(char *digest, char *script, size_t len);
++void sha256hex(char *digest, char *script, size_t len);
+ unsigned long evalMemory(void);
+ dict* evalScriptsDict(void);
+ unsigned long evalScriptsMemory(void);

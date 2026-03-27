@@ -1,0 +1,41 @@
+{
+  "@context": "https://openvex.dev/ns",
+  "@id": "https://focaloid.io/redis/7.2.4-alpine-fips/vex-2026-03-26",
+  "author": "Focaloid Security Team",
+  "role": "Vendor",
+  "timestamp": "2026-03-26T00:00:00Z",
+  "version": "1",
+  "statements": [
+    {
+      "vulnerability": {
+        "name": "Example-CVE-YYYY-XXXXX",
+        "description": "This is a placeholder. Update with actual vulnerabilities."
+      },
+      "products": [
+        {
+          "@id": "cr.root.io/redis:7.2.4-alpine-fips",
+          "identifiers": {
+            "purl": "pkg:oci/redis@7.2.4-alpine-fips?repository_url=cr.root.io"
+          }
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "The vulnerable component is not included in this image."
+    },
+    {
+      "vulnerability": {
+        "name": "SHA-1 Usage",
+        "description": "SHA-1 is deprecated and not FIPS 140-3 approved for new applications"
+      },
+      "products": [
+        {
+          "@id": "cr.root.io/redis:7.2.4-alpine-fips"
+        }
+      ],
+      "status": "fixed",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Redis source code patched to replace SHA-1 with FIPS-approved SHA-256 for all cryptographic operations (Lua script hashing, DEBUG DIGEST). See patches/redis-fips-sha256-redis7.2.4.patch for details."
+    }
+  ]
+}
