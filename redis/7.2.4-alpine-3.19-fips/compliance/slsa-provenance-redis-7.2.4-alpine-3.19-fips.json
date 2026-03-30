@@ -11,12 +11,12 @@
   ],
   "predicate": {
     "builder": {
-      "id": "https://github.com/focaloid/fips-attestations/redis/7.2.4-alpine-3.19-fips"
+      "id": "https://github.com/rootio-avr/fips-attestations/redis/7.2.4-alpine-3.19-fips"
     },
     "buildType": "https://docs.docker.com/engine/reference/builder/",
     "invocation": {
       "configSource": {
-        "uri": "git+https://github.com/focaloid/fips-attestations",
+        "uri": "git+https://github.com/rootio-avr/fips-attestations",
         "digest": {
           "sha1": "76afa8d"
         },
