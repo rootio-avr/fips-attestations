@@ -1,0 +1,290 @@
+# Cosign Verification Guide for Redis Exporter 1.67.0 FIPS Image
+
+## Overview
+
+This guide explains how to verify cosign signatures for the Redis Exporter 1.67.0 FIPS container image (`cr.root.io/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips`) stored in AWS ECR. The image is signed using Sigstore's keyless signing method with ephemeral keys.
+
+## Prerequisites
+
+1. **Cosign installed**: Version 2.x or later
+   ```bash
+   cosign version
+   ```
+
+2. **AWS CLI configured**: With credentials for ECR access
+   ```bash
+   aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <redacted_root_ecr_base>
+   ```
+
+3. **Docker installed**: For pulling images
+
+## Image Information
+
+**Image:** `cr.root.io/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips`
+**Base:** Ubuntu 22.04 (Jammy) with golang-fips/go v1.25
+**ECR Repository:** `root-reg/redis-exporter`
+**Signing Method:** Keyless signing via Sigstore
+
+**FIPS Components:**
+- wolfSSL FIPS: 5.8.2 (Certificate #4718)
+- wolfProvider: 1.1.0
+- OpenSSL: 3.0.19
+- golang-fips/go: v1.25
+- Redis Exporter: v1.67.0
+
+## Verification Methods
+
+### Method 1: Verify Using Tag (Simple)
+
+Verify the image using its tag. This is straightforward but note that tags can change.
+
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips
+```
+
+### Method 2: Verify Using Digest (Recommended)
+
+Verify using the image digest for immutable verification. First, get the digest from the image:
+
+```bash
+# Get the digest
+docker pull <redacted_root_ecr_base>/root-reg/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips
+docker inspect <redacted_root_ecr_base>/root-reg/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips --format '{{index .RepoDigests 0}}'
+```
+
+Then verify using the digest:
+
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/redis-exporter@sha256:597724bbae809230508773e2be2e39ebb62d6ab332b6b5d9320785c420a67290
+```
+
+### Expected Output
+
+Successful verification will output JSON with signature details:
+
+```json
+[{
+  "critical": {
+    "identity": {
+      "docker-reference": "<redacted_root_ecr_base>/root-reg/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips"
+    },
+    "image": {
+      "docker-manifest-digest": "sha256:<image-digest>"
+    },
+    "type": "https://sigstore.dev/cosign/sign/v1"
+  },
+  "optional": {}
+}]
+```
+
+## Verifying Proxy Images (cr.root.io)
+
+The cr.root.io proxy is read-only and doesn't store signature artifacts. To verify images pulled from the proxy:
+
+1. **Pull from proxy** (for runtime use):
+   ```bash
+   docker pull cr.root.io/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips
+   ```
+
+2. **Get the digest** from the pulled image:
+   ```bash
+   docker inspect cr.root.io/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips --format '{{index .RepoDigests 0}}'
+   ```
+
+3. **Verify against ECR** using the digest:
+   ```bash
+   cosign verify \
+     --certificate-identity-regexp '.*' \
+     --certificate-oidc-issuer-regexp '.*' \
+     <redacted_root_ecr_base>/root-reg/redis-exporter@sha256:<digest-from-step-2>
+   ```
+
+## Advanced Commands
+
+### View Signature Artifacts
+
+Show the supply chain security artifacts attached to the image:
+
+```bash
+cosign tree <redacted_root_ecr_base>/root-reg/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips
+```
+
+Example output:
+```
+📦 Supply Chain Security Related artifacts for an image: <redacted_root_ecr_base>/root-reg/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips
+└── 🔗 https://sigstore.dev/cosign/sign/v1 artifacts via OCI referrer: <redacted_root_ecr_base>/root-reg/redis-exporter@sha256:<digest>
+   └── 🍒 sha256:<signature-digest>
+```
+
+### List All Signature Artifacts in ECR
+
+View all signature artifacts for redis-exporter images in the ECR repository:
+
+```bash
+aws ecr describe-images \
+  --repository-name root-reg/redis-exporter \
+  --region us-east-1 \
+  --query 'imageDetails[?imageSizeInBytes < `10000`].[imageDigest, imageSizeInBytes, imageManifestMediaType]' \
+  --output table
+```
+
+### Download and Inspect the Signature Bundle
+
+```bash
+# Download the signature bundle
+cosign download signature <redacted_root_ecr_base>/root-reg/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips
+
+# View certificate details
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips | jq
+```
+
+## Troubleshooting
+
+### Error: no signatures found
+
+This error means:
+- The image is not signed, or
+- You're trying to verify through a proxy that doesn't support OCI referrers
+- **Solution:** Verify against the ECR URL directly, not the proxy
+
+### Error: --certificate-identity or --certificate-identity-regexp is required
+
+Cosign requires identity verification flags for keyless signatures.
+- Use `--certificate-identity-regexp '.*'` and `--certificate-oidc-issuer-regexp '.*'` for basic verification
+- For production, use specific identity patterns to ensure only authorized signers
+
+### Error: response did not include Docker-Content-Digest header
+
+This indicates:
+- The registry doesn't support required OCI headers
+- Cannot be used for signing operations
+- **Solution:** Sign against ECR directly, not the proxy
+
+### Verification Fails with Certificate Errors
+
+If you see certificate validation errors:
+1. Ensure you're using cosign v2.x or later
+2. Check that your system time is correct (certificates are time-sensitive)
+3. Verify you have internet access to reach Sigstore infrastructure
+
+## Signing Information
+
+**Signing Method:** Keyless signing via Sigstore
+- **Authentication:** OAuth2 device flow
+- **Key Type:** Ephemeral keys (generated per signing operation)
+- **Transparency Log:** Rekor (public log at rekor.sigstore.dev)
+- **Certificate Authority:** Fulcio (Sigstore's certificate authority)
+
+**Signature Storage:**
+- Signatures are stored as OCI artifacts in ECR
+- Linked to images via OCI Referrers specification
+- Small artifacts (~6KB) containing signature bundles
+- Each signature includes certificate chain and transparency log entry
+
+## Security Considerations
+
+1. **Digest Verification:** Always verify using digests in production for immutability
+2. **Certificate Identity:** In production, use specific certificate identity patterns instead of `.*`
+3. **Transparency Log:** Signatures are publicly logged in Rekor for audit purposes
+4. **Registry Access:** Ensure proper AWS IAM permissions for ECR access
+5. **Proxy Limitations:** Be aware that read-only proxies cannot store signatures
+6. **Time Sensitivity:** Keyless signatures use short-lived certificates; verify promptly after signing
+7. **Audit Trail:** Check Rekor transparency log for tamper-evidence
+
+## Best Practices
+
+1. **Always use digest-based verification** in production environments
+2. **Pin specific certificate identities** when possible for stronger verification
+3. **Automate verification** in CI/CD pipelines before deployment
+4. **Monitor Rekor logs** for unexpected signing events
+5. **Store image digests** alongside deployment manifests
+6. **Verify before pull** in production to prevent supply chain attacks
+
+## Redis Exporter Specific Considerations
+
+### FIPS Compliance Verification
+
+When verifying the redis-exporter FIPS image, also validate:
+
+1. **FIPS POST Verification:**
+   ```bash
+   # Run container and check FIPS validation
+   docker run --rm cr.root.io/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips
+   # Look for: "✓ FIPS POST passed successfully"
+   ```
+
+2. **Go FIPS Runtime Verification:**
+   ```bash
+   # Check environment variables are set
+   docker run --rm cr.root.io/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips env | grep GOLANG_FIPS
+   # Expected: GOLANG_FIPS=1
+   ```
+
+3. **wolfSSL FIPS Module Verification:**
+   ```bash
+   # Check wolfSSL FIPS library is present
+   docker run --rm --entrypoint="" cr.root.io/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips ls -la /usr/local/lib/libwolfssl.so
+   ```
+
+### Deployment Verification Workflow
+
+For production deployments:
+
+```bash
+# 1. Verify image signature
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips
+
+# 2. Pull image
+docker pull cr.root.io/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips
+
+# 3. Verify FIPS POST
+docker run --rm cr.root.io/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips | grep "FIPS POST"
+
+# 4. Deploy to production
+kubectl apply -f redis-exporter-deployment.yaml
+```
+
+## Additional Resources
+
+- [Cosign Documentation](https://docs.sigstore.dev/cosign/overview/)
+- [Sigstore Project](https://www.sigstore.dev/)
+- [AWS ECR Documentation](https://docs.aws.amazon.com/ecr/)
+- [OCI Referrers Specification](https://github.com/opencontainers/distribution-spec/blob/main/spec.md#listing-referrers)
+- [Rekor Transparency Log](https://rekor.sigstore.dev/)
+- [Redis Exporter GitHub](https://github.com/oliver006/redis_exporter)
+- [golang-fips/go](https://github.com/golang-fips/go)
+- [wolfSSL FIPS](https://www.wolfssl.com/products/wolfssl-fips/)
+
+## Related Documentation
+
+- [QUICKSTART.md](../QUICKSTART.md) - Quick start guide for the redis-exporter FIPS image
+- [README.md](../README.md) - Complete documentation for the image
+- [ARCHITECTURE.md](../ARCHITECTURE.md) - Technical architecture and FIPS implementation
+- [Evidence/contrast-test-results.md](../Evidence/contrast-test-results.md) - FIPS enforcement validation
+- [Evidence/test-execution-summary.md](../Evidence/test-execution-summary.md) - Test results and compliance
+
+## Support and Contact
+
+For issues related to:
+- **Image functionality:** Check QUICKSTART.md and README.md
+- **FIPS compliance:** Review Evidence/ folder documentation
+- **Cosign verification:** Consult [Sigstore documentation](https://docs.sigstore.dev/)
+- **Redis Exporter:** See [upstream project](https://github.com/oliver006/redis_exporter)
+
+---
+
+**Document Version:** 1.0
+**Last Updated:** 2026-03-27
+**Image Version:** redis-exporter:1.67.0-jammy-ubuntu-22.04-fips

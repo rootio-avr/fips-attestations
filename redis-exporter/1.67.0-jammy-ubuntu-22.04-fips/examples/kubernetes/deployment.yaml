@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-exporter
+  namespace: monitoring
+  labels:
+    app: redis-exporter
+    fips: "enabled"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-exporter
+  template:
+    metadata:
+      labels:
+        app: redis-exporter
+        fips: "enabled"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9121"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: redis-exporter
+        image: cr.root.io/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: metrics
+          containerPort: 9121
+          protocol: TCP
+        env:
+        - name: GOLANG_FIPS
+          value: "1"
+        - name: GODEBUG
+          value: "fips140=only"
+        - name: GOEXPERIMENT
+          value: "strictfipsruntime"
+        - name: FIPS_CHECK
+          value: "true"
+        - name: REDIS_ADDR
+          value: "redis://redis:6379"
+        - name: REDIS_EXPORTER_WEB_LISTEN_ADDRESS
+          value: ":9121"
+        - name: REDIS_EXPORTER_WEB_TELEMETRY_PATH
+          value: "/metrics"
+        args:
+        - "--redis.addr=$(REDIS_ADDR)"
+        - "--web.listen-address=$(REDIS_EXPORTER_WEB_LISTEN_ADDRESS)"
+        - "--web.telemetry-path=$(REDIS_EXPORTER_WEB_TELEMETRY_PATH)"
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: metrics
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: metrics
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+      restartPolicy: Always

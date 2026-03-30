@@ -1,0 +1,100 @@
+# Prometheus Configuration for Redis Exporter FIPS Demo
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'redis-exporter-fips-demo'
+    environment: 'demo'
+
+# Alertmanager configuration (optional)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           - alertmanager:9093
+
+# Load rules once and periodically evaluate them
+# rule_files:
+#   - "redis_alerts.yml"
+
+# Scrape configurations
+scrape_configs:
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Redis Exporter (Default)
+  - job_name: 'redis-exporter'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    static_configs:
+      - targets: ['exporter:9121']
+        labels:
+          instance: 'redis-standalone'
+          redis_alias: 'redis-demo'
+          env: 'demo'
+          fips: 'enabled'
+
+  # Redis Exporter (Sentinel)
+  - job_name: 'redis-exporter-sentinel'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    static_configs:
+      - targets: ['exporter-sentinel:9121']
+        labels:
+          instance: 'redis-sentinel'
+          redis_alias: 'redis-sentinel-demo'
+          env: 'demo'
+          fips: 'enabled'
+
+  # Redis Exporter (Cluster)
+  - job_name: 'redis-exporter-cluster'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    static_configs:
+      - targets: ['exporter-cluster:9121']
+        labels:
+          instance: 'redis-cluster'
+          redis_alias: 'redis-cluster-demo'
+          env: 'demo'
+          fips: 'enabled'
+
+  # Optional: Scrape Redis directly (if redis_exporter is down)
+  # - job_name: 'redis-direct'
+  #   static_configs:
+  #     - targets: ['redis:6379']
+
+# Sample alerting rules (create redis_alerts.yml separately if needed)
+# groups:
+#   - name: redis_alerts
+#     interval: 30s
+#     rules:
+#       - alert: RedisDown
+#         expr: redis_up == 0
+#         for: 1m
+#         labels:
+#           severity: critical
+#         annotations:
+#           summary: "Redis instance is down"
+#           description: "Redis instance {{ $labels.instance }} is down for more than 1 minute"
+#
+#       - alert: RedisMemoryHigh
+#         expr: (redis_memory_used_bytes / redis_memory_max_bytes) > 0.9
+#         for: 5m
+#         labels:
+#           severity: warning
+#         annotations:
+#           summary: "Redis memory usage high"
+#           description: "Redis instance {{ $labels.instance }} memory usage is above 90%"
+#
+#       - alert: RedisSlowQueries
+#         expr: rate(redis_slowlog_length[5m]) > 0
+#         for: 5m
+#         labels:
+#           severity: warning
+#         annotations:
+#           summary: "Redis slow queries detected"
+#           description: "Redis instance {{ $labels.instance }} has slow queries"

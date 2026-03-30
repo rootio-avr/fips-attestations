@@ -1,0 +1,78 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: redis-exporter-alerts
+  namespace: monitoring
+  labels:
+    app: redis-exporter
+    prometheus: kube-prometheus
+spec:
+  groups:
+  - name: redis-exporter.rules
+    interval: 30s
+    rules:
+    # Redis Instance Down
+    - alert: RedisDown
+      expr: redis_up == 0
+      for: 5m
+      labels:
+        severity: critical
+        component: redis
+      annotations:
+        summary: "Redis instance is down"
+        description: "Redis instance {{ $labels.addr }} has been down for more than 5 minutes."
+
+    # High Memory Usage
+    - alert: RedisMemoryHigh
+      expr: (redis_memory_used_bytes / redis_memory_max_bytes) > 0.9
+      for: 10m
+      labels:
+        severity: warning
+        component: redis
+      annotations:
+        summary: "Redis memory usage is high"
+        description: "Redis instance {{ $labels.addr }} memory usage is {{ $value | humanizePercentage }}."
+
+    # Too Many Client Connections
+    - alert: RedisTooManyClients
+      expr: redis_connected_clients > 100
+      for: 5m
+      labels:
+        severity: warning
+        component: redis
+      annotations:
+        summary: "Too many Redis client connections"
+        description: "Redis instance {{ $labels.addr }} has {{ $value }} client connections."
+
+    # Slow Queries Detected
+    - alert: RedisSlowQueries
+      expr: rate(redis_slowlog_length[5m]) > 0
+      for: 5m
+      labels:
+        severity: info
+        component: redis
+      annotations:
+        summary: "Redis slow queries detected"
+        description: "Redis instance {{ $labels.addr }} is experiencing slow queries."
+
+    # Replication Lag High
+    - alert: RedisReplicationLagHigh
+      expr: redis_connected_slaves > 0 and redis_replication_lag_seconds > 10
+      for: 5m
+      labels:
+        severity: warning
+        component: redis
+      annotations:
+        summary: "Redis replication lag is high"
+        description: "Redis instance {{ $labels.addr }} has replication lag of {{ $value }} seconds."
+
+    # Exporter Scrape Duration High
+    - alert: RedisExporterScrapeSlow
+      expr: redis_exporter_last_scrape_duration_seconds > 1
+      for: 5m
+      labels:
+        severity: warning
+        component: redis-exporter
+      annotations:
+        summary: "Redis Exporter scrape duration is high"
+        description: "Redis Exporter scrape duration is {{ $value }} seconds, which is above the 1s threshold."

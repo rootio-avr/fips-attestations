@@ -1,0 +1,379 @@
+################################################################################
+# Redis Exporter FIPS - Demo Stack
+#
+# This docker-compose file provides multiple demo scenarios:
+#
+# Profiles:
+#   default    - Basic Redis + Exporter
+#   sentinel   - Redis Sentinel topology
+#   cluster    - Redis Cluster topology
+#   monitoring - Full stack with Prometheus + Grafana
+#
+# Usage:
+#   docker-compose up                         # Basic setup
+#   docker-compose --profile sentinel up      # Sentinel demo
+#   docker-compose --profile cluster up       # Cluster demo
+#   docker-compose --profile monitoring up    # Full monitoring stack
+################################################################################
+
+version: '3.8'
+
+################################################################################
+# Networks
+################################################################################
+
+networks:
+  redis-network:
+    driver: bridge
+
+################################################################################
+# Volumes
+################################################################################
+
+volumes:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+
+################################################################################
+# Services
+################################################################################
+
+services:
+
+  #############################################################################
+  # Redis Server (Default Profile)
+  #############################################################################
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis-demo
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - redis-data:/data
+      - ./configs/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    ports:
+      - "6379:6379"
+    networks:
+      - redis-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  #############################################################################
+  # Redis Exporter (Default Profile)
+  #############################################################################
+
+  exporter:
+    image: cr.root.io/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips
+    container_name: redis-exporter-demo
+    command:
+      - "redis_exporter"
+      - "--redis.addr=redis://redis:6379"
+      - "--web.listen-address=:9121"
+      - "--web.telemetry-path=/metrics"
+      - "--log-format=txt"
+      - "--check-keys=*"
+      - "--check-single-keys=db0=key1,db0=key2"
+    ports:
+      - "9121:9121"
+    networks:
+      - redis-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - GOLANG_FIPS=1
+      - GODEBUG=fips140=only
+      - GOEXPERIMENT=strictfipsruntime
+      - FIPS_CHECK=true
+      - REDIS_EXPORTER_DEBUG=false
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9121/metrics"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  #############################################################################
+  # Demo Dashboard (Default Profile)
+  # NOTE: Disabled - requires Python3 which is not in the base image
+  #############################################################################
+
+  # dashboard:
+  #   image: redis-exporter-demos:1.67.0-jammy-ubuntu-22.04-fips
+  #   container_name: redis-demo-dashboard
+  #   command: python3 -m http.server 8080 --directory /demo/html
+  #   ports:
+  #     - "8080:8080"
+  #   networks:
+  #     - redis-network
+  #   depends_on:
+  #     - exporter
+
+  #############################################################################
+  # Redis Sentinel Setup (Sentinel Profile)
+  #############################################################################
+
+  redis-master:
+    image: redis:7.2-alpine
+    container_name: redis-sentinel-master
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./configs/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - redis-network
+    profiles:
+      - sentinel
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  redis-replica-1:
+    image: redis:7.2-alpine
+    container_name: redis-sentinel-replica-1
+    command: redis-server --replicaof redis-master 6379
+    networks:
+      - redis-network
+    depends_on:
+      - redis-master
+    profiles:
+      - sentinel
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  redis-replica-2:
+    image: redis:7.2-alpine
+    container_name: redis-sentinel-replica-2
+    command: redis-server --replicaof redis-master 6379
+    networks:
+      - redis-network
+    depends_on:
+      - redis-master
+    profiles:
+      - sentinel
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  sentinel-1:
+    image: redis:7.2-alpine
+    container_name: redis-sentinel-1
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    volumes:
+      - ./configs/redis-sentinel.conf:/usr/local/etc/redis/sentinel.conf:ro
+    networks:
+      - redis-network
+    depends_on:
+      - redis-master
+    profiles:
+      - sentinel
+
+  sentinel-2:
+    image: redis:7.2-alpine
+    container_name: redis-sentinel-2
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    volumes:
+      - ./configs/redis-sentinel.conf:/usr/local/etc/redis/sentinel.conf:ro
+    networks:
+      - redis-network
+    depends_on:
+      - redis-master
+    profiles:
+      - sentinel
+
+  sentinel-3:
+    image: redis:7.2-alpine
+    container_name: redis-sentinel-3
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    volumes:
+      - ./configs/redis-sentinel.conf:/usr/local/etc/redis/sentinel.conf:ro
+    networks:
+      - redis-network
+    depends_on:
+      - redis-master
+    profiles:
+      - sentinel
+
+  exporter-sentinel:
+    image: cr.root.io/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips
+    container_name: redis-exporter-sentinel
+    command:
+      - "--redis.addr=redis://redis-master:6379"
+      - "--redis-only-metrics=false"
+      - "--is-sentinel=true"
+    ports:
+      - "9122:9121"
+    networks:
+      - redis-network
+    depends_on:
+      - sentinel-1
+      - sentinel-2
+      - sentinel-3
+    environment:
+      - GOLANG_FIPS=1
+      - GODEBUG=fips140=only
+      - GOEXPERIMENT=strictfipsruntime
+      - FIPS_CHECK=true
+    profiles:
+      - sentinel
+
+  #############################################################################
+  # Redis Cluster Setup (Cluster Profile)
+  #############################################################################
+
+  redis-cluster-node-1:
+    image: redis:7.2-alpine
+    container_name: redis-cluster-1
+    command: redis-server /usr/local/etc/redis/redis-cluster.conf
+    volumes:
+      - ./configs/redis-cluster-1.conf:/usr/local/etc/redis/redis-cluster.conf:ro
+    ports:
+      - "7000:7000"
+    networks:
+      - redis-network
+    profiles:
+      - cluster
+
+  redis-cluster-node-2:
+    image: redis:7.2-alpine
+    container_name: redis-cluster-2
+    command: redis-server /usr/local/etc/redis/redis-cluster.conf
+    volumes:
+      - ./configs/redis-cluster-2.conf:/usr/local/etc/redis/redis-cluster.conf:ro
+    ports:
+      - "7001:7001"
+    networks:
+      - redis-network
+    profiles:
+      - cluster
+
+  redis-cluster-node-3:
+    image: redis:7.2-alpine
+    container_name: redis-cluster-3
+    command: redis-server /usr/local/etc/redis/redis-cluster.conf
+    volumes:
+      - ./configs/redis-cluster-3.conf:/usr/local/etc/redis/redis-cluster.conf:ro
+    ports:
+      - "7002:7002"
+    networks:
+      - redis-network
+    profiles:
+      - cluster
+
+  redis-cluster-node-4:
+    image: redis:7.2-alpine
+    container_name: redis-cluster-4
+    command: redis-server /usr/local/etc/redis/redis-cluster.conf
+    volumes:
+      - ./configs/redis-cluster-4.conf:/usr/local/etc/redis/redis-cluster.conf:ro
+    ports:
+      - "7003:7003"
+    networks:
+      - redis-network
+    profiles:
+      - cluster
+
+  redis-cluster-node-5:
+    image: redis:7.2-alpine
+    container_name: redis-cluster-5
+    command: redis-server /usr/local/etc/redis/redis-cluster.conf
+    volumes:
+      - ./configs/redis-cluster-5.conf:/usr/local/etc/redis/redis-cluster.conf:ro
+    ports:
+      - "7004:7004"
+    networks:
+      - redis-network
+    profiles:
+      - cluster
+
+  redis-cluster-node-6:
+    image: redis:7.2-alpine
+    container_name: redis-cluster-6
+    command: redis-server /usr/local/etc/redis/redis-cluster.conf
+    volumes:
+      - ./configs/redis-cluster-6.conf:/usr/local/etc/redis/redis-cluster.conf:ro
+    ports:
+      - "7005:7005"
+    networks:
+      - redis-network
+    profiles:
+      - cluster
+
+  exporter-cluster:
+    image: cr.root.io/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips
+    container_name: redis-exporter-cluster
+    command:
+      - "--redis.addr=redis://redis-cluster-node-1:7000"
+      - "--is-cluster=true"
+    ports:
+      - "9123:9121"
+    networks:
+      - redis-network
+    depends_on:
+      - redis-cluster-node-1
+      - redis-cluster-node-2
+      - redis-cluster-node-3
+    environment:
+      - GOLANG_FIPS=1
+      - GODEBUG=fips140=only
+      - GOEXPERIMENT=strictfipsruntime
+      - FIPS_CHECK=true
+    profiles:
+      - cluster
+
+  #############################################################################
+  # Prometheus (Monitoring Profile)
+  #############################################################################
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-demo
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - redis-network
+    depends_on:
+      - exporter
+    profiles:
+      - monitoring
+
+  #############################################################################
+  # Grafana (Monitoring Profile)
+  #############################################################################
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-demo
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./configs/grafana-dashboard.json:/etc/grafana/provisioning/dashboards/redis-exporter.json:ro
+    ports:
+      - "3000:3000"
+    networks:
+      - redis-network
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    profiles:
+      - monitoring

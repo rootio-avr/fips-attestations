@@ -1,0 +1,51 @@
+# wolfSSL Commercial Password (NEVER COMMIT!)
+wolfssl_password.txt
+.wolfssl_password
+
+# Build artifacts
+*.o
+*.so
+*.a
+fips-check
+test-fips
+
+# Docker build cache
+.dockerignore
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test results
+diagnostics/results.json
+diagnostics/*.log
+Evidence/*.log
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Demo runtime directories (created by Dockerfile, not needed in repo)
+demos-image/certs/
+demos-image/data/
+demos-image/logs/
+
+# Private keys and certificates (SECURITY: never commit!)
+*.key
+*.pem
+*.p12
+*.pfx
+ca.srl
+
+# Docker build artifacts
+demos-image/*.tar
+demos-image/*.tar.gz
+
+# Runtime/volume mount directories
+**/data/
+**/logs/

@@ -1,0 +1,87 @@
+# Redis Exporter FIPS - Docker Compose Example
+# Full monitoring stack with Redis, Exporter, Prometheus, and Grafana
+
+version: '3.8'
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+
+services:
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - monitoring
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  redis-exporter:
+    image: cr.root.io/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips
+    container_name: redis-exporter
+    command:
+      - "--redis.addr=redis://redis:6379"
+      - "--web.listen-address=:9121"
+      - "--web.telemetry-path=/metrics"
+    ports:
+      - "9121:9121"
+    networks:
+      - monitoring
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - GOLANG_FIPS=1
+      - GODEBUG=fips140=only
+      - GOEXPERIMENT=strictfipsruntime
+      - FIPS_CHECK=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9121/metrics"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+    depends_on:
+      - redis-exporter
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
