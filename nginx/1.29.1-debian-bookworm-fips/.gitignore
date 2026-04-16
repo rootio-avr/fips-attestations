@@ -1,0 +1,26 @@
+# wolfSSL FIPS password (sensitive)
+wolfssl_password.txt
+.wolfssl_password
+
+# Build artifacts
+*.log
+*.tar.gz
+*.7z
+
+# Docker artifacts
+.dockerignore
+
+# Editor artifacts
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Test results
+diagnostics/results.json
+Evidence/*.log

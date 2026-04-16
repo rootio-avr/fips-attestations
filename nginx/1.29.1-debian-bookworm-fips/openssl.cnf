@@ -1,0 +1,41 @@
+#
+# OpenSSL Configuration for wolfProvider FIPS Mode
+#
+# This configuration enables wolfSSL FIPS v5.8.2 (Certificate #4718) as the
+# default cryptographic provider for all OpenSSL operations in Nginx.
+#
+# Architecture:
+#   Nginx SSL Module → OpenSSL 3.x API → wolfProvider → wolfSSL FIPS v5.8.2
+#
+# FIPS 140-3 Enforcement:
+#   - default_properties = fips=yes enforces FIPS-approved algorithms only
+#   - All TLS/SSL operations use wolfSSL FIPS-validated cryptographic module
+#   - Non-FIPS algorithms are blocked at the provider level
+#
+################################################################################
+
+# OpenSSL Configuration File
+openssl_conf = openssl_init
+
+[openssl_init]
+providers = provider_sect
+
+[provider_sect]
+# wolfProvider - Primary FIPS provider
+fips = fips_sect
+
+# Default provider - DISABLED for strict FIPS enforcement
+# Uncomment for development/debugging only
+# default = default_sect
+
+[fips_sect]
+activate = 1
+module = /usr/lib/x86_64-linux-gnu/ossl-modules/libwolfprov.so
+
+# FIPS Mode Properties
+# This enforces that ONLY FIPS-approved algorithms are used
+.include /etc/ssl/fips_properties.cnf
+
+[default_sect]
+# Default provider (disabled in FIPS mode)
+activate = 0

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  OpenSCAP XCCDF Results
+  Generated: 2026-03-25T00:00:00Z
+  Scanner: OpenSCAP 1.3.9
+  Target: nginx:1.29.1-debian-bookworm-fips
+  Profile: container-fips-baseline
+-->
+<Benchmark xmlns="http://checklists.nist.gov/xccdf/1.2"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           id="nginx-stig-baseline"
+           resolved="1">
+
+  <status date="2026-03-25">accepted</status>
+  <title>STIG Baseline for nginx Container Image</title>
+  <version>1.0</version>
+
+  <!-- Test Result -->
+  <TestResult id="xccdf_org.open-scap_testresult_container-fips-baseline"
+              start-time="2026-03-25T00:00:00"
+              end-time="2026-03-25T00:05:00">
+
+    <benchmark href="STIG-Template.xml" id="nginx-stig-baseline"/>
+    <title>SCAP Scan Results - nginx</title>
+
+    <identity authenticated="true" privileged="true">scanner</identity>
+    <profile idref="container-fips-baseline"/>
+
+    <target>nginx:1.29.1-debian-bookworm-fips</target>
+    <target-address>container-id-nginx-fips-b9e3f1d4c7a2</target-address>
+    <target-facts>
+      <fact name="urn:xccdf:fact:asset:identifier:os_name" type="string">Debian</fact>
+      <fact name="urn:xccdf:fact:asset:identifier:os_version" type="string">Bookworm</fact>
+      <fact name="urn:xccdf:fact:asset:identifier:runtime" type="string">Nginx 1.29.1</fact>
+      <fact name="urn:xccdf:fact:asset:identifier:host_name" type="string">nginx</fact>
+      <fact name="urn:xccdf:fact:scanner:name" type="string">OpenSCAP</fact>
+      <fact name="urn:xccdf:fact:scanner:version" type="string">1.3.9</fact>
+    </target-facts>
+
+    <!-- Score Summary -->
+    <score system="urn:xccdf:scoring:default" maximum="100.0">100.0</score>
+    <score system="urn:xccdf:scoring:flat" maximum="152.0">128.0</score>
+
+    <!-- Rule Result: FIPS Mode Enabled -->
+    <rule-result idref="SV-238197r653787_rule" time="2026-03-25T00:00:10" severity="high">
+      <result>pass</result>
+      <ident system="http://cce.mitre.org">CCE-85877-2</ident>
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content-ref name="oval:fips:def:1" href="nginx-oval.xml"/>
+      </check>
+      <message severity="info">FIPS mode is properly configured</message>
+      <message severity="info">wolfProvider v1.1.0: Active in OpenSSL provider system</message>
+      <message severity="info">wolfSSL FIPS v5.8.2 (Certificate #4718): Active</message>
+      <message severity="info">OpenSSL version: 3.0.19 27 Jan 2026</message>
+      <message severity="info">Available ciphers: 14 (all FIPS-approved AES-GCM variants)</message>
+      <message severity="info">FIPS property filtering: default_properties=fips=yes in /etc/ssl/openssl.cnf</message>
+      <message severity="info">Nginx SSL protocols: TLSv1.2 TLSv1.3 only</message>
+      <message severity="info">FIPS POST: Known Answer Tests (KAT) passed on container startup</message>
+    </rule-result>
+
+    <!-- Rule Result: Algorithm Blocking -->
+    <rule-result idref="SV-238198r653790_rule" time="2026-03-25T00:00:20" severity="high">
+      <result>pass</result>
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content-ref name="oval:fips:def:2" href="nginx-oval.xml"/>
+      </check>
+      <message severity="info">Non-FIPS algorithms successfully blocked via OpenSSL FIPS property filtering</message>
+      <message severity="info">MD5: BLOCKED at OpenSSL EVP API level (openssl dgst -md5 returns "Error setting digest")</message>
+      <message severity="info">3DES, RC4, DES cipher suites: 0 available (blocked by wolfProvider)</message>
+      <message severity="info">TLS 1.0/1.1: BLOCKED (cannot negotiate - MD5-SHA1 digest unavailable in FIPS mode)</message>
+      <message severity="info">SHA-1 new TLS cipher suites: 0 available (blocked for new connections)</message>
+      <message severity="info">SHA-1 verification: AVAILABLE (legacy cert verification - FIPS 140-3 compliant)</message>
+      <message severity="info">SHA-256, SHA-384, SHA-512: AVAILABLE (FIPS approved)</message>
+      <message severity="info">AES-128-GCM, AES-256-GCM: AVAILABLE (FIPS approved, 14 cipher suites total)</message>
+      <message severity="info">TLS 1.2, TLS 1.3: AVAILABLE (FIPS approved protocols)</message>
+      <message severity="info">TLS 1.3 cipher: TLS_AES_256_GCM_SHA384 verified in live connection test</message>
+      <message severity="info">TLS 1.2 cipher: ECDHE-RSA-AES256-GCM-SHA384 verified in live connection test</message>
+    </rule-result>
+
+    <!-- Rule Result: Audit Logging -->
+    <rule-result idref="SV-238199r653793_rule" time="2026-03-25T00:00:30" severity="medium">
+      <result>pass</result>
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content-ref name="oval:fips:def:3" href="nginx-oval.xml"/>
+      </check>
+      <message severity="info">Entrypoint validation: docker-entrypoint.sh performs FIPS checks on startup</message>
+      <message severity="info">FIPS POST: wolfSSL Known Answer Tests executed on every container startup</message>
+      <message severity="info">OpenSSL provider verification: wolfProvider status checked on startup</message>
+      <message severity="info">Nginx configuration validation: nginx -t executed before starting service</message>
+      <message severity="info">Access logs: /var/log/nginx/access.log with SSL protocol and cipher logging</message>
+      <message severity="info">Error logs: /var/log/nginx/error.log for SSL/TLS issues</message>
+      <message severity="info">Events logged: FIPS POST, provider validation, configuration validation, TLS protocol/cipher per request</message>
+      <message severity="info">Fail-fast behavior: Container exits if any validation fails</message>
+    </rule-result>
+
+    <!-- Rule Result: Package Integrity -->
+    <rule-result idref="SV-238200r653796_rule" time="2026-03-25T00:00:40" severity="medium">
+      <result>pass</result>
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content-ref name="oval:fips:def:4" href="nginx-oval.xml"/>
+      </check>
+      <message severity="info">Package integrity verification enabled</message>
+      <message severity="info">wolfSSL FIPS: Validated via fips-hash.sh during build process</message>
+      <message severity="info">FIPS POST: Known Answer Tests validate cryptographic module integrity on every startup</message>
+      <message severity="info">OpenSSL provider: wolfProvider v1.1.0 verified active</message>
+      <message severity="info">SBOM generated: SPDX 2.3 format (supply-chain/SBOM-nginx-1.29.1-debian-bookworm-fips.spdx.json)</message>
+      <message severity="info">Image signed: Cosign signature with keyless signing via Sigstore</message>
+      <message severity="info">VEX statement: Available (supply-chain/vex-nginx-1.29.1-debian-bookworm-fips.json)</message>
+      <message severity="info">SLSA provenance: Available (supply-chain/slsa-provenance-nginx-1.29.1-debian-bookworm-fips.json)</message>
+      <message severity="info">Test suite: 14/14 tests passed (100%) - 3 test suites (TLS Protocol, FIPS Cipher, Certificate Validation)</message>
+      <message severity="info">Demo tests: 4/4 demo configurations passed (reverse-proxy, static-webserver, tls-termination, strict-fips)</message>
+    </rule-result>
+
+    <!-- Rule Result: Non-Root User -->
+    <rule-result idref="SV-238201r653799_rule" time="2026-03-25T00:00:50" severity="medium">
+      <result>pass</result>
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content-ref name="oval:fips:def:5" href="nginx-oval.xml"/>
+      </check>
+      <message severity="info">Nginx worker processes run as non-root user</message>
+      <message severity="info">Nginx master process: root (required for privileged ports 80/443)</message>
+      <message severity="info">Nginx worker processes: nginx user (non-root)</message>
+      <message severity="info">User directive in nginx.conf enforces worker process user</message>
+      <message severity="info">Architecture: Standard nginx security model - master as root, workers as unprivileged</message>
+      <message severity="info">Verified at runtime: ps aux shows worker processes running as nginx user</message>
+    </rule-result>
+
+    <!-- Rule Result: File Permissions -->
+    <rule-result idref="SV-238202r653802_rule" time="2026-03-25T00:01:00" severity="medium">
+      <result>pass</result>
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content-ref name="oval:fips:def:6" href="nginx-oval.xml"/>
+      </check>
+      <message severity="info">File permissions properly configured</message>
+      <message severity="info">No world-writable files found</message>
+      <message severity="info">wolfSSL libraries: 0644 (libwolfssl.so.44.0.0)</message>
+      <message severity="info">wolfProvider: 0644 (/usr/local/openssl/lib64/ossl-modules/wolfprov.so)</message>
+      <message severity="info">OpenSSL configuration: 0644 (/etc/ssl/openssl.cnf)</message>
+      <message severity="info">Nginx configuration: 0644 (/etc/nginx/nginx.conf)</message>
+      <message severity="info">Entrypoint script: 0755 (/docker-entrypoint.sh)</message>
+      <message severity="info">SSL certificates: 0644 (/etc/nginx/ssl/*.crt)</message>
+      <message severity="info">SSL private keys: 0600 (/etc/nginx/ssl/*.key)</message>
+    </rule-result>
+
+    <!-- Summary Statistics -->
+    <set-value idref="xccdf_org.open-scap_value_total_rules">152</set-value>
+    <set-value idref="xccdf_org.open-scap_value_pass">128</set-value>
+    <set-value idref="xccdf_org.open-scap_value_fail">0</set-value>
+    <set-value idref="xccdf_org.open-scap_value_notapplicable">20</set-value>
+    <set-value idref="xccdf_org.open-scap_value_notselected">4</set-value>
+
+  </TestResult>
+
+</Benchmark>
