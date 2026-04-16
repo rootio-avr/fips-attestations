@@ -237,9 +237,8 @@ openssl s_client -connect localhost:443 -tls1_3
 3. ✅ Test HTTPS endpoint
 
 ### Short-term (This Week)
-4. Review [IMPLEMENTATION-SUMMARY.md](IMPLEMENTATION-SUMMARY.md) for completion status
-5. Read [README.md](README.md) for comprehensive documentation
-6. Review [patches/README.md](patches/README.md) for wolfSSL integration details
+4. Read [README.md](README.md) for comprehensive documentation
+5. Review [patches/README.md](patches/README.md) for wolfSSL integration details
 
 ### Medium-term (Next 2-3 Weeks)
 7. Complete remaining diagnostic tests (6 more)
@@ -265,7 +264,6 @@ openssl s_client -connect localhost:443 -tls1_3
 | `nginx.conf.template` | FIPS-hardened Nginx configuration |
 | `openssl.cnf` | wolfProvider configuration |
 | `README.md` | Comprehensive documentation |
-| `IMPLEMENTATION-SUMMARY.md` | Implementation status and progress |
 | `diagnostics/` | Test scripts |
 | `patches/README.md` | Patch information and strategy |
 
@@ -275,7 +273,6 @@ openssl s_client -connect localhost:443 -tls1_3
 
 ### Documentation
 - [README.md](README.md) - Complete user guide
-- [IMPLEMENTATION-SUMMARY.md](IMPLEMENTATION-SUMMARY.md) - Project status
 - [patches/README.md](patches/README.md) - wolfSSL integration details
 
 ### External Resources
@@ -317,5 +314,3 @@ docker stop nginx-fips && docker rm nginx-fips
 **Ready to build? Run:** `./build.sh`
 
 **Need help? Read:** `README.md`
-
-**Check status? See:** `IMPLEMENTATION-SUMMARY.md`

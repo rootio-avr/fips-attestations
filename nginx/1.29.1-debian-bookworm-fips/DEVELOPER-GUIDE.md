@@ -194,7 +194,6 @@ nginx/1.29.1-debian-bookworm-fips/
 ├── build.sh                         # Main build script
 ├── README.md                        # User documentation
 ├── QUICK-START.md                   # Quick start guide
-├── IMPLEMENTATION-SUMMARY.md        # Implementation details
 ├── CHANGES.md                       # Change log
 ├── ARCHITECTURE.md                  # Architecture documentation
 ├── DEVELOPER-GUIDE.md               # This file

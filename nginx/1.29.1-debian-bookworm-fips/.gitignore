@@ -1,6 +1,7 @@
 # wolfSSL FIPS password (sensitive)
 wolfssl_password.txt
 .wolfssl_password
+rootio_api_key.txt
 
 # Build artifacts
 *.log

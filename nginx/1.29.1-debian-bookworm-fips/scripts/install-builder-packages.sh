@@ -89,39 +89,30 @@ echo "=========================================="
 echo "Currently installed GnuPG packages:"
 dpkg -l | grep -E '(gnupg|gpg|dirmngr)' || echo "No GnuPG packages found"
 
-# Remove main GnuPG packages (added missing gpgv and libgpg-error0)
-for pkg in gnupg gnupg-l10n gnupg-utils gpg gpgv gpg-agent gpg-wks-client gpg-wks-server gpgconf gpgsm dirmngr libgpg-error0; do
+# Remove GnuPG executables only (NOT core libraries needed by apt-get and other tools)
+# Note: gpgv is kept because apt-get needs it for package signature verification
+for pkg in gnupg gnupg-l10n gnupg-utils gpg gpg-agent gpg-wks-client gpg-wks-server gpgconf gpgsm dirmngr; do
     if dpkg -l 2>/dev/null | grep -q "^..  ${pkg}"; then
         echo "Removing ${pkg}..."
         dpkg --purge --force-all ${pkg} 2>&1 || echo "Failed to remove ${pkg}"
     fi
 done
 
-# Remove GnuPG dependencies
-for pkg in libassuan0 libksba8 libnpth0 libreadline8 pinentry-curses readline-common; do
+# Remove optional GnuPG helper packages (only if safe to remove)
+for pkg in pinentry-curses; do
     if dpkg -l 2>/dev/null | grep -q "^..  ${pkg}"; then
         echo "Removing dependency ${pkg}..."
         dpkg --purge --force-all ${pkg} 2>&1 || echo "Failed to remove ${pkg}"
     fi
 done
 
-# Final cleanup - remove ANY remaining GnuPG packages
-echo "Final cleanup sweep..."
-REMAINING=$(dpkg -l 2>/dev/null | grep -E '(gnupg|gpg|dirmngr)' | awk '{print $2}' || true)
-if [ -n "$REMAINING" ]; then
-    echo "Removing remaining packages: $REMAINING"
-    for pkg in $REMAINING; do
-        dpkg --purge --force-all $pkg 2>&1 || true
-    done
-fi
-
-# Verify removal
-echo "Remaining GnuPG packages (should be empty):"
-dpkg -l | grep -E '(gnupg|gpg|dirmngr)' || echo "✓ All GnuPG packages successfully removed"
+echo "Note: gpgv and core libraries (libgpg-error0, libassuan0, libksba8, libnpth0, libreadline8) retained for apt and system packages"
 echo "=========================================="
 
-# Cleanup credentials and cache
+# Cleanup credentials, sources list, and cache
 rm -f /etc/apt/auth.conf.d/rootio.conf
+rm -f /etc/apt/sources.list.d/rootio.list
+rm -f /etc/apt/keyrings/rootio.gpg
 rm -rf /var/lib/apt/lists/*
 
 echo "================================================================================"
