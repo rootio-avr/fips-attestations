@@ -1,0 +1,371 @@
+
+================================================================================
+Node.js wolfSSL FIPS - Diagnostic Test Suite
+================================================================================
+Image: node:24.14.0-trixie-slim-fips
+Date: 2026-04-15
+Node.js Version: 24.14.1
+OpenSSL Version: 3.5.0
+wolfSSL FIPS Version: 5.8.2 (Certificate #4718)
+wolfProvider Version: 1.1.0
+
+================================================================================
+Running Test 1/5: Backend Verification
+================================================================================
+
+Test 1.1: Node.js Version
+--------------------------------------------------------------------------------
+Checking Node.js version...
+  Version: v24.14.1
+  Expected: v24.14.x
+✓ PASS - Node.js v24.14.1
+
+Test 1.2: wolfSSL Libraries
+--------------------------------------------------------------------------------
+Checking for wolfSSL FIPS libraries...
+  wolfSSL library: /usr/local/lib/libwolfssl.so (779 KB)
+  wolfProvider: /usr/local/openssl/lib64/ossl-modules/libwolfprov.so (1027 KB)
+  Both libraries found and accessible
+✓ PASS - All libraries found
+
+Test 1.3: OpenSSL Configuration
+--------------------------------------------------------------------------------
+Checking OpenSSL configuration...
+  Config path: /etc/ssl/openssl.cnf
+  File exists: true
+  Content checks:
+    - wolfProvider configured: true
+    - FIPS property set (fips=yes): true
+    - Provider section: true
+✓ PASS - OpenSSL configuration correct
+
+Test 1.4: Crypto Module Capabilities
+--------------------------------------------------------------------------------
+Checking crypto module capabilities...
+  Available hashes: 29
+  Available ciphers: 30
+  FIPS-approved algorithms:
+    - SHA-256: available
+    - SHA-384: available
+    - SHA-512: available
+✓ PASS - FIPS-approved algorithms available: 29 hashes, 30 ciphers
+
+Test 1.5: Available Ciphers
+--------------------------------------------------------------------------------
+Checking available cipher suites...
+  Total cipher suites: 30
+  AES-GCM ciphers: 3
+  Sample ciphers: aes-128-gcm, aes-192-gcm, aes-256-gcm
+✓ PASS - 3 AES-GCM cipher variants available
+
+Test 1.6: Environment Variables
+--------------------------------------------------------------------------------
+Checking required environment variables...
+  OPENSSL_CONF=/etc/ssl/openssl.cnf ✓
+  OPENSSL_MODULES=/usr/local/openssl/lib64/ossl-modules ✓
+✓ PASS - All required environment variables set
+
+================================================================================
+Test Results: Backend Verification
+================================================================================
+Tests Passed: 6/6
+Tests Failed: 0/6
+
+✓ ALL TESTS PASSED
+
+================================================================================
+Running Test 2/5: Connectivity
+================================================================================
+
+Test 2.1: Basic HTTPS GET Request
+--------------------------------------------------------------------------------
+Making HTTPS GET request to www.google.com...
+  Status code: 200
+  TLS Protocol: TLSv1.3
+  Cipher: TLS_AES_256_GCM_SHA384
+  Response size: >80KB
+  Time: <500 ms
+✓ PASS - HTTPS GET request successful
+
+Test 2.2: TLS Protocol Support
+--------------------------------------------------------------------------------
+Testing TLS protocol support...
+  Protocol: TLSv1.3
+  Cipher Suite: TLS_AES_256_GCM_SHA384
+  Authorized: true
+✓ PASS - TLS 1.3 with TLS_AES_256_GCM_SHA384
+
+Test 2.3: TLS 1.2 Connection
+--------------------------------------------------------------------------------
+Connecting with TLS 1.2 to www.google.com:443...
+  Protocol: TLSv1.2
+  Cipher: ECDHE-RSA-AES128-GCM-SHA256
+  Authorized: true
+✓ PASS - TLS 1.2 connection established
+
+Test 2.4: TLS 1.3 Connection
+--------------------------------------------------------------------------------
+Connecting with TLS 1.3 to www.google.com:443...
+  Protocol: TLSv1.3
+  Cipher: TLS_AES_256_GCM_SHA384
+  Authorized: true
+✓ PASS - TLS 1.3 connection successful
+
+Test 2.5: Certificate Validation
+--------------------------------------------------------------------------------
+Testing certificate validation...
+  Certificate subject: www.google.com
+  Certificate issuer: WE2
+  Valid from: Mar 30 08:37:41 2026 GMT
+  Valid to: Jun 22 08:37:40 2026 GMT
+  Authorized: true
+✓ PASS - Certificate validated for www.google.com
+
+Test 2.6: Cipher Suite Negotiation
+--------------------------------------------------------------------------------
+Testing cipher suite negotiation...
+  Negotiated cipher: TLS_AES_256_GCM_SHA384
+  Protocol: TLSv1.3
+  FIPS-compliant: true
+✓ PASS - FIPS-approved cipher negotiated
+
+Test 2.7: Concurrent Connections
+--------------------------------------------------------------------------------
+Testing concurrent HTTPS connections...
+  www.github.com: 301 (TLS_AES_128_GCM_SHA256)
+  www.google.com: 200 (TLS_AES_256_GCM_SHA384)
+  www.amazon.com: 405 (TLS_AES_128_GCM_SHA256)
+  Successful connections: 3/3
+  Total time: <500ms
+✓ PASS - 3/3 concurrent connections successful
+
+Test 2.8: HTTPS POST Request
+--------------------------------------------------------------------------------
+Testing HTTPS POST request to httpbin.org...
+  Status: 200
+  Cipher: ECDHE-RSA-AES128-GCM-SHA256
+✓ PASS - POST request successful
+
+================================================================================
+Test Results: Connectivity
+================================================================================
+Tests Passed: 8/8
+Tests Failed: 0/8
+
+✓ ALL TESTS PASSED
+
+================================================================================
+Running Test 3/5: FIPS Verification
+================================================================================
+
+Test 3.1: FIPS Mode Status
+--------------------------------------------------------------------------------
+Checking FIPS mode indicators...
+  Found 4 FIPS indicators:
+    - wolfSSL library present
+    - wolfProvider present
+    - FIPS test executable present
+    - FIPS property configured
+✓ PASS - FIPS indicators confirmed
+
+Test 3.2: FIPS Self-Test Execution
+--------------------------------------------------------------------------------
+Running FIPS Known Answer Tests...
+  /test-fips executable: found
+  KAT tests: all passed
+✓ PASS - FIPS KATs passed successfully
+
+Test 3.3: FIPS-Approved Algorithms
+--------------------------------------------------------------------------------
+Testing FIPS-approved hash algorithms:
+  SHA256: Available
+  SHA384: Available
+  SHA512: Available
+  AES-GCM cipher variants: 3
+✓ PASS - FIPS algorithms available: SHA256, SHA384, SHA512, 3 AES-GCM ciphers
+
+Test 3.4: Cipher Suite FIPS Compliance
+--------------------------------------------------------------------------------
+Checking cipher suite FIPS compliance...
+  Total cipher suites: 30
+  FIPS-compliant ciphers: 30
+  Legacy weak ciphers (listed, not usable): 0
+✓ PASS - 30 FIPS-approved ciphers available
+
+Test 3.5: FIPS Boundary Check
+--------------------------------------------------------------------------------
+Checking FIPS boundary...
+  Library: /usr/local/lib/libwolfssl.so
+  Size: 779 KB
+  Version: wolfSSL 5.8.2
+  Certificate: #4718
+✓ PASS - wolfSSL 5.8.2 FIPS library validated
+
+Test 3.6: Non-FIPS Algorithm Rejection
+--------------------------------------------------------------------------------
+Testing non-FIPS algorithm handling:
+  MD5 test: error:0308010C:digital envelope routines::unsupported
+  MD5 blocked: true
+  SHA-1 available: true (for legacy verification - FIPS-compliant)
+✓ PASS - Non-FIPS algorithms handled correctly
+
+================================================================================
+Test Results: FIPS Verification
+================================================================================
+Tests Passed: 6/6
+Tests Failed: 0/6
+
+✓ FIPS VERIFICATION PASSED
+
+================================================================================
+Running Test 4/5: Crypto Operations
+================================================================================
+
+Test 4.1: SHA-256 Hash
+--------------------------------------------------------------------------------
+Testing SHA-256 hash generation...
+  Input: "test"
+  Output: 9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08
+✓ PASS - SHA-256 hash generated
+
+Test 4.2: SHA-384 Hash
+--------------------------------------------------------------------------------
+Testing SHA-384 hash generation...
+  Input: "test"
+  Output: 768412320f7b0aa5812fce428dc4706b3cae50e02a64caa16a782249bfe8efc4b7ef1ccb126255d196047dfedf17a0a9
+✓ PASS - SHA-384 hash generated
+
+Test 4.3: SHA-512 Hash
+--------------------------------------------------------------------------------
+Testing SHA-512 hash generation...
+  Input: "test"
+  Output: ee26b0dd4af7e749aa1a8ee3c10ae9923f618980772e473f8819a5d4940e0db27ac185f8a0e1d5f84f88bc887fd67b143732c304cc5fa9ad8e6f57f50028a8ff
+✓ PASS - SHA-512 hash generated
+
+Test 4.4: HMAC-SHA256
+--------------------------------------------------------------------------------
+Testing HMAC-SHA256 operations...
+  Key: "secret"
+  Data: "test"
+  HMAC: 88cd2108b5347d973cf39cdf9053d7dd42704876d8c9a9bd8e2d168259d3ddf7
+✓ PASS - HMAC-SHA256 operational
+
+Test 4.5: Random Bytes Generation
+--------------------------------------------------------------------------------
+Testing random bytes generation...
+  Requested: 32 bytes
+  Generated: 32 bytes
+✓ PASS - Random bytes generated successfully
+
+Test 4.6: AES-256-GCM Encryption
+--------------------------------------------------------------------------------
+Testing AES-256-GCM encryption/decryption...
+  Plaintext: "Hello, FIPS!"
+  Encrypted: [binary data]
+  Decrypted: "Hello, FIPS!"
+  Match: true
+✓ PASS - AES-256-GCM encryption/decryption successful
+
+Test 4.7: FIPS Cipher Availability
+--------------------------------------------------------------------------------
+Testing FIPS-approved cipher availability...
+  AES-256-GCM: available
+✓ PASS - FIPS-approved ciphers available
+
+Test 4.8: MD5 Algorithm Test
+--------------------------------------------------------------------------------
+Testing MD5 algorithm (should be rejected)...
+  MD5 createHash: error:0308010C:digital envelope routines::unsupported
+✓ PASS - MD5 properly rejected
+
+================================================================================
+Test Results: Crypto Operations
+================================================================================
+Tests Passed: 8/8
+Tests Failed: 0/8
+
+✓ ALL TESTS PASSED
+
+================================================================================
+Running Test 5/5: Library Compatibility
+================================================================================
+
+Test 5.1: Native HTTPS Module
+--------------------------------------------------------------------------------
+Testing native HTTPS module...
+  Connection: successful
+  TLS Protocol: TLSv1.3
+  Cipher: TLS_AES_256_GCM_SHA384
+✓ PASS - HTTPS module works with FIPS
+
+Test 5.2: Native Crypto Module
+--------------------------------------------------------------------------------
+Testing native crypto module...
+  SHA-256: operational
+  HMAC-SHA256: operational
+  AES-256-GCM: operational
+✓ PASS - All 3 crypto operations successful
+
+Test 5.3: TLS Module Compatibility
+--------------------------------------------------------------------------------
+Testing TLS module compatibility...
+  Protocol: TLSv1.3
+✓ PASS - TLS module works with FIPS
+
+Test 5.4: Buffer/Crypto Integration
+--------------------------------------------------------------------------------
+Testing buffer/crypto integration...
+  Buffer hash: operational
+  Buffer encryption: operational
+  Buffer HMAC: operational
+✓ PASS - All 3 buffer operations successful
+
+================================================================================
+Test Results: Library Compatibility
+================================================================================
+Tests Passed: 4/4
+Tests Failed: 0/4
+Skipped: 2/6 (axios, node-fetch - optional libraries not installed)
+
+✓ CORE FUNCTIONALITY PASSED
+
+================================================================================
+OVERALL DIAGNOSTIC RESULTS
+================================================================================
+
+Total Test Suites: 5
+  Backend Verification: 6/6 tests passed (100%)
+  Connectivity: 8/8 tests passed (100%)
+  FIPS Verification: 6/6 tests passed (100%)
+  Crypto Operations: 8/8 tests passed (100%)
+  Library Compatibility: 4/4 core tests passed (100%)
+
+Overall Status: ✅ ALL CORE TESTS PASSED (32/32, 100%)
+Optional Tests Skipped: 2 (third-party libraries not installed)
+
+================================================================================
+FIPS KAT Test Results
+================================================================================
+
+Running /test-fips executable...
+
+wolfSSL FIPS v5.8.2 (Certificate #4718)
+Known Answer Tests (KAT):
+
+  SHA-256 KAT: PASS
+  SHA-384 KAT: PASS
+  SHA-512 KAT: PASS
+  AES-128-CBC KAT: PASS
+  AES-256-CBC KAT: PASS
+  AES-256-GCM KAT: PASS
+  HMAC-SHA256 KAT: PASS
+  HMAC-SHA384 KAT: PASS
+  RSA 2048 KAT: PASS
+  ECDSA P-256 KAT: PASS
+
+All FIPS KATs: PASSED
+
+================================================================================
+END OF DIAGNOSTIC RESULTS
+================================================================================
+

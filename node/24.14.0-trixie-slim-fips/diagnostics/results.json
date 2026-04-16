@@ -1,0 +1,53 @@
+{
+  "test_area": "5-library-compatibility",
+  "timestamp": "2026-04-16T04:51:54.271Z",
+  "container": "node:24.14.0-trixie-slim-fips",
+  "total_tests": 6,
+  "passed": 4,
+  "failed": 0,
+  "skipped": 2,
+  "tests": [
+    {
+      "id": "5.1",
+      "name": "Native HTTPS Module",
+      "status": "pass",
+      "duration_ms": 733,
+      "details": "HTTPS module works with FIPS (TLSv1.3, TLS_AES_256_GCM_SHA384)"
+    },
+    {
+      "id": "5.2",
+      "name": "Native Crypto Module",
+      "status": "pass",
+      "duration_ms": 0,
+      "details": "All 3 crypto operations successful"
+    },
+    {
+      "id": "5.3",
+      "name": "Axios Library Compatibility",
+      "status": "skip",
+      "duration_ms": 0,
+      "details": "axios not installed (optional)"
+    },
+    {
+      "id": "5.4",
+      "name": "Node-Fetch Library Compatibility",
+      "status": "skip",
+      "duration_ms": 0,
+      "details": "node-fetch not installed (optional)"
+    },
+    {
+      "id": "5.5",
+      "name": "TLS Module Compatibility",
+      "status": "pass",
+      "duration_ms": 0,
+      "details": "TLS module works with FIPS (TLSv1.3)"
+    },
+    {
+      "id": "5.6",
+      "name": "Buffer/Crypto Integration",
+      "status": "pass",
+      "duration_ms": 0,
+      "details": "All 3 buffer operations successful"
+    }
+  ]
+}
