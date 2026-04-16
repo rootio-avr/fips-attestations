@@ -399,8 +399,13 @@ ENV OPENSSL_MODULES=/usr/local/openssl/lib64/ossl-modules
 
 # Clone Gotenberg source and build with golang-fips/go
 # NOTE: git clone before ldconfig to avoid OpenSSL version conflicts
+
 RUN set -eux; \
-    git clone --depth 1 --branch "v${GOTENBERG_VERSION}" ${GOTENBERG_REPO} /gotenberg; \
+    git clone --depth 1 --branch "v${GOTENBERG_VERSION}" ${GOTENBERG_REPO} /gotenberg; 
+
+COPY go.mod /gotenberg/go.mod
+
+RUN set -eux; \   
     echo "/usr/local/openssl/lib64" > /etc/ld.so.conf.d/openssl.conf; \
     echo "/usr/local/lib" > /etc/ld.so.conf.d/wolfssl.conf; \
     ldconfig; \
@@ -424,6 +429,7 @@ RUN set -eux; \
     echo "Step 2: Building Gotenberg ${GOTENBERG_VERSION} with golang-fips/go (CGO enabled)..."; \
     echo "FIPS will be enforced at runtime via GOLANG_FIPS=1 + GODEBUG=fips140=only"; \
     CGO_ENABLED=1 \
+    go mod tidy \
     go build \
         -ldflags="-s -w -X 'github.com/gotenberg/gotenberg/v8/cmd.Version=${GOTENBERG_VERSION}'" \
         -o /usr/local/bin/gotenberg \
