@@ -7,6 +7,7 @@
 #
 # Build command:
 #   docker build --secret id=wolfssl_password,src=wolfssl_password.txt \
+#     --secret id=rootio_api_key,src=rootio_api_key.txt \
 #     -t cr.root.io/node:24.14.0-trixie-slim-fips \
 #     -f Dockerfile .
 #
@@ -225,6 +226,13 @@ RUN set -eux; \
 		dirmngr \
 	; \
 	rm -rf /var/lib/apt/lists/*
+
+# Install additional packages from Root.io repository
+COPY scripts/install-runtime-packages.sh /tmp/install-runtime-packages.sh
+RUN --mount=type=secret,id=rootio_api_key \
+	chmod +x /tmp/install-runtime-packages.sh && \
+	/tmp/install-runtime-packages.sh && \
+	rm /tmp/install-runtime-packages.sh
 
 # Copy FIPS components from builder
 COPY --from=builder /usr/local/openssl /usr/local/openssl

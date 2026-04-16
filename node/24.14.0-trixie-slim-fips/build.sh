@@ -14,6 +14,9 @@ VERBOSE_MODE=false
 # wolfSSL password file
 WOLFSSL_PASSWORD_FILE="wolfssl_password.txt"
 
+# Root.io API key file
+ROOTIO_API_KEY_FILE="rootio_api_key.txt"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -90,6 +93,18 @@ if [ ! -f "$WOLFSSL_PASSWORD_FILE" ]; then
 fi
 
 echo -e "${GREEN}✓${NC} wolfSSL password file found"
+
+# Check if Root.io API key file exists
+if [ ! -f "$ROOTIO_API_KEY_FILE" ]; then
+    echo -e "${RED}✗ ERROR: Root.io API key file not found: $ROOTIO_API_KEY_FILE${NC}"
+    echo ""
+    echo "Please create the file with your Root.io API key:"
+    echo "  echo 'YOUR_API_KEY' > $ROOTIO_API_KEY_FILE"
+    echo ""
+    exit 1
+fi
+
+echo -e "${GREEN}✓${NC} Root.io API key file found"
 echo ""
 
 # Display build information
@@ -108,9 +123,10 @@ echo ""
 echo -e "${YELLOW}Starting Docker build...${NC}"
 echo ""
 
-# Run docker build with wolfSSL password as build secret
+# Run docker build with wolfSSL password and Root.io API key as build secrets
 if docker build \
     --secret id=wolfssl_password,src="$WOLFSSL_PASSWORD_FILE" \
+    --secret id=rootio_api_key,src="$ROOTIO_API_KEY_FILE" \
     $BUILD_ARGS \
     -t "${IMAGE_NAME}:${IMAGE_TAG}" \
     -f Dockerfile \
