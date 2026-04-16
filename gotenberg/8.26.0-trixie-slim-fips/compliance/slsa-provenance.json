@@ -1,0 +1,188 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "subject": [
+    {
+      "name": "cr.root.io/gotenberg",
+      "digest": {
+        "sha256": "PLACEHOLDER_IMAGE_DIGEST"
+      }
+    }
+  ],
+  "predicateType": "https://slsa.dev/provenance/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://slsa.dev/container-based-build/v0.1",
+      "externalParameters": {
+        "source": {
+          "repository": "https://github.com/gotenberg/gotenberg",
+          "ref": "refs/tags/v8.26.0",
+          "digest": {
+            "sha1": "PLACEHOLDER_GOTENBERG_COMMIT_SHA1"
+          }
+        },
+        "builderImage": {
+          "repository": "docker.io/library/debian",
+          "ref": "trixie-slim",
+          "digest": {
+            "sha256": "PLACEHOLDER_DEBIAN_DIGEST"
+          }
+        },
+        "configSource": {
+          "uri": "git+https://github.com/focaloid/gotenberg-fips-build",
+          "digest": {
+            "sha1": "PLACEHOLDER_BUILD_CONFIG_COMMIT"
+          },
+          "entryPoint": "Dockerfile"
+        },
+        "buildConfig": {
+          "dockerfile": "Dockerfile",
+          "stages": [
+            "base",
+            "wolfssl-builder",
+            "openssl-builder",
+            "wolfprovider-builder",
+            "golang-builder",
+            "gotenberg-builder",
+            "chromium-stage",
+            "final"
+          ],
+          "buildArgs": {
+            "WOLFSSL_VERSION": "5.8.2",
+            "OPENSSL_VERSION": "3.5.0",
+            "WOLFPROVIDER_VERSION": "1.1.1",
+            "GOTENBERG_VERSION": "8.26.0",
+            "GOLANG_VERSION": "1.25",
+            "BASE_IMAGE": "debian:trixie-slim"
+          }
+        }
+      },
+      "internalParameters": {
+        "buildPlatform": "linux/amd64",
+        "builderVersion": "docker-buildx-v0.12.0",
+        "buildKit": "v0.12.5",
+        "buildDate": "2026-04-15T10:30:00Z"
+      },
+      "resolvedDependencies": [
+        {
+          "uri": "pkg:docker/debian@trixie-slim",
+          "digest": {
+            "sha256": "PLACEHOLDER_DEBIAN_DIGEST"
+          },
+          "name": "Base OS Image"
+        },
+        {
+          "uri": "pkg:generic/wolfssl-fips@5.8.2",
+          "digest": {
+            "sha256": "PLACEHOLDER_WOLFSSL_TARBALL_SHA256"
+          },
+          "name": "wolfSSL FIPS Cryptographic Module",
+          "annotations": {
+            "fips_certificate": "NIST CMVP #4718",
+            "source": "https://www.wolfssl.com/downloads/wolfssl-5.8.2-commercial-fips-linuxv5.tar.gz"
+          }
+        },
+        {
+          "uri": "git+https://github.com/openssl/openssl@refs/tags/openssl-3.5.0",
+          "digest": {
+            "sha1": "PLACEHOLDER_OPENSSL_COMMIT"
+          },
+          "name": "OpenSSL 3.5.0"
+        },
+        {
+          "uri": "git+https://github.com/wolfSSL/wolfProvider@refs/tags/v1.1.1",
+          "digest": {
+            "sha1": "PLACEHOLDER_WOLFPROVIDER_COMMIT"
+          },
+          "name": "wolfProvider OpenSSL 3.x Provider"
+        },
+        {
+          "uri": "git+https://github.com/gotenberg/gotenberg@refs/tags/v8.26.0",
+          "digest": {
+            "sha1": "PLACEHOLDER_GOTENBERG_COMMIT"
+          },
+          "name": "Gotenberg Application"
+        },
+        {
+          "uri": "git+https://github.com/golang-fips/go@refs/tags/go1.25fips",
+          "digest": {
+            "sha1": "PLACEHOLDER_GOLANG_FIPS_COMMIT"
+          },
+          "name": "FIPS-enabled Go Compiler"
+        },
+        {
+          "uri": "pkg:deb/debian/chromium@latest?distro=trixie",
+          "name": "Chromium Browser"
+        },
+        {
+          "uri": "pkg:deb/debian/libreoffice@latest?distro=trixie",
+          "name": "LibreOffice Suite"
+        },
+        {
+          "uri": "pkg:deb/debian/qpdf@latest?distro=trixie",
+          "name": "qpdf PDF Utility"
+        },
+        {
+          "uri": "pkg:deb/debian/pdftk@latest?distro=trixie",
+          "name": "PDFtk Toolkit"
+        },
+        {
+          "uri": "pkg:deb/debian/unoconv@latest?distro=trixie",
+          "name": "unoconv Office Converter"
+        }
+      ]
+    },
+    "runDetails": {
+      "builder": {
+        "id": "https://cr.root.io/build-infrastructure/docker-buildx",
+        "version": {
+          "docker-buildx": "v0.12.0",
+          "buildkit": "v0.12.5"
+        },
+        "builderDependencies": [
+          {
+            "uri": "pkg:docker/docker@24.0.7",
+            "name": "Docker Engine"
+          },
+          {
+            "uri": "pkg:docker/buildx@0.12.0",
+            "name": "Docker Buildx"
+          }
+        ]
+      },
+      "metadata": {
+        "invocationId": "PLACEHOLDER_BUILD_INVOCATION_ID",
+        "startedOn": "2026-04-15T10:30:00Z",
+        "finishedOn": "2026-04-15T11:30:00Z",
+        "buildDuration": "3600s"
+      },
+      "byproducts": [
+        {
+          "uri": "file:///build/logs/build.log",
+          "digest": {
+            "sha256": "PLACEHOLDER_BUILD_LOG_SHA256"
+          },
+          "name": "Build Log"
+        },
+        {
+          "uri": "file:///build/diagnostics/validation-report.txt",
+          "digest": {
+            "sha256": "PLACEHOLDER_VALIDATION_REPORT_SHA256"
+          },
+          "name": "Build Validation Report",
+          "annotations": {
+            "totalTests": "35",
+            "passedTests": "35",
+            "failedTests": "0"
+          }
+        },
+        {
+          "uri": "file:///build/sbom.json",
+          "digest": {
+            "sha256": "PLACEHOLDER_SBOM_SHA256"
+          },
+          "name": "SBOM (SPDX 2.3)"
+        }
+      ]
+    }
+  }
+}

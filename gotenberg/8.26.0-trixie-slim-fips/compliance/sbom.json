@@ -1,0 +1,435 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "Gotenberg 8.26.0 Debian Trixie FIPS Image SBOM",
+  "documentNamespace": "https://cr.root.io/gotenberg/8.26.0-trixie-slim-fips/sbom-2026-04-16",
+  "creationInfo": {
+    "created": "2026-04-16T00:00:00Z",
+    "creators": [
+      "Tool: manual",
+      "Organization: Root FIPS Team"
+    ],
+    "licenseListVersion": "3.21"
+  },
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-Package-Container",
+      "name": "gotenberg-fips-image",
+      "versionInfo": "8.26.0-trixie-slim-fips",
+      "supplier": "Organization: Root FIPS Team",
+      "downloadLocation": "https://cr.root.io/gotenberg:8.26.0-trixie-slim-fips",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "copyrightText": "NOASSERTION",
+      "description": "FIPS 140-3 compliant Gotenberg PDF generation service container image"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-Debian-Base",
+      "name": "debian",
+      "versionInfo": "trixie-slim",
+      "supplier": "Organization: Debian",
+      "downloadLocation": "https://hub.docker.com/_/debian",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "copyrightText": "NOASSERTION",
+      "description": "Debian GNU/Linux Trixie (testing) base image",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:docker/debian@trixie-slim"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-wolfSSL-FIPS",
+      "name": "wolfssl-fips",
+      "versionInfo": "5.8.2",
+      "supplier": "Organization: wolfSSL Inc.",
+      "downloadLocation": "https://www.wolfssl.com/downloads/wolfssl-5.8.2-commercial-fips-linuxv5.tar.gz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "GPL-2.0-or-later OR LicenseRef-Commercial",
+      "licenseDeclared": "GPL-2.0-or-later OR LicenseRef-Commercial",
+      "copyrightText": "Copyright (c) 2006-2024 wolfSSL Inc.",
+      "description": "wolfSSL FIPS 140-3 validated cryptographic module (CMVP Certificate #4718)",
+      "externalRefs": [
+        {
+          "referenceCategory": "SECURITY",
+          "referenceType": "certification",
+          "referenceLocator": "https://csrc.nist.gov/projects/cryptographic-module-validation-program/certificate/4718"
+        },
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:generic/wolfssl-fips@5.8.2"
+        }
+      ],
+      "annotations": [
+        {
+          "annotator": "Organization: Root FIPS Team",
+          "annotationDate": "2026-04-16T00:00:00Z",
+          "annotationType": "REVIEW",
+          "comment": "FIPS 140-3 validated cryptographic module - NIST CMVP Certificate #4718"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-OpenSSL",
+      "name": "openssl",
+      "versionInfo": "3.5.0",
+      "supplier": "Organization: OpenSSL Software Foundation",
+      "downloadLocation": "https://github.com/openssl/openssl/archive/refs/tags/openssl-3.5.0.tar.gz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "copyrightText": "Copyright (c) 1998-2024 The OpenSSL Project",
+      "description": "OpenSSL 3.5.0 TLS/SSL and crypto library with provider architecture",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:github/openssl/openssl@openssl-3.5.0"
+        }
+      ],
+      "sourceInfo": "Built from source: git tag openssl-3.5.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-wolfProvider",
+      "name": "wolfprovider",
+      "versionInfo": "1.1.0",
+      "supplier": "Organization: wolfSSL Inc.",
+      "downloadLocation": "https://github.com/wolfSSL/wolfProvider/archive/refs/tags/v1.1.0.tar.gz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "GPL-3.0-only",
+      "licenseDeclared": "GPL-3.0-only",
+      "copyrightText": "Copyright (c) 2021-2024 wolfSSL Inc.",
+      "description": "OpenSSL 3.x provider implementation for wolfSSL FIPS",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:github/wolfSSL/wolfProvider@v1.1.0"
+        }
+      ],
+      "sourceInfo": "Built from source: git tag v1.1.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-Gotenberg",
+      "name": "gotenberg",
+      "versionInfo": "8.26.0",
+      "supplier": "Organization: Gotenberg",
+      "downloadLocation": "https://github.com/gotenberg/gotenberg/archive/refs/tags/v8.26.0.tar.gz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "Copyright (c) 2021-2024 Gotenberg",
+      "description": "Gotenberg PDF generation API service",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:github/gotenberg/gotenberg@v8.26.0"
+        }
+      ],
+      "sourceInfo": "Built from source: git tag v8.26.0 using golang-fips compiler"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-Golang-FIPS",
+      "name": "golang-fips",
+      "versionInfo": "1.25",
+      "supplier": "Organization: Red Hat / golang-fips",
+      "downloadLocation": "https://github.com/golang-fips/go/archive/refs/tags/go1.25fips.tar.gz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "BSD-3-Clause",
+      "licenseDeclared": "BSD-3-Clause",
+      "copyrightText": "Copyright (c) 2009 The Go Authors",
+      "description": "FIPS-enabled Go compiler with OpenSSL cryptographic backend",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:github/golang-fips/go@go1.25fips"
+        }
+      ],
+      "sourceInfo": "Built from source: git tag go1.25fips",
+      "annotations": [
+        {
+          "annotator": "Organization: Root FIPS Team",
+          "annotationDate": "2026-04-16T00:00:00Z",
+          "annotationType": "REVIEW",
+          "comment": "FIPS-enabled Go compiler - crypto operations route through OpenSSL"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-Chromium",
+      "name": "chromium",
+      "versionInfo": "latest-trixie",
+      "supplier": "Organization: Chromium Project / Debian",
+      "downloadLocation": "https://packages.debian.org/trixie/chromium",
+      "filesAnalyzed": false,
+      "licenseConcluded": "BSD-3-Clause AND LGPL-2.1-or-later AND Apache-2.0 AND MPL-2.0 AND MIT",
+      "licenseDeclared": "NOASSERTION",
+      "copyrightText": "Copyright (c) The Chromium Authors",
+      "description": "Chromium web browser for HTML to PDF rendering",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:deb/debian/chromium@latest?distro=trixie"
+        }
+      ],
+      "sourceInfo": "Installed from Debian Trixie repository"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-LibreOffice",
+      "name": "libreoffice",
+      "versionInfo": "latest-trixie",
+      "supplier": "Organization: The Document Foundation / Debian",
+      "downloadLocation": "https://packages.debian.org/trixie/libreoffice",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MPL-2.0",
+      "licenseDeclared": "MPL-2.0",
+      "copyrightText": "Copyright (c) The Document Foundation",
+      "description": "LibreOffice office suite for office document to PDF conversion",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:deb/debian/libreoffice@latest?distro=trixie"
+        }
+      ],
+      "sourceInfo": "Installed from Debian Trixie repository"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-qpdf",
+      "name": "qpdf",
+      "versionInfo": "latest-trixie",
+      "supplier": "Organization: qpdf / Debian",
+      "downloadLocation": "https://packages.debian.org/trixie/qpdf",
+      "filesAnalyzed": false,
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "copyrightText": "NOASSERTION",
+      "description": "PDF transformation utility",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:deb/debian/qpdf@latest?distro=trixie"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-pdftk",
+      "name": "pdftk",
+      "versionInfo": "latest-trixie",
+      "supplier": "Organization: PDFtk / Debian",
+      "downloadLocation": "https://packages.debian.org/trixie/pdftk",
+      "filesAnalyzed": false,
+      "licenseConcluded": "GPL-2.0-or-later",
+      "licenseDeclared": "GPL-2.0-or-later",
+      "copyrightText": "NOASSERTION",
+      "description": "PDF toolkit for manipulating PDF documents",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:deb/debian/pdftk@latest?distro=trixie"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-pdfcpu",
+      "name": "pdfcpu",
+      "versionInfo": "latest",
+      "supplier": "Organization: pdfcpu",
+      "downloadLocation": "https://github.com/pdfcpu/pdfcpu",
+      "filesAnalyzed": false,
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "copyrightText": "Copyright (c) pdfcpu authors",
+      "description": "PDF processor written in Go",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:golang/github.com/pdfcpu/pdfcpu@latest"
+        }
+      ],
+      "sourceInfo": "Compiled as part of Gotenberg build (Go dependency)"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-unoconv",
+      "name": "unoconv",
+      "versionInfo": "latest-trixie",
+      "supplier": "Organization: unoconv / Debian",
+      "downloadLocation": "https://packages.debian.org/trixie/unoconv",
+      "filesAnalyzed": false,
+      "licenseConcluded": "GPL-2.0-only",
+      "licenseDeclared": "GPL-2.0-only",
+      "copyrightText": "NOASSERTION",
+      "description": "Universal Office Converter - command line interface to LibreOffice",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:deb/debian/unoconv@latest?distro=trixie"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-Package-Container"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Container",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-Debian-Base"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Container",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-wolfSSL-FIPS"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Container",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-OpenSSL"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Container",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-wolfProvider"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Container",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-Gotenberg"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Container",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-Golang-FIPS"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Container",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-Chromium"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Container",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-LibreOffice"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Container",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-qpdf"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Container",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-pdftk"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Container",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-pdfcpu"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Container",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-unoconv"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Gotenberg",
+      "relationshipType": "BUILD_TOOL_OF",
+      "relatedSpdxElement": "SPDXRef-Package-Golang-FIPS"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Gotenberg",
+      "relationshipType": "RUNTIME_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-OpenSSL"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Gotenberg",
+      "relationshipType": "RUNTIME_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-Chromium"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Gotenberg",
+      "relationshipType": "RUNTIME_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-LibreOffice"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-OpenSSL",
+      "relationshipType": "RUNTIME_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-wolfProvider"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-wolfProvider",
+      "relationshipType": "RUNTIME_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-wolfSSL-FIPS"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Chromium",
+      "relationshipType": "RUNTIME_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-OpenSSL"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-LibreOffice",
+      "relationshipType": "RUNTIME_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-OpenSSL"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Gotenberg",
+      "relationshipType": "OPTIONAL_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-qpdf"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Gotenberg",
+      "relationshipType": "OPTIONAL_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-pdftk"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Gotenberg",
+      "relationshipType": "OPTIONAL_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-pdfcpu"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-LibreOffice",
+      "relationshipType": "RUNTIME_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-unoconv"
+    }
+  ],
+  "annotations": [
+    {
+      "annotator": "Organization: Root FIPS Team",
+      "annotationDate": "2026-04-16T00:00:00Z",
+      "annotationType": "REVIEW",
+      "annotationRef": "SPDXRef-Package-Container",
+      "comment": "FIPS 140-3 compliant container image using wolfSSL FIPS v5.8.2 (NIST CMVP Certificate #4718). All cryptographic operations route through validated FIPS module. Validated with 60/60 tests passing (100% pass rate)."
+    },
+    {
+      "annotator": "Organization: Root FIPS Team",
+      "annotationDate": "2026-04-16T00:00:00Z",
+      "annotationType": "REVIEW",
+      "annotationRef": "SPDXRef-Package-OpenSSL",
+      "comment": "Custom build of OpenSSL 3.0.19 required due to Debian Trixie having OpenSSL 3.2.0+ which is incompatible with curl in the distribution. Provider architecture enables wolfSSL FIPS integration."
+    },
+    {
+      "annotator": "Organization: Root FIPS Team",
+      "annotationDate": "2026-04-16T00:00:00Z",
+      "annotationType": "REVIEW",
+      "annotationRef": "SPDXRef-Package-Gotenberg",
+      "comment": "Zero patches required for FIPS compliance - native OpenSSL integration. Clean architecture advantage over applications requiring source modifications."
+    }
+  ]
+}

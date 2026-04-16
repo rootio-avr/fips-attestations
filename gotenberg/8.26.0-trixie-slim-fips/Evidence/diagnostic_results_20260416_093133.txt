@@ -1,0 +1,168 @@
+================================================================================
+Gotenberg FIPS - Diagnostic Test Results
+================================================================================
+
+Image: cr.root.io/gotenberg:8.26.0-trixie-slim-fips
+Date: 2026-04-16 09:31:33
+
+================================================================================
+
+================================================================================
+Backend Verification Tests
+================================================================================
+
+[1/6] OpenSSL version verification...
+✓ PASS: OpenSSL 3.5.x is installed
+
+[2/6] wolfProvider loading verification...
+✓ PASS: wolfProvider is loaded
+
+[3/6] wolfSSL FIPS library availability...
+✓ PASS: wolfSSL FIPS library is available
+
+[4/6] CGO_ENABLED environment variable...
+✓ PASS: CGO_ENABLED=1
+
+[5/6] OpenSSL configuration file...
+✓ PASS: OpenSSL configuration file contains wolfProvider settings
+
+[6/6] Provider status and activation...
+✓ PASS: wolfProvider is active
+
+--------------------------------------------------------------------------------
+Backend Verification: 6/ tests passed
+--------------------------------------------------------------------------------
+================================================================================
+Connectivity Tests
+================================================================================
+
+[1/8] HTTPS connectivity to example.com...
+✓ PASS: HTTPS connectivity successful
+
+[2/8] TLS 1.2 protocol support...
+✓ PASS: TLS 1.2 is supported
+
+[3/8] TLS 1.3 protocol support...
+✓ PASS: TLS 1.3 is supported
+
+[4/8] FIPS cipher suite usage...
+Ciphersuite: TLS_AES_256_GCM_SHA384
+✓ PASS: FIPS-approved cipher suite in use
+
+[5/8] Certificate verification...
+✓ PASS: Certificate verification functional
+
+[6/8] TLS handshake with FIPS ciphers...
+✓ PASS: TLS handshake with FIPS ciphers successful
+
+[7/8] Non-FIPS cipher rejection...
+✓ PASS: Non-FIPS cipher (RC4) is rejected
+
+[8/8] System OpenSSL TLS connectivity...
+✓ PASS: System OpenSSL TLS connectivity functional
+
+--------------------------------------------------------------------------------
+Connectivity Tests: 8/8 tests passed
+--------------------------------------------------------------------------------
+================================================================================
+FIPS Verification Tests
+================================================================================
+
+[1/7] GODEBUG=fips140=only environment variable...
+✓ PASS: GODEBUG=fips140=only
+
+[2/7] GOEXPERIMENT=strictfipsruntime environment variable...
+✓ PASS: GOEXPERIMENT not set (FIPS enforced via GODEBUG)
+
+[3/7] GOLANG_FIPS=1 environment variable...
+✓ PASS: GOLANG_FIPS=1
+
+[4/7] OpenSSL FIPS mode (default_properties = fips=yes)...
+✓ PASS: OpenSSL FIPS mode enabled in configuration
+
+[5/7] MD5 algorithm blocking...
+✓ PASS: MD5 is blocked
+
+[6/7] SHA-1 restriction (available for hashing only)...
+✓ PASS: SHA-1 available for hashing (FIPS 140-3 IG D.F compliant)
+
+[7/7] FIPS-approved algorithms (SHA-256, AES-GCM)...
+✓ PASS: FIPS-approved algorithms (SHA-256, AES-GCM) are available
+
+--------------------------------------------------------------------------------
+FIPS Verification Tests: 7/7 tests passed
+--------------------------------------------------------------------------------
+================================================================================
+Crypto Operations Tests
+================================================================================
+
+[1/8] SHA-256 hashing...
+✓ PASS: SHA-256 hashing successful
+
+[2/8] SHA-384 hashing...
+✓ PASS: SHA-384 hashing successful
+
+[3/8] SHA-512 hashing...
+✓ PASS: SHA-512 hashing successful
+
+[4/8] AES-128-CBC encryption/decryption...
+✓ PASS: AES-128-CBC encryption/decryption successful
+
+[5/8] AES-256-GCM cipher availability...
+✓ PASS: AES-256-GCM cipher is available
+
+[6/8] RSA key generation (2048-bit)...
+✓ PASS: RSA-2048 key generation successful
+
+[7/8] ECDSA key generation (P-256)...
+✓ PASS: ECDSA P-256 key generation successful
+
+[8/8] HMAC-SHA256 operation...
+✓ PASS: HMAC-SHA256 operation successful
+
+--------------------------------------------------------------------------------
+Crypto Operations Tests: 8/8 tests passed
+--------------------------------------------------------------------------------
+================================================================================
+Gotenberg API Tests
+================================================================================
+
+[1/6] Gotenberg service startup...
+✓ PASS: Gotenberg binary is available
+
+[2/6] Health endpoint check (requires running service)...
+Container started: ea203c114bbb
+✓ PASS: Health endpoint is accessible
+
+[3/6] Version endpoint check...
+✓ PASS: Gotenberg version 8.26.0 is installed
+
+[4/6] Chromium availability (HTML → PDF)...
+✓ PASS: Chromium browser is available
+
+[5/6] LibreOffice availability (Office docs → PDF)...
+✓ PASS: LibreOffice is available
+
+[6/6] pdfcpu availability (PDF manipulation)...
+✓ PASS: pdfcpu is available
+
+--------------------------------------------------------------------------------
+Gotenberg API Tests: 6/6 tests passed
+--------------------------------------------------------------------------------
+
+Note: Full PDF conversion testing (HTML/Office → PDF) requires:
+  1. Running Gotenberg service: docker run -p 3000:3000 cr.root.io/gotenberg:8.26.0-trixie-slim-fips
+  2. Sending conversion requests via HTTP API
+  3. Refer to POC-VALIDATION-REPORT.md for comprehensive API testing
+
+================================================================================
+Test Summary
+================================================================================
+
+Total tests: 35
+Passed: 35
+Failed: 0
+
+Overall Status: ✓ ALL TESTS PASSED
+
+================================================================================
