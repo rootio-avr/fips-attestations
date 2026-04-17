@@ -410,8 +410,13 @@ ENV CGO_ENABLED=1
 # Clone and build Podman
 RUN set -eux; \
     git clone --branch ${PODMAN_VERSION} --depth 1 \
-        https://github.com/containers/podman.git /tmp/podman; \
+        https://github.com/containers/podman.git /tmp/podman; 
+
+COPY go.mod /tmp/podman/go.mod
+
+RUN set -eux; \
     cd /tmp/podman; \
+    go mod tidy; \
     CGO_CFLAGS="-I${OPENSSL_PREFIX}/include -I${WOLFSSL_PREFIX}/include" \
     CGO_LDFLAGS="-L${OPENSSL_PREFIX}/lib64 -L${WOLFSSL_PREFIX}/lib" \
     make BUILDTAGS="seccomp systemd" -j"$(nproc)"; \
