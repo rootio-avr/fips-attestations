@@ -417,6 +417,7 @@ COPY go.mod /tmp/podman/go.mod
 RUN set -eux; \
     cd /tmp/podman; \
     go mod tidy; \
+    go mod vendor; \
     CGO_CFLAGS="-I${OPENSSL_PREFIX}/include -I${WOLFSSL_PREFIX}/include" \
     CGO_LDFLAGS="-L${OPENSSL_PREFIX}/lib64 -L${WOLFSSL_PREFIX}/lib" \
     make BUILDTAGS="seccomp systemd" -j"$(nproc)"; \
