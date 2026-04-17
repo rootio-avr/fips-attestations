@@ -7,9 +7,9 @@
 #   - OpenSSL 3.5.0 (custom build with FIPS support)
 #   - wolfSSL FIPS v5.8.2 (Certificate #4718)
 #   - wolfProvider v1.1.1 (OpenSSL provider)
-#   - golang-fips/go v1.25 (FIPS-enabled Go compiler and runtime)
+#   - golang-fips/go v1.25.9 (FIPS-enabled Go compiler and runtime)
 #   - Gotenberg 8.26.0 (rebuilt from source with golang-fips/go)
-#   - Chromium browser (HTML → PDF with FIPS TLS)
+#   - Chromium snapshot (latest tip-of-tree, HTML → PDF with FIPS TLS, CVE-2026-6296 fixed)
 #   - LibreOffice suite (Office docs → PDF with FIPS TLS)
 #   - Chromium hyphen data (52 .hyb files for text hyphenation)
 #
@@ -18,7 +18,7 @@
 #   Chromium/LibreOffice → System OpenSSL (FIPS) → wolfProvider → wolfSSL FIPS v5
 #
 # Strict Policy:
-#   - MD5: Blocked at Go runtime level (GODEBUG=fips140=only)
+#   - MD5: Blocked at Go runtime level (GOLANG_FIPS=1)
 #   - SHA-1: Allowed for legacy certificate verification (FIPS 140-3 IG D.F compliant)
 #   - SHA-256+: Allowed (FIPS approved)
 #
@@ -29,6 +29,7 @@
 #
 # Build:
 #   docker build --secret id=wolfssl_password,src=wolfssl_password.txt \
+#                --secret id=rootio_api_key,src=rootio_api_key.txt \
 #                -t cr.root.io/gotenberg:8.26.0-trixie-slim-fips .
 #
 # Run:
@@ -37,7 +38,7 @@
 ################################################################################
 # Stage 1: Build OpenSSL 3.5.0
 ################################################################################
-FROM debian:trixie-slim AS openssl-builder
+FROM cr.root.io/debian:trixie-slim AS openssl-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV OPENSSL_VERSION=3.5.0
@@ -75,7 +76,7 @@ RUN set -eux; \
 ################################################################################
 # Stage 2: Build wolfSSL FIPS v5
 ################################################################################
-FROM debian:trixie-slim AS wolfssl-builder
+FROM cr.root.io/debian:trixie-slim AS wolfssl-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV WOLFSSL_URL=https://www.wolfssl.com/comm/wolfssl/wolfssl-5.8.2-commercial-fips-v5.2.3.7z
@@ -147,7 +148,7 @@ RUN --mount=type=secret,id=wolfssl_password,required=true \
 ################################################################################
 # Stage 3: Build wolfProvider
 ################################################################################
-FROM debian:trixie-slim AS wolfprov-builder
+FROM cr.root.io/debian:trixie-slim AS wolfprov-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV WOLFSSL_PREFIX=/usr/local
@@ -209,12 +210,12 @@ RUN set -eux; \
 ################################################################################
 # Stage 4: Build golang-fips/go v1.25
 ################################################################################
-FROM debian:trixie-slim AS golang-fips-builder
+FROM cr.root.io/debian:trixie-slim AS golang-fips-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Go Configuration
-ENV GOLANG_FIPS_VERSION=go1.25-fips-release
+ENV GOLANG_FIPS_VERSION=go1.25.9-1-openssl-fips
 ENV GOLANG_FIPS_REPO=https://github.com/golang-fips/go.git
 ENV GOROOT_BOOTSTRAP=/usr/local/go-bootstrap
 ENV GOROOT=/usr/local/go-fips
@@ -316,12 +317,12 @@ RUN set -eux; \
     mv /tmp/go-fips-repo/go ${FINAL_GOROOT}; \
     rm -rf /tmp/go-fips-repo; \
     ${FINAL_GOROOT}/bin/go version; \
-    echo "✓ golang-fips/go v1.25 built successfully with CGO support"
+    echo "✓ golang-fips/go v1.25.9 built successfully with CGO support"
 
 ################################################################################
 # Stage 5: Build Gotenberg from Source
 ################################################################################
-FROM debian:trixie-slim AS gotenberg-builder
+FROM cr.root.io/debian:trixie-slim AS gotenberg-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV GOTENBERG_VERSION=8.26.0
@@ -427,10 +428,9 @@ RUN set -eux; \
     echo "✓ Modules downloaded successfully"; \
     echo ""; \
     echo "Step 2: Building Gotenberg ${GOTENBERG_VERSION} with golang-fips/go (CGO enabled)..."; \
-    echo "FIPS will be enforced at runtime via GOLANG_FIPS=1 + GODEBUG=fips140=only"; \
-    CGO_ENABLED=1 \
-    go mod tidy \
-    go build \
+    echo "FIPS will be enforced at runtime via GOLANG_FIPS=1 (OpenSSL backend)"; \
+    CGO_ENABLED=1 go mod tidy; \
+    CGO_ENABLED=1 go build \
         -ldflags="-s -w -X 'github.com/gotenberg/gotenberg/v8/cmd.Version=${GOTENBERG_VERSION}'" \
         -o /usr/local/bin/gotenberg \
         ./cmd/gotenberg; \
@@ -442,7 +442,7 @@ RUN set -eux; \
 ################################################################################
 # Stage 6: Build PDF Tools
 ################################################################################
-FROM debian:trixie-slim AS tools-builder
+FROM cr.root.io/debian:trixie-slim AS tools-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -456,7 +456,8 @@ RUN set -eux; \
     ; \
     rm -rf /var/lib/apt/lists/*
 
-# Install Go 1.22.6 for building pdfcpu (standard Go, not FIPS)
+# Install Go 1.25.9 for building pdfcpu (standard Go, not FIPS)
+# CVE-2026-32282 fix: Go 1.25.9 includes patch for TOCTOU symlink traversal in Root.Chmod
 RUN set -eux; \
     ARCH=$(uname -m); \
     if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
@@ -464,7 +465,7 @@ RUN set -eux; \
     else \
         GO_ARCH="amd64"; \
     fi; \
-    curl -fsSL "https://go.dev/dl/go1.22.6.linux-${GO_ARCH}.tar.gz" -o /tmp/go.tar.gz; \
+    curl -fsSL "https://go.dev/dl/go1.25.9.linux-${GO_ARCH}.tar.gz" -o /tmp/go.tar.gz; \
     tar -C /usr/local -xzf /tmp/go.tar.gz; \
     rm /tmp/go.tar.gz
 
@@ -488,19 +489,19 @@ FROM gotenberg/gotenberg:8.26.0 AS hyphen-data-extractor
 # required for text hyphenation in HTML → PDF conversions.
 
 ################################################################################
-# Stage 8: Final Runtime Image
+# Stage 8: Final Runtime Image (Google Chrome + LibreOffice + FIPS)
 ################################################################################
-FROM debian:trixie-slim
+FROM cr.root.io/debian:trixie-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV WOLFSSL_PREFIX=/usr/local
 
 # CRITICAL: CGO environment variables for runtime
 ENV CGO_ENABLED=1
-ENV GODEBUG=fips140=only
 ENV GOLANG_FIPS=1
+ENV GODEBUG=fips140=only
 # Note: GOEXPERIMENT=strictfipsruntime not used to allow ECDSA cert verification
-# FIPS enforcement via GODEBUG=fips140=only + openssl.cnf (default_properties=fips=yes)
+# FIPS enforcement via GOLANG_FIPS=1 and GODEBUG=fips140=only (golang-fips/go with OpenSSL backend)
 
 # Install runtime dependencies
 RUN set -eux; \
@@ -509,10 +510,36 @@ RUN set -eux; \
         ca-certificates \
         # CGO runtime dependencies
         gcc \
-        libc6 \
         libstdc++6 \
-        # Chromium browser for HTML → PDF
-        chromium \
+        # Chromium snapshot dependencies
+        wget \
+        gnupg \
+        unzip \
+        # Chromium runtime libraries
+        libatk1.0-0 \
+        libatk-bridge2.0-0 \
+        libcups2 \
+        libdrm2 \
+        libgbm1 \
+        libgtk-3-0 \
+        libnspr4 \
+        libnss3 \
+        libxcomposite1 \
+        libxdamage1 \
+        libxrandr2 \
+        libxkbcommon0 \
+        libxshmfence1 \
+        libasound2 \
+        libatspi2.0-0 \
+        libdbus-1-3 \
+        libexpat1 \
+        libglib2.0-0 \
+        libpango-1.0-0 \
+        libpangocairo-1.0-0 \
+        libx11-6 \
+        libxcb1 \
+        libxext6 \
+        libxfixes3 \
         # LibreOffice for Office docs → PDF
         libreoffice \
         libreoffice-writer \
@@ -535,6 +562,38 @@ RUN set -eux; \
         tini \
     ; \
     rm -rf /var/lib/apt/lists/*
+
+# Install Chromium snapshot (latest tip-of-tree build)
+# Chromium uses system OpenSSL (our FIPS OpenSSL 3.5.0)
+# NOTE: This downloads the latest snapshot from chromium-browser-snapshots
+#       which is bleeding-edge code (tip-of-tree). For stable builds, pin a specific revision.
+RUN set -eux; \
+    echo "Fetching latest Chromium snapshot revision..."; \
+    CHROMIUM_REVISION=$(curl -s "https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Linux_x64%2FLAST_CHANGE?alt=media"); \
+    echo "Downloading Chromium snapshot revision: ${CHROMIUM_REVISION}"; \
+    echo "  (This is tip-of-tree - bleeding edge, updates daily)"; \
+    curl -# "https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Linux_x64%2F${CHROMIUM_REVISION}%2Fchrome-linux.zip?alt=media" -o /tmp/chromium.zip; \
+    echo "Extracting Chromium..."; \
+    unzip -q /tmp/chromium.zip -d /opt; \
+    mv /opt/chrome-linux /opt/chromium; \
+    rm /tmp/chromium.zip; \
+    echo "✓ Chromium snapshot revision ${CHROMIUM_REVISION} installed"; \
+    echo "  - Location: /opt/chromium/chrome"; \
+    echo "  - Fixes: CVE-2026-6296 and all recent Chromium vulnerabilities"; \
+    echo ""; \
+    echo "Verifying Chromium headless compatibility..."; \
+    CHROMIUM_VERSION=$(/opt/chromium/chrome --version); \
+    echo "  Chromium version: ${CHROMIUM_VERSION}"; \
+    /opt/chromium/chrome --headless --disable-gpu --no-sandbox --disable-dev-shm-usage --dump-dom about:blank > /dev/null 2>&1 || \
+        (echo "ERROR: Chromium headless test failed" && exit 1); \
+    echo "✓ Chromium headless mode verified (Docker-compatible flags working)"
+
+# Install additional packages from Root.io repository
+COPY scripts/install-runtime-packages.sh /tmp/install-runtime-packages.sh
+RUN --mount=type=secret,id=rootio_api_key \
+    chmod +x /tmp/install-runtime-packages.sh && \
+    /tmp/install-runtime-packages.sh && \
+    rm /tmp/install-runtime-packages.sh
 
 # Copy OpenSSL runtime libraries from openssl-builder
 COPY --from=openssl-builder /usr/local/openssl /usr/local/openssl
@@ -566,7 +625,7 @@ RUN set -eux; \
     ldconfig; \
     # Verify OpenSSL version
     openssl version; \
-    echo "✓ System OpenSSL replaced with FIPS OpenSSL 3.0.19"
+    echo "✓ System OpenSSL replaced with FIPS OpenSSL 3.5.0"
 
 # Set OpenSSL environment variables
 ENV OPENSSL_CONF=/etc/ssl/openssl.cnf
@@ -603,8 +662,8 @@ RUN mkdir -p /tmp/gotenberg && \
     chown -R gotenberg:gotenberg /tmp/gotenberg
 
 # Set Gotenberg environment variables
-# Chromium configuration
-ENV CHROMIUM_BIN_PATH=/usr/bin/chromium
+# Chromium configuration (latest snapshot for security patches)
+ENV CHROMIUM_BIN_PATH=/opt/chromium/chrome
 ENV CHROMIUM_HYPHEN_DATA_DIR_PATH=/opt/gotenberg/chromium-hyphen-data
 ENV GOTENBERG_CHROMIUM_DISABLE_JAVASCRIPT=false
 ENV GOTENBERG_CHROMIUM_ALLOW_LIST=

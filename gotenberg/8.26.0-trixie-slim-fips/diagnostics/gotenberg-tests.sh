@@ -109,13 +109,16 @@ echo ""
 ################################################################################
 echo "[4/6] Chromium availability (HTML → PDF)..."
 
-CHROMIUM_CHECK=$(docker run --rm --entrypoint "" "${IMAGE_NAME}" sh -c "which chromium || which chromium-browser" 2>&1)
+CHROMIUM_CHECK=$(docker run --rm --entrypoint "" "${IMAGE_NAME}" sh -c "test -f /opt/chromium/chrome && echo /opt/chromium/chrome" 2>&1)
 
 if [ -n "${CHROMIUM_CHECK}" ]; then
-    echo "✓ PASS: Chromium browser is available"
+    # Verify Chromium version
+    CHROMIUM_VERSION=$(docker run --rm --entrypoint "" "${IMAGE_NAME}" /opt/chromium/chrome --version 2>&1 || true)
+    echo "✓ PASS: Chromium browser is available (${CHROMIUM_VERSION})"
+    echo "  Location: /opt/chromium/chrome"
     PASSED=$((PASSED + 1))
 else
-    echo "✗ FAIL: Chromium browser not found"
+    echo "✗ FAIL: Chromium browser not found at /opt/chromium/chrome"
     FAILED=$((FAILED + 1))
 fi
 
