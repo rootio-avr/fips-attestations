@@ -14,7 +14,7 @@
 
 ## Overview
 
-This document describes the technical architecture of the Fedora 44 FIPS minimal base image, focusing on how FIPS 140-3 compliance is achieved using Fedora's native crypto-policies framework and the Red Hat Enterprise Linux OpenSSL FIPS Provider.
+This document describes the technical architecture of the Fedora 44 FIPS minimal base image, focusing on how FIPS 140-3 compliance is achieved using wolfSSL FIPS v5.8.2 (Certificate #4718) via wolfProvider v1.1.1, with Fedora's crypto-policies framework providing system-wide policy enforcement.
 
 ### High-Level Architecture
 
@@ -31,7 +31,7 @@ This document describes the technical architecture of the Fedora 44 FIPS minimal
            │                   │                   │
            ▼                   ▼                   ▼
 ┌──────────────────────────────────────────────────────────────────┐
-│               OpenSSL 3.5.5 EVP API Layer                       │
+│               OpenSSL 3.5.0 EVP API Layer                        │
 │  ┌────────────────────────────────────────────────────────────┐  │
 │  │  EVP_DigestInit(), EVP_CipherInit(), SSL_connect(), etc.   │  │
 │  └────────────────────┬───────────────────────────────────────┘  │
@@ -49,11 +49,20 @@ This document describes the technical architecture of the Fedora 44 FIPS minimal
                         │
                         ▼
 ┌──────────────────────────────────────────────────────────────────┐
-│         Red Hat Enterprise Linux OpenSSL FIPS Provider           │
+│              wolfProvider v1.1.1 (OpenSSL 3.x Provider)          │
+│         Bridges OpenSSL 3.x API to wolfSSL FIPS Module           │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │  OpenSSL 3.x provider interface → wolfSSL FIPS functions  │  │
+│  └────────────────────┬───────────────────────────────────────┘  │
+└───────────────────────┼──────────────────────────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────────────────────────┐
+│         wolfSSL FIPS v5.8.2 (Certificate #4718)                  │
 │              FIPS 140-3 Validated Crypto Module                  │
 │  ┌────────────────────────────────────────────────────────────┐  │
 │  │  AES, SHA-256, HMAC, RSA, ECDSA, DRBG (all FIPS-approved) │  │
-│  │  Loaded via OpenSSL provider architecture                 │  │
+│  │  FIPS 140-3 Certificate #4718                             │  │
 │  └────────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────────┘
                         │
@@ -72,11 +81,11 @@ The system is organized into distinct layers, each with specific responsibilitie
 
 #### 1. Base Operating System (Fedora 44 Minimal)
 
-- **Purpose:** Minimal base image for FIPS-compliant applications
+- **Purpose:** Minimal base image for FIPS-compliant applications + Podman for CI/CD
 - **Distribution:** Fedora 44 (released April 2025)
 - **Package Manager:** DNF (Dandified YUM)
 - **Base Size:** ~170 MB (minimal installation)
-- **Final Size:** ~317 MB (with FIPS components)
+- **Final Size:** ~700 MB (with FIPS components + Podman 5.8.1)
 
 **Key Characteristics:**
 - Minimal package set (only essentials)
@@ -108,35 +117,44 @@ The system is organized into distinct layers, each with specific responsibilitie
 - Consistent security posture
 - Easy policy updates (via update-crypto-policies)
 
-#### 3. Cryptographic API Layer (OpenSSL 3.5.5)
+#### 3. Cryptographic API Layer (OpenSSL 3.5.0)
 
 - **Purpose:** Standard cryptographic API for applications
-- **Version:** 3.5.5 (from Fedora 44 repositories)
+- **Version:** 3.5.0 (compiled from source)
 - **Role:** Abstraction layer between applications and FIPS module
 - **API:** EVP (high-level crypto API)
+- **Configuration:** Uses wolfProvider exclusively in FIPS mode
 
 **Provider Architecture:**
 ```
 OpenSSL 3.x Core
     ├─ default provider (deactivated in FIPS mode)
-    ├─ fips provider (ACTIVE - Red Hat OpenSSL FIPS Provider)
+    ├─ wolfprov provider (ACTIVE - wolfProvider v1.1.1 → wolfSSL FIPS)
     └─ legacy provider (disabled in FIPS mode)
 ```
 
-#### 4. FIPS Module Layer (Red Hat OpenSSL FIPS Provider)
+#### 4. FIPS Module Layer (wolfSSL FIPS v5.8.2 via wolfProvider)
 
 - **Purpose:** FIPS 140-3 validated cryptographic operations
-- **Version:** 3.5.5
-- **Vendor:** Red Hat (adapted from OpenSSL FIPS module)
+- **FIPS Module:** wolfSSL FIPS v5.8.2
+- **Provider:** wolfProvider v1.1.1 (OpenSSL 3.x provider)
+- **Certificate:** FIPS 140-3 Certificate #4718
+- **Vendor:** wolfSSL Inc.
 - **Standard:** FIPS 140-3
-- **Integration:** Native OpenSSL 3.x provider
+- **Integration:** OpenSSL 3.x provider architecture
 
 **Validated Algorithms:**
-- Symmetric: AES-128/192/256 (CBC, GCM, CCM, CTR)
-- Hashing: SHA-224, SHA-256, SHA-384, SHA-512, SHA-512/224, SHA-512/256
+- Symmetric: AES-128/192/256 (CBC, GCM, ECB, CTR)
+- Hashing: SHA-224, SHA-256, SHA-384, SHA-512
 - MAC: HMAC-SHA-2 family
 - Asymmetric: RSA (≥2048 bits), ECDSA (P-256/384/521), ECDH
 - RNG: DRBG (Hash_DRBG, HMAC_DRBG)
+
+**wolfProvider Limitations:**
+- SHA-512/224, SHA-512/256 not supported
+- PBKDF2 not supported (use SHA-256 key derivation)
+- TLS 1.3 CCM mode not available (GCM only)
+- Static RSA ciphers allowed (different from native OpenSSL FIPS)
 
 ### Data Flow Example
 
@@ -170,15 +188,16 @@ Secure TLS 1.2/1.3 connection established
 
 ## Cryptographic Stack
 
-### Red Hat OpenSSL FIPS Provider 3.5.5
+### wolfSSL FIPS v5.8.2 via wolfProvider v1.1.1
 
-**What is the OpenSSL FIPS Provider?**
+**What is wolfSSL FIPS?**
 
-The OpenSSL FIPS Provider is a cryptographic module that implements FIPS 140-3 validated algorithms as an OpenSSL 3.x provider. Red Hat maintains a version based on the upstream OpenSSL FIPS module.
+wolfSSL FIPS is a cryptographic module that implements FIPS 140-3 validated algorithms. wolfProvider bridges OpenSSL 3.x applications to the wolfSSL FIPS module, allowing standard OpenSSL API calls to use FIPS-validated cryptography.
 
 **FIPS 140-3 Compliance:**
-- **Module Name:** Red Hat Enterprise Linux OpenSSL FIPS Provider
-- **Version:** 3.5.5
+- **Module Name:** wolfSSL FIPS v5.8.2
+- **Provider:** wolfProvider v1.1.1 (OpenSSL 3.x provider)
+- **Certificate:** FIPS 140-3 Certificate #4718
 - **Standard:** FIPS 140-3
 - **Status:** ACTIVE (validated)
 
@@ -188,13 +207,13 @@ The OpenSSL FIPS Provider is a cryptographic module that implements FIPS 140-3 v
 // AES (Advanced Encryption Standard)
 - AES-128-CBC, AES-192-CBC, AES-256-CBC
 - AES-128-GCM, AES-192-GCM, AES-256-GCM
-- AES-128-CCM, AES-192-CCM, AES-256-CCM
+- AES-128-ECB, AES-192-ECB, AES-256-ECB
 - AES-128-CTR, AES-192-CTR, AES-256-CTR
 
 // SHA (Secure Hash Algorithm)
 - SHA-224, SHA-256, SHA-384, SHA-512
-- SHA-512/224, SHA-512/256
 - SHA-1 (legacy support - HMAC and verification only)
+// Note: SHA-512/224, SHA-512/256 not supported by wolfProvider
 
 // HMAC (Hash-based Message Authentication Code)
 - HMAC-SHA-224, HMAC-SHA-256, HMAC-SHA-384, HMAC-SHA-512
@@ -277,9 +296,9 @@ if (getenv("OPENSSL_FORCE_FIPS_MODE")) {
 
 ## Build Architecture
 
-### Single-Stage Docker Build
+### Multi-Stage Docker Build
 
-Unlike complex application images (like Gotenberg's 8-stage build), the Fedora 44 FIPS minimal base uses a simple single-stage process:
+The Fedora 44 FIPS image uses a multi-stage build process to compile wolfSSL FIPS and wolfProvider from source:
 
 #### Build Process Flow
 
@@ -787,6 +806,8 @@ The **FIPS cryptographic boundary** encompasses the OpenSSL FIPS provider module
 
 ---
 
-**Document Version:** 1.0
-**Last Updated:** April 16, 2026
+**Document Version:** 2.0
+**Last Updated:** April 17, 2026
 **Maintained By:** Root FIPS Team
+
+**Architecture:** wolfSSL FIPS v5.8.2 (Certificate #4718) via wolfProvider v1.1.1

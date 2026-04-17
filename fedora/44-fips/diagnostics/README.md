@@ -1,6 +1,6 @@
 # Fedora 44 FIPS Diagnostics Suite
 
-Comprehensive diagnostic tools and test applications for validating FIPS 140-3 compliance in the Fedora 44 minimal base image.
+Comprehensive diagnostic tools and test applications for validating FIPS 140-3 compliance in the Fedora 44 FIPS base image.
 
 ## Overview
 
@@ -11,7 +11,22 @@ This diagnostics suite provides shell-based tools to:
 - Generate detailed FIPS configuration reports
 - Provide multi-stage build examples
 
-**All tools are shell-based** - no language runtimes required!
+## FIPS Architecture
+
+This image uses **wolfSSL FIPS 140-3 (Certificate #4718)** via wolfProvider:
+
+```
+Applications → OpenSSL 3.5.0 → wolfProvider v1.1.1 → wolfSSL FIPS v5.8.2
+```
+
+**Components:**
+- **wolfSSL FIPS v5.8.2**: FIPS 140-3 Certificate #4718
+- **wolfProvider v1.1.1**: OpenSSL 3.x provider for wolfSSL
+- **OpenSSL 3.5.0**: Configured to use wolfProvider exclusively
+- **Podman 5.8.1**: Container runtime with FIPS support
+- **Crypto-policies**: System-wide FIPS enforcement (FIPS mode)
+
+**All diagnostic tools are shell-based** - no language runtimes required!
 
 ## Quick Start
 
@@ -87,15 +102,18 @@ docker run --rm cr.root.io/fedora:44-fips \
     /opt/fips/diagnostics/tests/fips-compliance-advanced.sh
 ```
 
-**Tests (44 total):**
-- Hash functions: SHA-224/256/384/512/512-224/512-256
-- Non-FIPS hash blocking: MD5, SHA-1, MD4, RIPEMD-160
-- Symmetric encryption: AES-128/192/256 (CBC, ECB), 3DES
-- Non-FIPS cipher blocking: DES, RC4, Blowfish
+**Tests (34 total):**
+- Hash functions: SHA-224/256/384/512
+- SHA-1 (legacy compatibility)
+- Non-FIPS hash blocking: MD5, MD4, RIPEMD-160
+- Symmetric encryption: AES-128/192/256 (CBC, ECB)
+- Non-FIPS cipher blocking: DES, RC4, Blowfish, 3DES
 - RSA key generation: 2048/3072/4096 bits
 - Elliptic curve: P-256, P-384, P-521
 - HMAC operations: HMAC-SHA256/384/512
 - Random number generation: various sizes
+
+**Note**: SHA-512/224 and SHA-512/256 variants not supported by wolfProvider
 
 ### 3. Cipher Suite Test (`cipher-suite-test.sh`)
 
@@ -189,7 +207,7 @@ docker run --rm -v $(pwd):/data cr.root.io/fedora:44-fips \
 
 **Features:**
 - AES-256-CBC encryption
-- PBKDF2 key derivation
+- SHA-256 key derivation
 - Salt for security
 - Password-based encryption
 
@@ -269,6 +287,34 @@ echo "FIPS report generated in ./reports/"
 ls -lh ./reports/fips-report-*.txt
 ```
 
+### Example: Build Containers with Podman (CI/CD)
+
+The image includes Podman 5.8.1 for container-in-container builds:
+
+```bash
+# Build containers using Podman in FIPS mode
+docker run --privileged \
+  -v $(pwd):/workspace \
+  -w /workspace \
+  cr.root.io/fedora:44-fips \
+  podman build -t myapp:latest .
+```
+
+**GitLab CI Example:**
+```yaml
+build:
+  image: cr.root.io/fedora:44-fips
+  services:
+    - docker:dind
+  variables:
+    DOCKER_DRIVER: overlay2
+  script:
+    - podman build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - podman push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+```
+
+**Note**: Podman requires `--privileged` flag when running in Docker.
+
 ## Test Results
 
 ### Expected Test Results
@@ -295,12 +341,12 @@ When all tests pass, you should see:
 
 ### Individual Test Counts
 
-- **Advanced FIPS Compliance**: 44 tests
+- **Advanced FIPS Compliance**: 34 tests
 - **Cipher Suite Tests**: ~20 tests
 - **Key Size Validation**: 4 tests
 - **OpenSSL Provider**: Informational (no pass/fail)
 
-**Total**: ~68 automated tests
+**Total**: ~58 automated tests
 
 ## Troubleshooting
 
@@ -342,12 +388,13 @@ If any test fails:
 
 ## Benefits
 
-- **Comprehensive**: 68+ automated tests covering all FIPS requirements
+- **Comprehensive**: 58+ automated tests covering all FIPS requirements
 - **Shell-Based**: No language runtimes required - minimal dependencies
 - **Easy to Use**: Single command to run all tests
 - **CI/CD Ready**: Exit codes for automation
 - **Informative**: Detailed output with pass/fail indicators
 - **Documented**: Examples for common use cases
+- **wolfSSL FIPS**: Uses wolfSSL FIPS v5.8.2 (Certificate #4718)
 
 ## See Also
 

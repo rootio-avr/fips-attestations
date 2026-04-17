@@ -25,10 +25,10 @@ docker run -it --rm my-nodejs-fips-app node -e "console.log('FIPS Mode:', proces
 
 ## What This Example Demonstrates
 
-1. **Base Image**: Uses `cr.root.io/fedora:44-fips` as the foundation
+1. **Base Image**: Uses `cr.root.io/fedora:44-fips` as the foundation (wolfSSL FIPS 140-3)
 2. **Node.js Installation**: Adds Node.js 22.x from NodeSource repository
 3. **FIPS Inheritance**: Inherits FIPS configuration from base image
-4. **Security**: Runs as non-root user (`appuser`)
+4. **Security**: Default user is `root` (override with `--user appuser` if needed)
 
 ## Building Your Application
 
@@ -54,10 +54,11 @@ To use this as a template for your Node.js application:
 
 ## FIPS Compliance Notes
 
-- **OpenSSL**: Node.js will use the system OpenSSL with FIPS provider
+- **wolfSSL FIPS**: Base image uses wolfSSL FIPS v5.8.2 (Certificate #4718) via wolfProvider
+- **OpenSSL 3.5.0**: Configured to use wolfProvider exclusively
 - **Crypto Operations**: All Node.js crypto operations use FIPS-approved algorithms
-- **Environment**: `OPENSSL_FORCE_FIPS_MODE=1` is set in the base image
-- **Verification**: Use `/opt/fips/bin/fips_init_check.sh` to verify FIPS mode
+- **Environment**: `OPENSSL_FORCE_FIPS_MODE=1` enforces FIPS mode
+- **Verification**: Use `/opt/fips/bin/fips_init_check.sh` to verify FIPS mode (14 tests)
 
 ## Example Application Structure
 
@@ -88,11 +89,12 @@ console.log('SHA-256:', hash.digest('hex'));
 
 ## Benefits of This Approach
 
-- **Minimal Base**: Starts with minimal FIPS base image (~317 MB)
+- **FIPS Base**: Starts with wolfSSL FIPS 140-3 certified base image (~700 MB)
 - **Flexibility**: Add only what your application needs
-- **FIPS Compliance**: Inherits FIPS configuration automatically
-- **Security**: Non-root user, minimal attack surface
+- **FIPS Compliance**: Inherits wolfSSL FIPS configuration automatically
+- **Podman Available**: Podman 5.8.1 included for CI/CD scenarios (requires --privileged)
 - **Updates**: Easy to update Node.js version independently
+- **Certificate #4718**: wolfSSL FIPS 140-3 validated module
 
 ## See Also
 

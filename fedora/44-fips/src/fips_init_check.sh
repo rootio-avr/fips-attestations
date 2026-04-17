@@ -100,12 +100,14 @@ test_fips "Random bytes generation (256 bytes)" \
     'openssl rand -hex 256'
 
 # Test 11: AES-256-CBC encryption (FIPS-approved)
+# Note: Using direct key/IV instead of PBKDF2 (wolfProvider limitation)
 test_fips "AES-256-CBC encryption" \
-    'echo "test data" | openssl enc -aes-256-cbc -pbkdf2 -pass pass:testpassword'
+    'echo "test data" | openssl enc -aes-256-cbc -K $(openssl rand -hex 64) -iv $(openssl rand -hex 32) > /dev/null'
 
 # Test 12: AES-128-CBC encryption (FIPS-approved)
+# Note: Using direct key/IV instead of PBKDF2 (wolfProvider limitation)
 test_fips "AES-128-CBC encryption" \
-    'echo "test data" | openssl enc -aes-128-cbc -pbkdf2 -pass pass:testpassword'
+    'echo "test data" | openssl enc -aes-128-cbc -K $(openssl rand -hex 32) -iv $(openssl rand -hex 32) > /dev/null'
 
 # Test 13: RSA key generation (2048-bit, FIPS minimum)
 test_fips "RSA-2048 key generation" \

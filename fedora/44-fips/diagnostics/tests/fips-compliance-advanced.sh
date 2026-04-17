@@ -75,11 +75,8 @@ test_crypto "SHA-384 hash" \
 test_crypto "SHA-512 hash" \
     'echo "test" | openssl dgst -sha512'
 
-test_crypto "SHA-512/224 hash" \
-    'echo "test" | openssl dgst -sha512-224'
-
-test_crypto "SHA-512/256 hash" \
-    'echo "test" | openssl dgst -sha512-256'
+# Note: SHA-512/224 and SHA-512/256 are not supported by wolfProvider
+# These variants are less commonly used in FIPS deployments
 
 echo ""
 
@@ -126,22 +123,22 @@ echo -e "${CYAN}Section 4: FIPS-Approved Symmetric Encryption${NC}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 test_crypto "AES-128-CBC encryption" \
-    'echo "test" | openssl enc -aes-128-cbc -pbkdf2 -pass pass:test'
+    'echo "test" | openssl enc -aes-128-cbc -md sha256 -pass pass:test'
 
 test_crypto "AES-192-CBC encryption" \
-    'echo "test" | openssl enc -aes-192-cbc -pbkdf2 -pass pass:test'
+    'echo "test" | openssl enc -aes-192-cbc -md sha256 -pass pass:test'
 
 test_crypto "AES-256-CBC encryption" \
-    'echo "test" | openssl enc -aes-256-cbc -pbkdf2 -pass pass:test'
+    'echo "test" | openssl enc -aes-256-cbc -md sha256 -pass pass:test'
 
 test_crypto "AES-128-ECB encryption" \
-    'echo "test" | openssl enc -aes-128-ecb -pbkdf2 -pass pass:test'
+    'echo "test" | openssl enc -aes-128-ecb -md sha256 -pass pass:test'
 
 test_crypto "AES-192-ECB encryption" \
-    'echo "test" | openssl enc -aes-192-ecb -pbkdf2 -pass pass:test'
+    'echo "test" | openssl enc -aes-192-ecb -md sha256 -pass pass:test'
 
 test_crypto "AES-256-ECB encryption" \
-    'echo "test" | openssl enc -aes-256-ecb -pbkdf2 -pass pass:test'
+    'echo "test" | openssl enc -aes-256-ecb -md sha256 -pass pass:test'
 
 echo ""
 
@@ -151,7 +148,7 @@ echo -e "${YELLOW}      Only allowed for decryption of legacy data${NC}"
 echo ""
 
 test_crypto "3DES encryption (blocked - deprecated)" \
-    'echo "test" | openssl enc -des-ede3 -pbkdf2 -pass pass:test' \
+    'echo "test" | openssl enc -des-ede3 -md sha256 -pass pass:test' \
     "false"
 
 echo ""
@@ -162,15 +159,15 @@ echo -e "${CYAN}Section 5: Non-FIPS Symmetric Encryption (Should Be Blocked)${NC
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 test_crypto "DES encryption (blocked)" \
-    'echo "test" | openssl enc -des -pbkdf2 -pass pass:test' \
+    'echo "test" | openssl enc -des -md sha256 -pass pass:test' \
     "false"
 
 test_crypto "RC4 encryption (blocked)" \
-    'echo "test" | openssl enc -rc4 -pbkdf2 -pass pass:test' \
+    'echo "test" | openssl enc -rc4 -md sha256 -pass pass:test' \
     "false"
 
 test_crypto "Blowfish encryption (blocked)" \
-    'echo "test" | openssl enc -bf -pbkdf2 -pass pass:test' \
+    'echo "test" | openssl enc -bf -md sha256 -pass pass:test' \
     "false"
 
 echo ""

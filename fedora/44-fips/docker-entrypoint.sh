@@ -93,6 +93,26 @@ if [ "${SKIP_FIPS_CHECK:-false}" != "true" ]; then
     echo ""
 fi
 
+# Check Podman environment if Podman commands might be used
+if command -v podman >/dev/null 2>&1; then
+    echo -e "${CYAN}Podman Environment:${NC}"
+    if [ "$(id -u)" -eq 0 ]; then
+        echo -e "  ${GREEN}✓ Running as root (Podman supported)${NC}"
+        # Check if running with sufficient capabilities
+        if grep -q 'CapEff.*0000003fffffffff' /proc/self/status 2>/dev/null || \
+           grep -q 'CapEff.*000001ffffffffff' /proc/self/status 2>/dev/null; then
+            echo -e "  ${GREEN}✓ Running with sufficient capabilities${NC}"
+        else
+            echo -e "  ${YELLOW}⚠ Limited capabilities - Podman may require --privileged${NC}"
+            echo -e "  ${CYAN}  Run with: docker run --privileged ...${NC}"
+        fi
+    else
+        echo -e "  ${YELLOW}⚠ Running as non-root user ($(whoami))${NC}"
+        echo -e "  ${CYAN}  For Podman support: docker run --user root --privileged ...${NC}"
+    fi
+    echo ""
+fi
+
 # Display environment information
 echo -e "${CYAN}Environment Information:${NC}"
 echo "  Fedora Version: $(cat /etc/fedora-release 2>/dev/null || echo 'Unknown')"

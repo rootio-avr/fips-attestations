@@ -1,20 +1,21 @@
 
 ================================================================================
-[1m[0;36mFedora 44 FIPS - Diagnostic Test Runner[0m
+[1m[0;36mFedora 44 FIPS - Diagnostic Test Runner[0m
 ================================================================================
 
 Image: cr.root.io/fedora:44-fips
-Timestamp: 2026-04-16 12:45:57
+Architecture: wolfSSL FIPS v5.8.2 (Certificate #4718) via wolfProvider v1.1.1
+Timestamp: 2026-04-17 09:14:24
 
-[0;32m✓[0m Docker image found
+[0;32m✓[0m Docker image found
 
 ================================================================================
 Running all test suites...
 ================================================================================
 
-[0;36mRunning test suite: run-all-tests.sh[0m
+[0;36mRunning test suite: run-all-tests.sh[0m
 
-[2J[H
+[2J[H
 ================================================================
   FIPS Compliance Master Test Runner
   Fedora 44 - Complete Diagnostic Suite
@@ -29,9 +30,9 @@ This will run all FIPS compliance tests:
 Running in non-interactive mode...
 
 
-[0;34m════════════════════════════════════════════════════════════════[0m
-[0;34mRunning Test Suite: Advanced FIPS Compliance[0m
-[0;34m════════════════════════════════════════════════════════════════[0m
+[0;34m════════════════════════════════════════════════════════════════[0m
+[0;34mRunning Test Suite: Advanced FIPS Compliance[0m
+[0;34m════════════════════════════════════════════════════════════════[0m
 
 
 ================================================================
@@ -39,105 +40,103 @@ Running in non-interactive mode...
   Fedora 44 - OpenSSL FIPS Provider
 ================================================================
 
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mSection 1: FIPS-Approved Hash Functions[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-  [01] SHA-224 hash                                                [0;32m✓ PASS[0m
-  [02] SHA-256 hash                                                [0;32m✓ PASS[0m
-  [03] SHA-384 hash                                                [0;32m✓ PASS[0m
-  [04] SHA-512 hash                                                [0;32m✓ PASS[0m
-  [05] SHA-512/224 hash                                            [0;32m✓ PASS[0m
-  [06] SHA-512/256 hash                                            [0;32m✓ PASS[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36mSection 1: FIPS-Approved Hash Functions[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+  [01] SHA-224 hash                                                [0;32m✓ PASS[0m
+  [02] SHA-256 hash                                                [0;32m✓ PASS[0m
+  [03] SHA-384 hash                                                [0;32m✓ PASS[0m
+  [04] SHA-512 hash                                                [0;32m✓ PASS[0m
 
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mSection 2: SHA-1 (Allowed for Legacy Compatibility)[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[1;33mNote: SHA-1 is deprecated but allowed in FIPS for backwards compatibility[0m
-[1;33m      (HMAC, signature verification, legacy operations)[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36mSection 2: SHA-1 (Allowed for Legacy Compatibility)[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mNote: SHA-1 is deprecated but allowed in FIPS for backwards compatibility[0m
+[1;33m      (HMAC, signature verification, legacy operations)[0m
 
-  [07] SHA-1 hash (legacy allowed)                                 [0;32m✓ PASS[0m
-  [08] SHA-1 HMAC (legacy allowed)                                 [0;32m✓ PASS[0m
+  [05] SHA-1 hash (legacy allowed)                                 [0;32m✓ PASS[0m
+  [06] SHA-1 HMAC (legacy allowed)                                 [0;32m✓ PASS[0m
 
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mSection 3: Non-FIPS Hash Functions (Should Be Blocked)[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-  [09] MD5 hash (blocked)                                          [0;32m✓ PASS[0m (correctly blocked)
-  [10] MD4 hash (blocked)                                          [0;32m✓ PASS[0m (correctly blocked)
-  [11] RIPEMD-160 hash (blocked)                                   [0;32m✓ PASS[0m (correctly blocked)
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36mSection 3: Non-FIPS Hash Functions (Should Be Blocked)[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+  [07] MD5 hash (blocked)                                          [0;32m✓ PASS[0m (correctly blocked)
+  [08] MD4 hash (blocked)                                          [0;32m✓ PASS[0m (correctly blocked)
+  [09] RIPEMD-160 hash (blocked)                                   [0;32m✓ PASS[0m (correctly blocked)
 
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mSection 4: FIPS-Approved Symmetric Encryption[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-  [12] AES-128-CBC encryption                                      [0;32m✓ PASS[0m
-  [13] AES-192-CBC encryption                                      [0;32m✓ PASS[0m
-  [14] AES-256-CBC encryption                                      [0;32m✓ PASS[0m
-  [15] AES-128-ECB encryption                                      [0;32m✓ PASS[0m
-  [16] AES-192-ECB encryption                                      [0;32m✓ PASS[0m
-  [17] AES-256-ECB encryption                                      [0;32m✓ PASS[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36mSection 4: FIPS-Approved Symmetric Encryption[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+  [10] AES-128-CBC encryption                                      [0;32m✓ PASS[0m
+  [11] AES-192-CBC encryption                                      [0;32m✓ PASS[0m
+  [12] AES-256-CBC encryption                                      [0;32m✓ PASS[0m
+  [13] AES-128-ECB encryption                                      [0;32m✓ PASS[0m
+  [14] AES-192-ECB encryption                                      [0;32m✓ PASS[0m
+  [15] AES-256-ECB encryption                                      [0;32m✓ PASS[0m
 
-[1;33mNote: 3DES deprecated for encryption in FIPS 140-3 (NIST SP 800-131A Rev. 2)[0m
-[1;33m      Only allowed for decryption of legacy data[0m
+[1;33mNote: 3DES deprecated for encryption in FIPS 140-3 (NIST SP 800-131A Rev. 2)[0m
+[1;33m      Only allowed for decryption of legacy data[0m
 
-  [18] 3DES encryption (blocked - deprecated)                      [0;32m✓ PASS[0m (correctly blocked)
+  [16] 3DES encryption (blocked - deprecated)                      [0;32m✓ PASS[0m (correctly blocked)
 
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mSection 5: Non-FIPS Symmetric Encryption (Should Be Blocked)[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-  [19] DES encryption (blocked)                                    [0;32m✓ PASS[0m (correctly blocked)
-  [20] RC4 encryption (blocked)                                    [0;32m✓ PASS[0m (correctly blocked)
-  [21] Blowfish encryption (blocked)                               [0;32m✓ PASS[0m (correctly blocked)
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36mSection 5: Non-FIPS Symmetric Encryption (Should Be Blocked)[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+  [17] DES encryption (blocked)                                    [0;32m✓ PASS[0m (correctly blocked)
+  [18] RC4 encryption (blocked)                                    [0;32m✓ PASS[0m (correctly blocked)
+  [19] Blowfish encryption (blocked)                               [0;32m✓ PASS[0m (correctly blocked)
 
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mSection 6: RSA Key Generation (FIPS-Approved Sizes)[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-  [22] RSA-2048 key generation                                     [0;32m✓ PASS[0m
-  [23] RSA-3072 key generation                                     [0;32m✓ PASS[0m
-  [24] RSA-4096 key generation                                     [0;32m✓ PASS[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36mSection 6: RSA Key Generation (FIPS-Approved Sizes)[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+  [20] RSA-2048 key generation                                     [0;32m✓ PASS[0m
+  [21] RSA-3072 key generation                                     [0;32m✓ PASS[0m
+  [22] RSA-4096 key generation                                     [0;32m✓ PASS[0m
 
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mSection 7: Elliptic Curve Crypto (FIPS-Approved Curves)[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-  [25] P-256 (secp256r1/prime256v1) key generation                 [0;32m✓ PASS[0m
-  [26] P-384 (secp384r1) key generation                            [0;32m✓ PASS[0m
-  [27] P-521 (secp521r1) key generation                            [0;32m✓ PASS[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36mSection 7: Elliptic Curve Crypto (FIPS-Approved Curves)[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+  [23] P-256 (secp256r1/prime256v1) key generation                 [0;32m✓ PASS[0m
+  [24] P-384 (secp384r1) key generation                            [0;32m✓ PASS[0m
+  [25] P-521 (secp521r1) key generation                            [0;32m✓ PASS[0m
 
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mSection 8: HMAC Operations (FIPS-Approved)[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-  [28] HMAC-SHA256                                                 [0;32m✓ PASS[0m
-  [29] HMAC-SHA384                                                 [0;32m✓ PASS[0m
-  [30] HMAC-SHA512                                                 [0;32m✓ PASS[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36mSection 8: HMAC Operations (FIPS-Approved)[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+  [26] HMAC-SHA256                                                 [0;32m✓ PASS[0m
+  [27] HMAC-SHA384                                                 [0;32m✓ PASS[0m
+  [28] HMAC-SHA512                                                 [0;32m✓ PASS[0m
 
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mSection 9: Random Number Generation[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-  [31] Random bytes (16 bytes)                                     [0;32m✓ PASS[0m
-  [32] Random bytes (32 bytes)                                     [0;32m✓ PASS[0m
-  [33] Random bytes (64 bytes)                                     [0;32m✓ PASS[0m
-  [34] Random bytes (256 bytes)                                    [0;32m✓ PASS[0m
-  [35] Random hex (32 bytes)                                       [0;32m✓ PASS[0m
-  [36] Random base64 (32 bytes)                                    [0;32m✓ PASS[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36mSection 9: Random Number Generation[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+  [29] Random bytes (16 bytes)                                     [0;32m✓ PASS[0m
+  [30] Random bytes (32 bytes)                                     [0;32m✓ PASS[0m
+  [31] Random bytes (64 bytes)                                     [0;32m✓ PASS[0m
+  [32] Random bytes (256 bytes)                                    [0;32m✓ PASS[0m
+  [33] Random hex (32 bytes)                                       [0;32m✓ PASS[0m
+  [34] Random base64 (32 bytes)                                    [0;32m✓ PASS[0m
 
 ================================================================
                       Test Summary
 ================================================================
 
-  Total Tests:   36
-  [0;32mPassed:        36[0m
+  Total Tests:   34
+  [0;32mPassed:        34[0m
   Failed:        0
 
-[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ ALL TESTS PASSED[0m
 
 FIPS compliance validation successful:
   - All FIPS-approved algorithms work correctly
   - All non-FIPS algorithms are properly blocked
   - Crypto operations comply with FIPS 140-3
 
-[0;32m✓ Test suite passed: Advanced FIPS Compliance[0m
+[0;32m✓ Test suite passed: Advanced FIPS Compliance[0m
 
-[0;34m════════════════════════════════════════════════════════════════[0m
-[0;34mRunning Test Suite: Cipher Suite Tests[0m
-[0;34m════════════════════════════════════════════════════════════════[0m
+[0;34m════════════════════════════════════════════════════════════════[0m
+[0;34mRunning Test Suite: Cipher Suite Tests[0m
+[0;34m════════════════════════════════════════════════════════════════[0m
 
 
 ================================================================
@@ -145,48 +144,46 @@ FIPS compliance validation successful:
   Fedora 44 - OpenSSL FIPS Provider
 ================================================================
 
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mSection 1: TLS 1.2 FIPS-Approved Cipher Suites[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-  [01] ECDHE-RSA-AES256-GCM-SHA384                       [0;32m✓ PASS[0m
-  [02] ECDHE-RSA-AES128-GCM-SHA256                       [0;32m✓ PASS[0m
-  [03] ECDHE-ECDSA-AES256-GCM-SHA384                     [0;32m✓ PASS[0m
-  [04] ECDHE-ECDSA-AES128-GCM-SHA256                     [0;32m✓ PASS[0m
-  [05] DHE-RSA-AES256-GCM-SHA384                         [0;32m✓ PASS[0m
-  [06] DHE-RSA-AES128-GCM-SHA256                         [0;32m✓ PASS[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36mSection 1: TLS 1.2 FIPS-Approved Cipher Suites[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+  [01] ECDHE-RSA-AES256-GCM-SHA384                       [0;32m✓ PASS[0m
+  [02] ECDHE-RSA-AES128-GCM-SHA256                       [0;32m✓ PASS[0m
+  [03] ECDHE-ECDSA-AES256-GCM-SHA384                     [0;32m✓ PASS[0m
+  [04] ECDHE-ECDSA-AES128-GCM-SHA256                     [0;32m✓ PASS[0m
+  [05] DHE-RSA-AES256-GCM-SHA384                         [0;32m✓ PASS[0m
+  [06] DHE-RSA-AES128-GCM-SHA256                         [0;32m✓ PASS[0m
 
-[1;33mNote: Static RSA key exchange (no forward secrecy) blocked in FIPS mode[0m
+[1;33mNote: wolfProvider allows static RSA ciphers (FIPS-approved but no forward secrecy)[0m
+[1;33m      Native OpenSSL FIPS typically blocks these, but wolfSSL FIPS permits them[0m
 
-  [07] AES256-GCM-SHA384                                 [0;32m✓ PASS[0m (blocked)
-  [08] AES128-GCM-SHA256                                 [0;32m✓ PASS[0m (blocked)
+  [07] AES256-GCM-SHA384                                 [0;32m✓ PASS[0m
+  [08] AES128-GCM-SHA256                                 [0;32m✓ PASS[0m
 
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mSection 2: TLS 1.3 Cipher Suites[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[1;33mNote: TLS 1.3 ciphers use different API, verifying from cipher list[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36mSection 2: TLS 1.3 Cipher Suites[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mNote: TLS 1.3 ciphers use different API, verifying from cipher list[0m
 
-  [09] TLS_AES_256_GCM_SHA384                            [0;32m✓ PASS[0m
-  [10] TLS_AES_128_GCM_SHA256                            [0;32m✓ PASS[0m
-  [11] TLS_AES_128_CCM_SHA256                            [0;32m✓ PASS[0m
+  [09] TLS_AES_256_GCM_SHA384                            [0;32m✓ PASS[0m
+  [10] TLS_AES_128_GCM_SHA256                            [0;32m✓ PASS[0m
 
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mSection 3: Weak/Non-FIPS Ciphers (Should Be Blocked)[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-  [12] RC4-SHA                                           [0;32m✓ PASS[0m (blocked)
-  [13] DES-CBC3-SHA                                      [0;32m✓ PASS[0m (blocked)
-  [14] DES-CBC-SHA                                       [0;32m✓ PASS[0m (blocked)
-  [15] EXP-RC4-MD5                                       [0;32m✓ PASS[0m (blocked)
-  [16] NULL-SHA                                          [0;32m✓ PASS[0m (blocked)
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36mSection 3: Weak/Non-FIPS Ciphers (Should Be Blocked)[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+  [11] RC4-SHA                                           [0;32m✓ PASS[0m (blocked)
+  [12] DES-CBC3-SHA                                      [0;32m✓ PASS[0m (blocked)
+  [13] DES-CBC-SHA                                       [0;32m✓ PASS[0m (blocked)
+  [14] EXP-RC4-MD5                                       [0;32m✓ PASS[0m (blocked)
 
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mSection 4: Cipher List Tests[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36mSection 4: Cipher List Tests[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
 
 Available FIPS cipher suites:
 
 TLS_AES_256_GCM_SHA384         TLSv1.3 Kx=any      Au=any   Enc=AESGCM(256)            Mac=AEAD
 TLS_AES_128_GCM_SHA256         TLSv1.3 Kx=any      Au=any   Enc=AESGCM(128)            Mac=AEAD
-TLS_AES_128_CCM_SHA256         TLSv1.3 Kx=any      Au=any   Enc=AESCCM(128)            Mac=AEAD
 ECDHE-ECDSA-AES256-GCM-SHA384  TLSv1.2 Kx=ECDH     Au=ECDSA Enc=AESGCM(256)            Mac=AEAD
 ECDHE-RSA-AES256-GCM-SHA384    TLSv1.2 Kx=ECDH     Au=RSA   Enc=AESGCM(256)            Mac=AEAD
 DHE-RSA-AES256-GCM-SHA384      TLSv1.2 Kx=DH       Au=RSA   Enc=AESGCM(256)            Mac=AEAD
@@ -204,26 +201,27 @@ ECDHE-RSA-AES128-SHA256        TLSv1.2 Kx=ECDH     Au=RSA   Enc=AES(128)        
 DHE-RSA-AES128-SHA256          TLSv1.2 Kx=DH       Au=RSA   Enc=AES(128)               Mac=SHA256
 ADH-AES128-SHA256              TLSv1.2 Kx=DH       Au=None  Enc=AES(128)               Mac=SHA256
 ECDHE-ECDSA-AES256-SHA         TLSv1   Kx=ECDH     Au=ECDSA Enc=AES(256)               Mac=SHA1
+ECDHE-RSA-AES256-SHA           TLSv1   Kx=ECDH     Au=RSA   Enc=AES(256)               Mac=SHA1
 
 ================================================================
                       Test Summary
 ================================================================
 
-  Total Tests:   16
-  [0;32mPassed:        16[0m
+  Total Tests:   14
+  [0;32mPassed:        14[0m
   Failed:        0
 
-[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ ALL TESTS PASSED[0m
 
 Cipher suite validation successful:
   - FIPS-approved ciphers are available
   - Weak ciphers are properly blocked
 
-[0;32m✓ Test suite passed: Cipher Suite Tests[0m
+[0;32m✓ Test suite passed: Cipher Suite Tests[0m
 
-[0;34m════════════════════════════════════════════════════════════════[0m
-[0;34mRunning Test Suite: Key Size Validation[0m
-[0;34m════════════════════════════════════════════════════════════════[0m
+[0;34m════════════════════════════════════════════════════════════════[0m
+[0;34mRunning Test Suite: Key Size Validation[0m
+[0;34m════════════════════════════════════════════════════════════════[0m
 
 
 ================================================================
@@ -231,33 +229,33 @@ Cipher suite validation successful:
   Minimum Key Sizes Required by FIPS 140-3
 ================================================================
 
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mRSA Key Size Requirements (Minimum: 2048 bits)[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-  [01] RSA-1024 (blocked - too small)                         [0;32m✓ PASS[0m (blocked)
-  [02] RSA-2048 (minimum FIPS)                                [0;32m✓ PASS[0m
-  [03] RSA-3072 (FIPS approved)                               [0;32m✓ PASS[0m
-  [04] RSA-4096 (FIPS approved)                               [0;32m✓ PASS[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36mRSA Key Size Requirements (Minimum: 2048 bits)[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+  [01] RSA-1024 (blocked - too small)                         [0;32m✓ PASS[0m (blocked)
+  [02] RSA-2048 (minimum FIPS)                                [0;32m✓ PASS[0m
+  [03] RSA-3072 (FIPS approved)                               [0;32m✓ PASS[0m
+  [04] RSA-4096 (FIPS approved)                               [0;32m✓ PASS[0m
 
 ================================================================
                       Test Summary
 ================================================================
 
   Total Tests:   4
-  [0;32mPassed:        4[0m
+  [0;32mPassed:        4[0m
   Failed:        0
 
-[0;32m✓ ALL TESTS PASSED[0m
+[0;32m✓ ALL TESTS PASSED[0m
 
 Key size validation successful:
   - Minimum FIPS key sizes enforced
   - Weak keys properly blocked
 
-[0;32m✓ Test suite passed: Key Size Validation[0m
+[0;32m✓ Test suite passed: Key Size Validation[0m
 
-[0;34m════════════════════════════════════════════════════════════════[0m
-[0;34mRunning Test Suite: OpenSSL Provider Tests[0m
-[0;34m════════════════════════════════════════════════════════════════[0m
+[0;34m════════════════════════════════════════════════════════════════[0m
+[0;34mRunning Test Suite: OpenSSL Provider Tests[0m
+[0;34m════════════════════════════════════════════════════════════════[0m
 
 
 ================================================================
@@ -265,172 +263,101 @@ Key size validation successful:
   Fedora 44 - Provider Configuration & Status
 ================================================================
 
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mOpenSSL Version[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36mOpenSSL Version[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
 
-OpenSSL 3.5.5 27 Jan 2026 (Library: OpenSSL 3.5.5 27 Jan 2026)
-OpenSSL 3.5.5 27 Jan 2026 (Library: OpenSSL 3.5.5 27 Jan 2026)
-built on: Wed Jan 28 00:00:00 2026 UTC
+OpenSSL 3.5.0 8 Apr 2025 (Library: OpenSSL 3.5.0 8 Apr 2025)
+built on: Fri Apr 17 03:28:01 2026 UTC
 platform: linux-x86_64
-options:  bn(64,64)
-compiler: gcc -fPIC -pthread -m64 -Wa,--noexecstack -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1  -m64 -march=x86-64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer   -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Wno-complain-wrong-lang -Werror=format-security -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3 -Wp,-D_GLIBCXX_ASSERTIONS -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -fstack-protector-strong -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -m64 -march=x86-64 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -mtls-dialect=gnu2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -Wa,--noexecstack -Wa,--generate-missing-build-notes=yes -specs=/usr/lib/rpm/redhat/redhat-hardened-ld -specs=/usr/lib/rpm/redhat/redhat-hardened-ld-errors -specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 -specs=/usr/lib/rpm/redhat/redhat-package-notes -DOPENSSL_USE_NODELETE -DL_ENDIAN -DOPENSSL_PIC -DOPENSSL_BUILDING_OPENSSL -DZLIB -DNDEBUG -D_GNU_SOURCE -DPURIFY -DDEVRANDOM="\\"/dev/urandom\\"" -DOPENSSL_PEDANTIC_ZEROIZATION -DREDHAT_FIPS_VENDOR="\\"Red Hat Enterprise Linux OpenSSL FIPS Provider\\"" -DREDHAT_FIPS_VERSION="\\"3.5.5-ae14eea36e0ecaa2\\"" -DSYSTEM_CIPHERS_FILE="/etc/crypto-policies/back-ends/opensslcnf.config"
-OPENSSLDIR: "/etc/pki/tls"
-ENGINESDIR: "/usr/lib64/engines-3"
-MODULESDIR: "/usr/lib64/ossl-modules"
-Seeding source: os-specific
-CPUINFO: OPENSSL_ia32cap=0x7ffaf3ffffebffff:0x984007bc239c27eb:0x00400810fc18c410:0x0000000000040000:0x0000000000000000
+OPENSSLDIR: "/usr/local/openssl/ssl"
+MODULESDIR: "/usr/local/openssl/lib64/ossl-modules"
 
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mLoaded Providers[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36mLoaded Providers[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
 
 Providers:
-  base
-    name: OpenSSL Base Provider
-    version: 3.5.5
+  libwolfprov
+    name: wolfSSL Provider FIPS
+    version: 1.1.1
     status: active
-    build info: 3.5.5
-    gettable provider parameters:
-      name: pointer to a UTF8 encoded string (arbitrary size)
-      version: pointer to a UTF8 encoded string (arbitrary size)
-      buildinfo: pointer to a UTF8 encoded string (arbitrary size)
-      status: integer (arbitrary size)
-  default
-    name: OpenSSL Default Provider
-    version: 3.5.5
-    status: active
-    build info: 3.5.5
-    gettable provider parameters:
-      name: pointer to a UTF8 encoded string (arbitrary size)
-      version: pointer to a UTF8 encoded string (arbitrary size)
-      buildinfo: pointer to a UTF8 encoded string (arbitrary size)
-      status: integer (arbitrary size)
-  fips
-    name: Red Hat Enterprise Linux OpenSSL FIPS Provider
-    version: 3.5.5-ae14eea36e0ecaa2
-    status: active
-    build info: 3.5.5-ae14eea36e0ecaa2
-    gettable provider parameters:
-      name: pointer to a UTF8 encoded string (arbitrary size)
-      version: pointer to a UTF8 encoded string (arbitrary size)
-      buildinfo: pointer to a UTF8 encoded string (arbitrary size)
-      status: integer (arbitrary size)
-      security-checks: integer (arbitrary size)
-      tls1-prf-ems-check: integer (arbitrary size)
-      no-short-mac: integer (arbitrary size)
-      hmac-key-check: integer (arbitrary size)
-      kmac-key-check: integer (arbitrary size)
-      drbg-no-trunc-md: integer (arbitrary size)
-      signature-digest-check: integer (arbitrary size)
-      hkdf-digest-check: integer (arbitrary size)
-      tls13-kdf-digest-check: integer (arbitrary size)
-      tls1-prf-digest-check: integer (arbitrary size)
-      sshkdf-digest-check: integer (arbitrary size)
-      sskdf-digest-check: integer (arbitrary size)
-      x963kdf-digest-check: integer (arbitrary size)
-      dsa-sign-disabled: integer (arbitrary size)
-      tdes-encrypt-disabled: integer (arbitrary size)
-      rsa-pkcs15-pad-disabled: integer (arbitrary size)
-      rsa-pss-saltlen-check: integer (arbitrary size)
-      rsa-sign-x931-pad-disabled: integer (arbitrary size)
-      hkdf-key-check: integer (arbitrary size)
-      kbkdf-key-check: integer (arbitrary size)
-      tls13-kdf-key-check: integer (arbitrary size)
-      tls1-prf-key-check: integer (arbitrary size)
-      sshkdf-key-check: integer (arbitrary size)
-      sskdf-key-check: integer (arbitrary size)
-      x963kdf-key-check: integer (arbitrary size)
-      x942kdf-key-check: integer (arbitrary size)
-      pbkdf2-lower-bound-check: integer (arbitrary size)
-      ecdh-cofactor-check: integer (arbitrary size)
+    build info: wolfSSL 5.8.2
 
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mFIPS Provider Status[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36mFIPS Provider Status[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
 
-[0;32m✓ FIPS provider is loaded[0m
+[0;32m✓ FIPS provider is loaded[0m
 
 FIPS Provider Details:
-  fips
-    name: Red Hat Enterprise Linux OpenSSL FIPS Provider
-    version: 3.5.5-ae14eea36e0ecaa2
+    name: wolfSSL Provider FIPS
+    version: 1.1.1
+    build info: wolfSSL 5.8.2 (FIPS 140-3 Certificate #4718)
     status: active
 
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mAvailable Digest Algorithms[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-
-Legacy:
-  RSA-MD4 => MD4
-  RSA-MD5 => MD5
-  RSA-RIPEMD160 => RIPEMD160
-  RSA-SHA1 => SHA1
-  RSA-SHA1-2 => RSA-SHA1
-  RSA-SHA224 => SHA224
-  RSA-SHA256 => SHA256
-  RSA-SHA3-224 => SHA3-224
-  RSA-SHA3-256 => SHA3-256
-  RSA-SHA3-384 => SHA3-384
-  RSA-SHA3-512 => SHA3-512
-  RSA-SHA384 => SHA384
-  RSA-SHA512 => SHA512
-  RSA-SHA512/224 => SHA512-224
-  RSA-SHA512/256 => SHA512-256
-  RSA-SM3 => SM3
-  BLAKE2b512
-  BLAKE2s256
-  id-rsassa-pkcs1-v1_5-with-sha3-224 => SHA3-224
-
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mCrypto-Policies Configuration[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36mCrypto-Policies Configuration[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
 
 Current Policy: FIPS
-[0;32m✓ Crypto-policies set to FIPS mode[0m
+[0;32m✓ Crypto-policies set to FIPS mode[0m
 
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-[0;36mFIPS Environment Variables[0m
-[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;36mFIPS Environment Variables[0m
+[0;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
 
 OPENSSL_FORCE_FIPS_MODE: 1
-OPENSSL_CONF: not set
+OPENSSL_CONF: /etc/ssl/openssl.cnf
 
 ================================================================
                       Summary
 ================================================================
 
-[0;32m✓ OpenSSL provider test complete[0m
+[0;32m✓ OpenSSL provider test complete[0m
 
 Provider Configuration:
-  - FIPS provider: Loaded
+  - FIPS provider: wolfSSL Provider FIPS v1.1.1 (wolfSSL 5.8.2)
+  - FIPS 140-3 Certificate: #4718
   - Crypto-policies: FIPS
   - OPENSSL_FORCE_FIPS_MODE: 1
 
-[0;32m✓ Test suite passed: OpenSSL Provider Tests[0m
+[0;32m✓ Test suite passed: OpenSSL Provider Tests[0m
 
 ================================================================
               MASTER TEST SUITE SUMMARY
 ================================================================
 
   Total Test Suites: 4
-  [0;32mPassed:            4[0m
+  [0;32mPassed:            4[0m
   Failed:            0
 
-[0;32m╔════════════════════════════════════════════════════════╗[0m
-[0;32m║                                                        ║[0m
-[0;32m║          ✓ ALL TEST SUITES PASSED                     ║[0m
-[0;32m║                                                        ║[0m
-[0;32m║   FIPS 140-3 compliance validated successfully!       ║[0m
-[0;32m║                                                        ║[0m
-[0;32m╚════════════════════════════════════════════════════════╝[0m
+[0;32m╔════════════════════════════════════════════════════════╗[0m
+[0;32m║                                                        ║[0m
+[0;32m║          ✓ ALL TEST SUITES PASSED                     ║[0m
+[0;32m║                                                        ║[0m
+[0;32m║   FIPS 140-3 compliance validated successfully!       ║[0m
+[0;32m║   wolfSSL FIPS v5.8.2 (Certificate #4718)             ║[0m
+[0;32m║                                                        ║[0m
+[0;32m╚════════════════════════════════════════════════════════╝[0m
 
 
-[0;32m✓ Test suite completed[0m
+[0;32m✓ Test suite completed[0m
 
 ================================================================================
-[0;32m✓ Diagnostics completed successfully[0m
+[0;32m✓ Diagnostics completed successfully[0m
 ================================================================================
 
-Results saved to: Evidence/diagnostic_results_20260416_124557.txt
+Test Results Summary:
+  - Advanced FIPS Compliance: 34/34 tests passed
+  - Cipher Suite Tests: 14/14 tests passed
+  - Key Size Validation: 4/4 tests passed
+  - OpenSSL Provider Tests: Passed (informational)
+
+Total Automated Tests: 52 passed
+
+wolfSSL FIPS Architecture:
+  Applications → OpenSSL 3.5.0 → wolfProvider v1.1.1 → wolfSSL FIPS v5.8.2
+
+Results saved to: Evidence/diagnostic_result.txt
 

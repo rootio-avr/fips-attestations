@@ -43,7 +43,7 @@ Cosign is a tool for signing and verifying container images and other artifacts 
 - Installing and configuring Cosign
 - Verifying image signatures with public keys
 - Verifying SLSA provenance attestations
-- Verifying SBOM attestations (checking for Red Hat OpenSSL FIPS Provider)
+- Verifying SBOM attestations (checking for wolfSSL FIPS v5.8.2 and wolfProvider)
 - Implementing policy-based verification for FIPS compliance
 - Integrating with CI/CD pipelines
 - Troubleshooting common issues
@@ -370,9 +370,13 @@ cat sbom.json | jq '.predicate.Data'
 # Check for OpenSSL package
 cat sbom.json | jq '.predicate.Data.packages[] | select(.name == "openssl-libs")'
 
-# Verify OpenSSL version (should be 3.5.5)
+# Verify OpenSSL version (should be 3.5.0 with wolfProvider)
 cat sbom.json | jq '.predicate.Data.packages[] | select(.name == "openssl-libs") | .versionInfo'
-# Expected: "3.5.5-1.fc44"
+# Expected: "3.5.0" (compiled from source with wolfProvider v1.1.1)
+
+# Check for wolfSSL FIPS library
+cat sbom.json | jq '.predicate.Data.packages[] | select(.name | contains("wolfssl"))'
+# Expected: wolfSSL FIPS v5.8.2 (Certificate #4718)
 
 # Check for crypto-policies package
 cat sbom.json | jq '.predicate.Data.packages[] | select(.name == "crypto-policies")'
@@ -389,9 +393,10 @@ cat sbom.json | jq '.predicate.Data.packages[] | {name: .name, version: .version
 # Fedora 44 FIPS SBOM Validation
 #
 # Verifies:
-# 1. OpenSSL 3.5.5 is present
-# 2. crypto-policies package is present
-# 3. Fedora 44 base
+# 1. OpenSSL 3.5.0 with wolfProvider is present
+# 2. wolfSSL FIPS v5.8.2 (Certificate #4718) is present
+# 3. crypto-policies package is present
+# 4. Fedora 44 base
 ################################################################################
 
 set -e
@@ -402,13 +407,23 @@ cosign verify-attestation --type spdx \
     cr.root.io/fedora:44-fips | \
     jq -r '.payload | @base64d | fromjson' > sbom.json
 
-# Check OpenSSL
+# Check OpenSSL version (compiled from source with wolfProvider)
 OPENSSL_VERSION=$(cat sbom.json | jq -r '.predicate.Data.packages[] | select(.name == "openssl-libs") | .versionInfo')
 
-if echo "${OPENSSL_VERSION}" | grep -q "3.5.5"; then
-    echo "✓ OpenSSL version verified: ${OPENSSL_VERSION}"
+if echo "${OPENSSL_VERSION}" | grep -q "3.5.0"; then
+    echo "✓ OpenSSL version verified: ${OPENSSL_VERSION} (with wolfProvider v1.1.1)"
 else
-    echo "✗ FAIL: OpenSSL version mismatch. Expected 3.5.5, found ${OPENSSL_VERSION}"
+    echo "✗ FAIL: OpenSSL version mismatch. Expected 3.5.0, found ${OPENSSL_VERSION}"
+    exit 1
+fi
+
+# Check for wolfSSL FIPS library
+WOLFSSL_PRESENT=$(cat sbom.json | jq -r '.predicate.Data.packages[] | select(.name | contains("wolfssl")) | .name')
+
+if [ -n "${WOLFSSL_PRESENT}" ]; then
+    echo "✓ wolfSSL FIPS module confirmed (Certificate #4718)"
+else
+    echo "✗ FAIL: wolfSSL FIPS library not found in SBOM"
     exit 1
 fi
 
@@ -530,9 +545,10 @@ echo "✓ SLSA provenance verification passed"
 # 1. Image signature must be valid
 # 2. SLSA provenance must be present
 # 3. SBOM must be present
-# 4. OpenSSL 3.5.5 must be in SBOM
-# 5. crypto-policies package must be present
-# 6. Fedora 44 base verified
+# 4. OpenSSL 3.5.0 with wolfProvider must be in SBOM
+# 5. wolfSSL FIPS v5.8.2 (Certificate #4718) must be present
+# 6. crypto-policies package must be present
+# 7. Fedora 44 base verified
 ################################################################################
 
 set -e
@@ -550,7 +566,7 @@ echo "Date: $(date)"
 echo ""
 
 # Policy 1: Signature Verification
-echo "[1/6] Verifying image signature..."
+echo "[1/7] Verifying image signature..."
 if cosign verify --key "${PUBLIC_KEY}" "${IMAGE}" > /dev/null 2>&1; then
     echo "✓ PASS: Image signature valid"
     ((PASSED++))
@@ -560,7 +576,7 @@ else
 fi
 
 # Policy 2: SLSA Provenance
-echo "[2/6] Verifying SLSA provenance..."
+echo "[2/7] Verifying SLSA provenance..."
 if cosign verify-attestation --type slsaprovenance --key "${PUBLIC_KEY}" "${IMAGE}" > /dev/null 2>&1; then
     echo "✓ PASS: SLSA provenance verified"
     ((PASSED++))
@@ -570,7 +586,7 @@ else
 fi
 
 # Policy 3: SBOM Presence
-echo "[3/6] Verifying SBOM..."
+echo "[3/7] Verifying SBOM..."
 if cosign verify-attestation --type spdx --key "${PUBLIC_KEY}" "${IMAGE}" > /dev/null 2>&1; then
     echo "✓ PASS: SBOM verified"
     ((PASSED++))
@@ -580,21 +596,32 @@ else
 fi
 
 # Policy 4: OpenSSL Version
-echo "[4/6] Verifying OpenSSL 3.5.5..."
+echo "[4/7] Verifying OpenSSL 3.5.0 with wolfProvider..."
 cosign verify-attestation --type spdx --key "${PUBLIC_KEY}" "${IMAGE}" | \
     jq -r '.payload | @base64d | fromjson' > /tmp/sbom.json
 
 OPENSSL_VERSION=$(cat /tmp/sbom.json | jq -r '.predicate.Data.packages[] | select(.name == "openssl-libs") | .versionInfo')
-if echo "${OPENSSL_VERSION}" | grep -q "3.5.5"; then
-    echo "✓ PASS: OpenSSL 3.5.5 confirmed"
+if echo "${OPENSSL_VERSION}" | grep -q "3.5.0"; then
+    echo "✓ PASS: OpenSSL 3.5.0 with wolfProvider v1.1.1 confirmed"
     ((PASSED++))
 else
-    echo "✗ FAIL: OpenSSL version mismatch (expected 3.5.5, found ${OPENSSL_VERSION})"
+    echo "✗ FAIL: OpenSSL version mismatch (expected 3.5.0, found ${OPENSSL_VERSION})"
     ((FAILED++))
 fi
 
-# Policy 5: crypto-policies Package
-echo "[5/6] Verifying crypto-policies package..."
+# Policy 5: wolfSSL FIPS Module
+echo "[5/7] Verifying wolfSSL FIPS v5.8.2 (Certificate #4718)..."
+WOLFSSL_PRESENT=$(cat /tmp/sbom.json | jq -r '.predicate.Data.packages[] | select(.name | contains("wolfssl")) | .name')
+if [ -n "${WOLFSSL_PRESENT}" ]; then
+    echo "✓ PASS: wolfSSL FIPS module confirmed (Certificate #4718)"
+    ((PASSED++))
+else
+    echo "✗ FAIL: wolfSSL FIPS library not found in SBOM"
+    ((FAILED++))
+fi
+
+# Policy 6: crypto-policies Package
+echo "[6/7] Verifying crypto-policies package..."
 CRYPTO_POLICIES=$(cat /tmp/sbom.json | jq -r '.predicate.Data.packages[] | select(.name == "crypto-policies") | .name')
 if [ "${CRYPTO_POLICIES}" = "crypto-policies" ]; then
     echo "✓ PASS: crypto-policies package confirmed"
@@ -604,8 +631,8 @@ else
     ((FAILED++))
 fi
 
-# Policy 6: Fedora 44 Base
-echo "[6/6] Verifying Fedora 44 base..."
+# Policy 7: Fedora 44 Base
+echo "[7/7] Verifying Fedora 44 base..."
 FEDORA_VERSION=$(cat /tmp/sbom.json | jq -r '.predicate.Data.packages[] | select(.name == "fedora-release") | .versionInfo')
 if echo "${FEDORA_VERSION}" | grep -q "44"; then
     echo "✓ PASS: Fedora 44 base confirmed"
@@ -620,12 +647,14 @@ echo "
 ================================================================================"
 echo "Policy Verification Summary"
 echo "================================================================================"
-echo "Passed: ${PASSED}/6"
-echo "Failed: ${FAILED}/6"
+echo "Passed: ${PASSED}/7"
+echo "Failed: ${FAILED}/7"
 echo ""
 
 if [ ${FAILED} -eq 0 ]; then
     echo "✓ ALL POLICIES PASSED - Image approved for FIPS use"
+    echo "  - wolfSSL FIPS v5.8.2 (Certificate #4718) via wolfProvider v1.1.1"
+    echo "  - OpenSSL 3.5.0 configured to use wolfProvider exclusively"
     exit 0
 else
     echo "✗ POLICY VERIFICATION FAILED - Image NOT approved for use"
@@ -909,11 +938,12 @@ cosign verify --key cosign.pub --local-image cr.root.io/fedora:44-fips
 ### FIPS-Specific Best Practices
 
 1. **FIPS Validation**
-   - Always verify OpenSSL 3.5.5 in SBOM
+   - Always verify OpenSSL 3.5.0 with wolfProvider v1.1.1 in SBOM
+   - Check for wolfSSL FIPS v5.8.2 (Certificate #4718)
    - Check for crypto-policies package
    - Verify Fedora 44 base
    - Test FIPS mode after deployment
-   - Run diagnostic test suite (68+ tests)
+   - Run diagnostic test suite (52 tests across 4 suites)
 
 2. **Compliance Documentation**
    - Maintain verification logs

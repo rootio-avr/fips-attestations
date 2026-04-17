@@ -28,10 +28,10 @@ print('FIPS enabled:', default_backend()._fips_enabled)
 
 ## What This Example Demonstrates
 
-1. **Base Image**: Uses `cr.root.io/fedora:44-fips` as the foundation
+1. **Base Image**: Uses `cr.root.io/fedora:44-fips` as the foundation (wolfSSL FIPS 140-3)
 2. **Python Installation**: Adds Python 3.x with cryptography library
 3. **FIPS Inheritance**: Inherits FIPS configuration from base image
-4. **Security**: Runs as non-root user (`appuser`)
+4. **Security**: Default user is `root` (override with `--user appuser` if needed)
 
 ## Building Your Application
 
@@ -60,10 +60,11 @@ To use this as a template for your Python application:
 
 ## FIPS Compliance Notes
 
-- **OpenSSL**: Python's cryptography library uses the system OpenSSL with FIPS provider
-- **Crypto Operations**: All cryptographic operations use FIPS-approved algorithms
-- **Environment**: `OPENSSL_FORCE_FIPS_MODE=1` is set in the base image
-- **Verification**: Use `/opt/fips/bin/fips_init_check.sh` to verify FIPS mode
+- **wolfSSL FIPS**: Base image uses wolfSSL FIPS v5.8.2 (Certificate #4718) via wolfProvider
+- **OpenSSL 3.5.0**: Configured to use wolfProvider exclusively
+- **Crypto Operations**: All Python cryptographic operations use FIPS-approved algorithms
+- **Environment**: `OPENSSL_FORCE_FIPS_MODE=1` enforces FIPS mode
+- **Verification**: Use `/opt/fips/bin/fips_init_check.sh` to verify FIPS mode (14 tests)
 
 ## Example Application Structure
 
@@ -91,11 +92,12 @@ print('SHA-256:', hashlib.sha256(b'test').hexdigest())
 
 ## Benefits of This Approach
 
-- **Minimal Base**: Starts with minimal FIPS base image (~317 MB)
+- **FIPS Base**: Starts with wolfSSL FIPS 140-3 certified base image (~700 MB)
 - **Flexibility**: Add only required Python packages
-- **FIPS Compliance**: Inherits FIPS configuration automatically
-- **Security**: Non-root user, minimal attack surface
+- **FIPS Compliance**: Inherits wolfSSL FIPS configuration automatically
+- **Podman Available**: Podman 5.8.1 included for CI/CD scenarios (requires --privileged)
 - **Updates**: Easy to update Python packages independently
+- **Certificate #4718**: wolfSSL FIPS 140-3 validated module
 
 ## See Also
 
