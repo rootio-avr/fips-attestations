@@ -1,6 +1,6 @@
 # wolfSSL FIPS v5 Password File (NEVER COMMIT THIS)
 wolfssl_password.txt
-
+rootio_api_key.txt
 # Build artifacts
 *.o
 *.so
