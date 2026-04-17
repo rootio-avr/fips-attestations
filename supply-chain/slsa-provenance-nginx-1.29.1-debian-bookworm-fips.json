@@ -8,7 +8,7 @@
         "baseImage": {
           "architecture": "amd64",
           "digest": "955ad0840f0ed3e4d7ac58b57396441bbd7e978de224e1dc9d22e18b8f4d28f0",
-          "image": "cr.root.io/nginx:1.29.1-debian-bookworm-fips"
+          "image": "rootioinc/nginx:1.29.1-debian-bookworm-fips"
         },
         "builder": "kaniko",
         "outputImage": "905418475464.dkr.ecr.us-east-1.amazonaws.com/remediated-images:avr_eea76d6d9269430ab4fc7f681b92edbd_rootio",
@@ -25,7 +25,7 @@
       },
       "resolvedDependencies": [
         {
-          "uri": "cr.root.io/nginx:1.29.1-debian-bookworm-fips",
+          "uri": "rootioinc/nginx:1.29.1-debian-bookworm-fips",
           "digest": {
             "sha256": "955ad0840f0ed3e4d7ac58b57396441bbd7e978de224e1dc9d22e18b8f4d28f0"
           },
@@ -71,7 +71,7 @@
       }
     },
     {
-      "name": "cr.root.io/nginx:1.29.1-debian-bookworm-fips_rootio",
+      "name": "rootioinc/nginx:1.29.1-debian-bookworm-fips_rootio",
       "digest": {
         "sha256": "955ad0840f0ed3e4d7ac58b57396441bbd7e978de224e1dc9d22e18b8f4d28f0"
       }
