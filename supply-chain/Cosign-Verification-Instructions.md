@@ -33,6 +33,7 @@ The following images have been signed with cosign:
 | python | 3.12-bookworm-slim-fips | sha256:bf8e621d764abb9bf11f917c04997c385fa66f098621a8ce71846a6bbbb3e859 | root-reg/python |
 | node | 16.20.1-bookworm-slim-fips ⚠️ EOL | sha256:49ea1c95fc97f4a71be5ca289659e3f4c7b8be2313624fbd1c332d62143f82aa | root-reg/node |
 | node | 18.20.8-bookworm-slim-fips | sha256:211ae007634b11e825ce5788eabfb13552d973d6dc90daa49bac13586e82e9cd | root-reg/node |
+| node | 24.14.0-trixie-slim-fips | sha256:9e33d3730c85a7fef44a3953c7dd455893814d2942dff675630b6d0179dba2cb | root-reg/node |
 | nginx | 1.27.3-debian-bookworm-fips | sha256:951cb515992a28a21451336e1fd937df0679de310079aad75b416d0003a70035 | root-reg/nginx |
 | nginx | 1.29.1-debian-bookworm-fips | sha256:27829c6a7a91c6af1b1a5b28d6dc6c3d0c3a2448625b97abaf419e584a29a1b9 | root-reg/nginx |
 | redis | 7.2.4-alpine-3.19-fips | sha256:b6ba83202c1383843801de27da3255aef64a2a8f824fbe4e4c0c070b3f30f049 | root-reg/redis |
@@ -106,6 +107,14 @@ cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
   <redacted_root_ecr_base>/root-reg/node:18.20.8-bookworm-slim-fips
+```
+
+**Node.js 24 Image (Trixie):**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/node:24.14.0-trixie-slim-fips
 ```
 
 **Nginx 1.27.3 Image:**
@@ -214,6 +223,14 @@ cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
   <redacted_root_ecr_base>/root-reg/node@sha256:211ae007634b11e825ce5788eabfb13552d973d6dc90daa49bac13586e82e9cd
+```
+
+**Node.js 24.14.0 (Trixie):**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/node@sha256:9e33d3730c85a7fef44a3953c7dd455893814d2942dff675630b6d0179dba2cb
 ```
 
 **Nginx 1.27.3 (Bookworm):**
@@ -333,6 +350,16 @@ cosign verify \
   <redacted_root_ecr_base>/root-reg/node@sha256:211ae007634b11e825ce5788eabfb13552d973d6dc90daa49bac13586e82e9cd
 ```
 
+**Node.js 24.14.0 (Trixie):**
+```bash
+docker pull cr.root.io/node:24.14.0-trixie-slim-fips
+docker inspect cr.root.io/node:24.14.0-trixie-slim-fips --format '{{index .RepoDigests 0}}'
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/node@sha256:9e33d3730c85a7fef44a3953c7dd455893814d2942dff675630b6d0179dba2cb
+```
+
 **Nginx 1.27.3 (Bookworm):**
 ```bash
 docker pull cr.root.io/nginx:1.27.3-debian-bookworm-fips
@@ -422,6 +449,11 @@ cosign tree <redacted_root_ecr_base>/root-reg/node:16.20.1-bookworm-slim-fips
 **Node.js 18.20.8 (Bookworm):**
 ```bash
 cosign tree <redacted_root_ecr_base>/root-reg/node:18.20.8-bookworm-slim-fips
+```
+
+**Node.js 24.14.0 (Trixie):**
+```bash
+cosign tree <redacted_root_ecr_base>/root-reg/node:24.14.0-trixie-slim-fips
 ```
 
 **Nginx 1.27.3 (Bookworm):**
