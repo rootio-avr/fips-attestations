@@ -1,0 +1,93 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://slsa.dev/container-build/v1",
+      "externalParameters": {
+        "arch": "amd64",
+        "baseImage": {
+          "architecture": "amd64",
+          "digest": "18e712d3d4b57b4d3023870c421e047c4497f539bf6542733cb3d0dbbdd73596",
+          "image": "cr.root.io/gotenberg:8.26.0-trixie-slim-fips"
+        },
+        "builder": "kaniko",
+        "outputImage": "905418475464.dkr.ecr.us-east-1.amazonaws.com/remediated-images:avr_1a573f69e90d48019af112eac8eb69da_rootio",
+        "packagesUpgraded": [
+          "golang.org/x/crypto"
+        ]
+      },
+      "internalParameters": {
+        "workflow": {
+          "avr_id": "avr_1a573f69e90d48019af112eac8eb69da",
+          "dockerfile_key": "org_90fb24fefd6542c08d28a2f84982d578/avr_1a573f69e90d48019af112eac8eb69da_Dockerfile",
+          "is_truncated": false,
+          "post_scan_id": "ascn_71ceb39d4a76424a89c28ba5bf9262e7",
+          "pre_scan_id": "ascn_c3739ca7576d4a7195f7d6d7c1e2af98"
+        }
+      },
+      "resolvedDependencies": [
+        {
+          "uri": "cr.root.io/gotenberg:8.26.0-trixie-slim-fips",
+          "digest": {
+            "sha256": "18e712d3d4b57b4d3023870c421e047c4497f539bf6542733cb3d0dbbdd73596"
+          },
+          "localName": "base-image",
+          "annotations": {
+            "architecture": "amd64",
+            "type": "container-image"
+          }
+        },
+        {
+          "digest": {
+            "sha256": ""
+          },
+          "localName": "dockerfile",
+          "annotations": {
+            "s3_key": "org_90fb24fefd6542c08d28a2f84982d578/avr_1a573f69e90d48019af112eac8eb69da_Dockerfile",
+            "type": "dockerfile"
+          }
+        },
+        {
+          "uri": "pkg:apt/debian/golang.org/x/crypto@v0.43.0",
+          "digest": null,
+          "localName": "golang.org/x/crypto",
+          "annotations": {
+            "originVersion": "v0.47.0",
+            "patchedVersion": "v0.43.0",
+            "type": "upgraded-package"
+          }
+        }
+      ]
+    },
+    "runDetails": {
+      "builder": {
+        "id": "https://github.com/GoogleContainerTools/kaniko",
+        "version": {
+          "image": "gcr.io/kaniko-project/executor",
+          "tag": "debug"
+        }
+      },
+      "metadata": {
+        "invocationId": "avr_1a573f69e90d48019af112eac8eb69da",
+        "startedOn": "2026-04-17T14:03:12.704Z",
+        "finishedOn": "2026-04-17T14:08:40.000042422Z"
+      },
+      "byproducts": null
+    }
+  },
+  "subject": [
+    {
+      "name": "905418475464.dkr.ecr.us-east-1.amazonaws.com/remediated-images:avr_1a573f69e90d48019af112eac8eb69da_rootio",
+      "digest": {
+        "sha256": "18e712d3d4b57b4d3023870c421e047c4497f539bf6542733cb3d0dbbdd73596"
+      }
+    },
+    {
+      "name": "cr.root.io/gotenberg:8.26.0-trixie-slim-fips_rootio",
+      "digest": {
+        "sha256": "18e712d3d4b57b4d3023870c421e047c4497f539bf6542733cb3d0dbbdd73596"
+      }
+    }
+  ],
+  "predicateType": "https://slsa.dev/provenance/v1"
+}

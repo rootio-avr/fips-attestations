@@ -2,6 +2,7 @@
 # Gotenberg 8.26.0 Debian Trixie FIPS Image
 
 **Image:** cr.root.io/gotenberg:8.26.0-trixie-slim-fips
+**Digest:** sha256:81d884a7d5c15c448d20c19868ff476c06f9fcd9e9c81244f68cacdf1d6fd823
 **Version:** 1.0
 **Date:** April 16, 2026
 
@@ -248,6 +249,20 @@ cosign verify --key cosign.pub cr.root.io/gotenberg:8.26.0-trixie-slim-fips > ve
 # Parse with jq
 cat verification.json | jq '.[]'
 ```
+
+**Verify using digest (recommended for production):**
+```bash
+# Verify using image digest for immutable verification
+cosign verify --key cosign.pub cr.root.io/gotenberg@sha256:81d884a7d5c15c448d20c19868ff476c06f9fcd9e9c81244f68cacdf1d6fd823
+
+# Expected output on success:
+# Verification for cr.root.io/gotenberg@sha256:81d884a7d5c15c448d20c19868ff476c06f9fcd9e9c81244f68cacdf1d6fd823 --
+# The following checks were performed on each of these signatures:
+#   - The cosign claims were validated
+#   - The signatures were verified against the specified public key
+```
+
+**Note:** Digest-based verification is recommended for production environments as it provides immutable image verification. Tags can change, but digests uniquely identify a specific image version.
 
 ### Verify Multiple Tags
 

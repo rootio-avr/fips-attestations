@@ -39,6 +39,7 @@ The following images have been signed with cosign:
 | redis | 7.2.4-alpine-3.19-fips | sha256:b6ba83202c1383843801de27da3255aef64a2a8f824fbe4e4c0c070b3f30f049 | root-reg/redis |
 | redis-exporter | 1.67.0-jammy-ubuntu-22.04-fips | sha256:597724bbae809230508773e2be2e39ebb62d6ab332b6b5d9320785c420a67290 | root-reg/redis-exporter |
 | podman | 5.8.1-fedora-44-fips | sha256:eb4233753ebd66895ac1574663a71abb822af010180f61dabbab23f906431307 | root-reg/podman |
+| gotenberg | 8.26.0-trixie-slim-fips | sha256:81d884a7d5c15c448d20c19868ff476c06f9fcd9e9c81244f68cacdf1d6fd823 | root-reg/gotenberg |
 
 ## Verification Methods
 
@@ -156,6 +157,14 @@ cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
   <redacted_root_ecr_base>/root-reg/podman:5.8.1-fedora-44-fips
+```
+
+**Gotenberg Image:**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/gotenberg:8.26.0-trixie-slim-fips
 ```
 
 ### Method 2: Verify Using Digest (Recommended)
@@ -280,6 +289,14 @@ cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
   <redacted_root_ecr_base>/root-reg/podman@sha256:eb4233753ebd66895ac1574663a71abb822af010180f61dabbab23f906431307
+```
+
+**Gotenberg 8.26.0 (Trixie):**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/gotenberg@sha256:81d884a7d5c15c448d20c19868ff476c06f9fcd9e9c81244f68cacdf1d6fd823
 ```
 
 ### Expected Output
@@ -427,6 +444,16 @@ cosign verify \
   <redacted_root_ecr_base>/root-reg/podman@sha256:eb4233753ebd66895ac1574663a71abb822af010180f61dabbab23f906431307
 ```
 
+**Gotenberg 8.26.0 (Trixie):**
+```bash
+docker pull cr.root.io/gotenberg:8.26.0-trixie-slim-fips
+docker inspect cr.root.io/gotenberg:8.26.0-trixie-slim-fips --format '{{index .RepoDigests 0}}'
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/gotenberg@sha256:81d884a7d5c15c448d20c19868ff476c06f9fcd9e9c81244f68cacdf1d6fd823
+```
+
 ## Advanced Commands
 
 ### View Signature Artifacts
@@ -506,6 +533,11 @@ cosign tree <redacted_root_ecr_base>/root-reg/redis-exporter:1.67.0-jammy-ubuntu
 **Podman 5.8.1 (Fedora 44 FIPS):**
 ```bash
 cosign tree <redacted_root_ecr_base>/root-reg/podman:5.8.1-fedora-44-fips
+```
+
+**Gotenberg 8.26.0 (Trixie):**
+```bash
+cosign tree <redacted_root_ecr_base>/root-reg/gotenberg:8.26.0-trixie-slim-fips
 ```
 
 Example output:
