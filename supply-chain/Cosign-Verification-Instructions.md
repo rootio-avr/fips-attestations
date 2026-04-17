@@ -38,6 +38,7 @@ The following images have been signed with cosign:
 | nginx | 1.29.1-debian-bookworm-fips | sha256:27829c6a7a91c6af1b1a5b28d6dc6c3d0c3a2448625b97abaf419e584a29a1b9 | root-reg/nginx |
 | redis | 7.2.4-alpine-3.19-fips | sha256:b6ba83202c1383843801de27da3255aef64a2a8f824fbe4e4c0c070b3f30f049 | root-reg/redis |
 | redis-exporter | 1.67.0-jammy-ubuntu-22.04-fips | sha256:597724bbae809230508773e2be2e39ebb62d6ab332b6b5d9320785c420a67290 | root-reg/redis-exporter |
+| podman | 5.8.1-fedora-44-fips | sha256:eb4233753ebd66895ac1574663a71abb822af010180f61dabbab23f906431307 | root-reg/podman |
 
 ## Verification Methods
 
@@ -147,6 +148,14 @@ cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
   <redacted_root_ecr_base>/root-reg/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips
+```
+
+**Podman Image:**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/podman:5.8.1-fedora-44-fips
 ```
 
 ### Method 2: Verify Using Digest (Recommended)
@@ -263,6 +272,14 @@ cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
   <redacted_root_ecr_base>/root-reg/redis-exporter@sha256:597724bbae809230508773e2be2e39ebb62d6ab332b6b5d9320785c420a67290
+```
+
+**Podman 5.8.1 (Fedora 44 FIPS):**
+```bash
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/podman@sha256:eb4233753ebd66895ac1574663a71abb822af010180f61dabbab23f906431307
 ```
 
 ### Expected Output
@@ -400,6 +417,16 @@ cosign verify \
   <redacted_root_ecr_base>/root-reg/redis-exporter@sha256:597724bbae809230508773e2be2e39ebb62d6ab332b6b5d9320785c420a67290
 ```
 
+**Podman 5.8.1 (Fedora 44 FIPS):**
+```bash
+docker pull cr.root.io/podman:5.8.1-fedora-44-fips
+docker inspect cr.root.io/podman:5.8.1-fedora-44-fips --format '{{index .RepoDigests 0}}'
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/podman@sha256:eb4233753ebd66895ac1574663a71abb822af010180f61dabbab23f906431307
+```
+
 ## Advanced Commands
 
 ### View Signature Artifacts
@@ -476,6 +503,11 @@ cosign tree <redacted_root_ecr_base>/root-reg/redis:7.2.4-alpine-3.19-fips
 cosign tree <redacted_root_ecr_base>/root-reg/redis-exporter:1.67.0-jammy-ubuntu-22.04-fips
 ```
 
+**Podman 5.8.1 (Fedora 44 FIPS):**
+```bash
+cosign tree <redacted_root_ecr_base>/root-reg/podman:5.8.1-fedora-44-fips
+```
+
 Example output:
 ```
 📦 Supply Chain Security Related artifacts for an image: <redacted_root_ecr_base>/root-reg/java:21-jdk-jammy-ubuntu-22.04-fips
@@ -543,6 +575,15 @@ aws ecr describe-images \
 ```bash
 aws ecr describe-images \
   --repository-name root-reg/redis-exporter \
+  --region us-east-1 \
+  --query 'imageDetails[?imageSizeInBytes < `10000`].[imageDigest, imageSizeInBytes, imageManifestMediaType]' \
+  --output table
+```
+
+**Podman signatures:**
+```bash
+aws ecr describe-images \
+  --repository-name root-reg/podman \
   --region us-east-1 \
   --query 'imageDetails[?imageSizeInBytes < `10000`].[imageDigest, imageSizeInBytes, imageManifestMediaType]' \
   --output table

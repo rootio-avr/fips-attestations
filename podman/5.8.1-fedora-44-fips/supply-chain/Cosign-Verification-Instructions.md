@@ -47,11 +47,26 @@ cosign verify \
 
 ### Method 2: Verify Using Digest (Recommended)
 
-Verify using the image digest for immutable verification. First, get the digest from the image:
+Verify using the image digest for immutable verification.
+
+**Image Digest:** `sha256:eb4233753ebd66895ac1574663a71abb822af010180f61dabbab23f906431307`
+
+You can verify directly using this digest:
 
 ```bash
-# Get the digest
+cosign verify \
+  --certificate-identity-regexp '.*' \
+  --certificate-oidc-issuer-regexp '.*' \
+  <redacted_root_ecr_base>/root-reg/podman@sha256:eb4233753ebd66895ac1574663a71abb822af010180f61dabbab23f906431307
+```
+
+Alternatively, get the digest from the pulled image:
+
+```bash
+# Pull the image
 docker pull <redacted_root_ecr_base>/root-reg/podman:5.8.1-fedora-44-fips
+
+# Get the digest
 docker inspect <redacted_root_ecr_base>/root-reg/podman:5.8.1-fedora-44-fips --format '{{index .RepoDigests 0}}'
 ```
 
@@ -75,7 +90,7 @@ Successful verification will output JSON with signature details:
       "docker-reference": "<redacted_root_ecr_base>/root-reg/podman:5.8.1-fedora-44-fips"
     },
     "image": {
-      "docker-manifest-digest": "sha256:<image-digest>"
+      "docker-manifest-digest": "sha256:eb4233753ebd66895ac1574663a71abb822af010180f61dabbab23f906431307"
     },
     "type": "https://sigstore.dev/cosign/sign/v1"
   },
@@ -98,7 +113,7 @@ The cr.root.io proxy is read-only and doesn't store signature artifacts. To veri
    docker pull cr.root.io/podman:5.8.1-fedora-44-fips
    ```
 
-2. **Get the digest** from the pulled image:
+2. **Get the digest** from the pulled image (should be `sha256:eb4233753ebd66895ac1574663a71abb822af010180f61dabbab23f906431307`):
    ```bash
    docker inspect cr.root.io/podman:5.8.1-fedora-44-fips --format '{{index .RepoDigests 0}}'
    ```
@@ -108,7 +123,7 @@ The cr.root.io proxy is read-only and doesn't store signature artifacts. To veri
    cosign verify \
      --certificate-identity-regexp '.*' \
      --certificate-oidc-issuer-regexp '.*' \
-     <redacted_root_ecr_base>/root-reg/podman@sha256:<digest-from-step-2>
+     <redacted_root_ecr_base>/root-reg/podman@sha256:eb4233753ebd66895ac1574663a71abb822af010180f61dabbab23f906431307
    ```
 
 ## Advanced Commands
@@ -288,6 +303,7 @@ docker run --rm cr.root.io/podman:5.8.1-fedora-44-fips test-fips
 set -e
 
 IMAGE_TAG="<redacted_root_ecr_base>/root-reg/podman:5.8.1-fedora-44-fips"
+IMAGE_DIGEST="<redacted_root_ecr_base>/root-reg/podman@sha256:eb4233753ebd66895ac1574663a71abb822af010180f61dabbab23f906431307"
 
 echo "Step 1: Pull image"
 docker pull "$IMAGE_TAG"
@@ -295,12 +311,13 @@ docker pull "$IMAGE_TAG"
 echo "Step 2: Get image digest"
 DIGEST=$(docker inspect "$IMAGE_TAG" --format '{{index .RepoDigests 0}}')
 echo "Image digest: $DIGEST"
+echo "Expected digest: $IMAGE_DIGEST"
 
 echo "Step 3: Verify cosign signature"
 cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
-  "$DIGEST"
+  "$IMAGE_DIGEST"
 
 echo "Step 4: Verify FIPS components"
 docker run --rm "$IMAGE_TAG" test-fips
