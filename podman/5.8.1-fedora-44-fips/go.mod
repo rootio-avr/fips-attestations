@@ -23,7 +23,7 @@ require (
 	github.com/cyphar/filepath-securejoin v0.5.2
 	github.com/digitalocean/go-qemu v0.0.0-20250212194115-ee9b0668d242
 	github.com/docker/distribution v2.8.3+incompatible
-	github.com/docker/docker v28.5.1+incompatible
+	github.com/docker/docker v29.3.1
 	github.com/docker/go-connections v0.6.0
 	github.com/docker/go-plugins-helpers v0.0.0-20240701071450-45e2431495c8
 	github.com/docker/go-units v0.5.0
@@ -136,7 +136,7 @@ require (
 	github.com/mdlayher/socket v0.5.1 // indirect
 	github.com/miekg/pkcs11 v1.1.1 // indirect
 	github.com/mistifyio/go-zfs/v3 v3.1.0 // indirect
-	github.com/moby/buildkit v0.25.1 // indirect
+	github.com/moby/buildkit v0.28.1 // indirect
 	github.com/moby/go-archive v0.1.0 // indirect
 	github.com/moby/patternmatcher v0.6.0 // indirect
 	github.com/moby/sys/mountinfo v0.7.2 // indirect
