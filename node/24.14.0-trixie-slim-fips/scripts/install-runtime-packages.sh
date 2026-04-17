@@ -9,7 +9,7 @@
 set -euo pipefail
 
 # Package list for runtime stage
-PACKAGES="python3.13 libncurses6 systemd expat python3.13-minimal libsystemd-shared libpython3.13-minimal libpython3.13-stdlib libncursesw6 libexpat1 bsdutils bsdutils login"
+PACKAGES="python3.13 ncurses-base libncurses6 libncursesw6 systemd expat python3.13-minimal libsystemd-shared libpython3.13-minimal libpython3.13-stdlib libexpat1 bsdutils bsdutils login rootio-python3.13 rootio-python3.13-minimal rootio-libpython3.13-minimal rootio-libpython3.13-stdlib"
 
 echo "================================================================================"
 echo "Installing Runtime Stage Packages for Node.js FIPS"
@@ -94,7 +94,7 @@ if dpkg -l | grep -q "^ii.*rootio-expat"; then
 fi
 
 if dpkg -l | grep -q "^ii.*rootio-python3.13-minimal"; then
-    if dpkg -l | grep -q "^ii  python3.13-minimal"; then
+    if dpkg -l | grep  "python3.13-minimal"; then
         echo "Removing standard python3.13-minimal package (replaced by patched version)..."
         dpkg --remove --force-depends python3.13-minimal 2>&1 || true
         echo "✓ Standard python3.13-minimal removed from package database"
@@ -114,6 +114,14 @@ if dpkg -l | grep -q "^ii.*rootio-libpython3.13-minimal"; then
         echo "Removing standard libpython3.13-minimal package (replaced by patched version)..."
         dpkg --remove --force-depends libpython3.13-minimal 2>&1 || true
         echo "✓ Standard libpython3.13-minimal removed from package database"
+    fi
+fi
+
+if dpkg -l | grep -q "^ii.*rootio-libpython3.13-stdlib"; then
+    if dpkg -l | grep -q "^ii  libpython3.13-stdlib"; then
+        echo "Removing standard libpython3.13-stdlib package (replaced by patched version)..."
+        dpkg --remove --force-depends libpython3.13-stdlib 2>&1 || true
+        echo "✓ Standard libpython3.13-stdlib removed from package database"
     fi
 fi
 

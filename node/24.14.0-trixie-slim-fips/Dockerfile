@@ -240,11 +240,21 @@ COPY --from=builder /usr/local/lib/libwolfssl.so* /usr/local/lib/
 COPY --from=builder /usr/local/include/wolfssl /usr/local/include/wolfssl
 COPY --from=builder /usr/local/bin/test-fips /test-fips
 
-# Install Node.js from NodeSource repository
-# NodeSource provides pre-built Node.js binaries dynamically linked to system OpenSSL
+# Install exact Node.js 24.14.0 from official binaries
+# Pre-built Node.js binaries are dynamically linked to system OpenSSL
+# RUN set -eux; \
+# 	ARCH="x64"; \
+# 	curl -fsSLO "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${ARCH}.tar.xz"; \
+# 	tar -xJf "node-v${NODE_VERSION}-linux-${ARCH}.tar.xz" -C /usr/local --strip-components=1 --no-same-owner; \
+# 	rm "node-v${NODE_VERSION}-linux-${ARCH}.tar.xz"; \
+# 	ln -s /usr/local/bin/node /usr/local/bin/nodejs; \
+# 	node --version; \
+# 	npm --version; \
+# 	echo "✓ Node.js ${NODE_VERSION} installed successfully"
+
 RUN set -eux; \
 	curl -fsSL https://deb.nodesource.com/setup_24.x | bash -; \
-	apt-get install -y nodejs; \
+	apt-get install -y nodejs=24.14.0-1nodesource1; \
 	node --version; \
 	npm --version; \
 	echo "✓ Node.js ${NODE_VERSION} installed successfully"
@@ -316,6 +326,8 @@ RUN chmod +x /opt/wolfssl-fips/bin/fips_init_check.js
 COPY scripts/integrity-check.sh /usr/local/bin/integrity-check.sh
 RUN chmod +x /usr/local/bin/integrity-check.sh
 
+
+
 # Generate checksums for integrity verification
 RUN mkdir -p /opt/wolfssl-fips/checksums && \
 	sha256sum /usr/local/lib/libwolfssl.so* > /opt/wolfssl-fips/checksums/libwolfssl.sha256 && \
@@ -340,6 +352,7 @@ RUN set -eux; \
 		curl \
 		gnupg \
 		dirmngr \
+		xz-utils \
 	; \
 	apt-get clean; \
 	rm -rf /var/lib/apt/lists/*

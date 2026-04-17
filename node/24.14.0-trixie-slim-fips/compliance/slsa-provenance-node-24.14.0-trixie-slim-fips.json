@@ -1,0 +1,126 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://slsa.dev/container-build/v1",
+      "externalParameters": {
+        "arch": "amd64",
+        "baseImage": {
+          "architecture": "amd64",
+          "digest": "d13494bf8613119a7f6ec5996cc399be16218cf01e54d505d6d18030c3bc510d",
+          "image": "cr.root.io/node:24.14.0-trixie-slim-fips"
+        },
+        "builder": "kaniko",
+        "outputImage": "905418475464.dkr.ecr.us-east-1.amazonaws.com/remediated-images:avr_489b1f40e7e944d3a52712208957537a_rootio",
+        "packagesUpgraded": [
+          "rootio-python3.13-minimal",
+          "rootio-libpython3.13-stdlib",
+          "rootio-libpython3.13-minimal",
+          "rootio-python3.13"
+        ]
+      },
+      "internalParameters": {
+        "workflow": {
+          "avr_id": "avr_489b1f40e7e944d3a52712208957537a",
+          "dockerfile_key": "org_90fb24fefd6542c08d28a2f84982d578/avr_489b1f40e7e944d3a52712208957537a_Dockerfile",
+          "is_truncated": false,
+          "post_scan_id": "ascn_9202a4ba0619408eb477a9a4ece2757c",
+          "pre_scan_id": "ascn_175cff1616b949a7a198654f8fe89956"
+        }
+      },
+      "resolvedDependencies": [
+        {
+          "uri": "cr.root.io/node:24.14.0-trixie-slim-fips",
+          "digest": {
+            "sha256": "d13494bf8613119a7f6ec5996cc399be16218cf01e54d505d6d18030c3bc510d"
+          },
+          "localName": "base-image",
+          "annotations": {
+            "architecture": "amd64",
+            "type": "container-image"
+          }
+        },
+        {
+          "digest": {
+            "sha256": ""
+          },
+          "localName": "dockerfile",
+          "annotations": {
+            "s3_key": "org_90fb24fefd6542c08d28a2f84982d578/avr_489b1f40e7e944d3a52712208957537a_Dockerfile",
+            "type": "dockerfile"
+          }
+        },
+        {
+          "uri": "pkg:apt/debian/rootio-python3.13@3.13.5-2.root.io.16",
+          "digest": null,
+          "localName": "rootio-python3.13",
+          "annotations": {
+            "originVersion": "3.13.5-2.root.io.15",
+            "patchedVersion": "3.13.5-2.root.io.16",
+            "type": "root-patched-package"
+          }
+        },
+        {
+          "uri": "pkg:apt/debian/rootio-python3.13-minimal@3.13.5-2.root.io.16",
+          "digest": null,
+          "localName": "rootio-python3.13-minimal",
+          "annotations": {
+            "originVersion": "3.13.5-2.root.io.15",
+            "patchedVersion": "3.13.5-2.root.io.16",
+            "type": "root-patched-package"
+          }
+        },
+        {
+          "uri": "pkg:apt/debian/rootio-libpython3.13-stdlib@3.13.5-2.root.io.16",
+          "digest": null,
+          "localName": "rootio-libpython3.13-stdlib",
+          "annotations": {
+            "originVersion": "3.13.5-2.root.io.15",
+            "patchedVersion": "3.13.5-2.root.io.16",
+            "type": "root-patched-package"
+          }
+        },
+        {
+          "uri": "pkg:apt/debian/rootio-libpython3.13-minimal@3.13.5-2.root.io.16",
+          "digest": null,
+          "localName": "rootio-libpython3.13-minimal",
+          "annotations": {
+            "originVersion": "3.13.5-2.root.io.15",
+            "patchedVersion": "3.13.5-2.root.io.16",
+            "type": "root-patched-package"
+          }
+        }
+      ]
+    },
+    "runDetails": {
+      "builder": {
+        "id": "https://github.com/GoogleContainerTools/kaniko",
+        "version": {
+          "image": "gcr.io/kaniko-project/executor",
+          "tag": "debug"
+        }
+      },
+      "metadata": {
+        "invocationId": "avr_489b1f40e7e944d3a52712208957537a",
+        "startedOn": "2026-04-17T11:15:57.641Z",
+        "finishedOn": "2026-04-17T11:19:25.167718939Z"
+      },
+      "byproducts": null
+    }
+  },
+  "subject": [
+    {
+      "name": "905418475464.dkr.ecr.us-east-1.amazonaws.com/remediated-images:avr_489b1f40e7e944d3a52712208957537a_rootio",
+      "digest": {
+        "sha256": "d13494bf8613119a7f6ec5996cc399be16218cf01e54d505d6d18030c3bc510d"
+      }
+    },
+    {
+      "name": "cr.root.io/node:24.14.0-trixie-slim-fips_rootio",
+      "digest": {
+        "sha256": "d13494bf8613119a7f6ec5996cc399be16218cf01e54d505d6d18030c3bc510d"
+      }
+    }
+  ],
+  "predicateType": "https://slsa.dev/provenance/v1"
+}

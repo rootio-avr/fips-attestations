@@ -4,7 +4,7 @@
 set -e
 
 # Default values
-IMAGE_NAME="node"
+IMAGE_NAME="cr.root.io/node"
 IMAGE_TAG="24.14.0-trixie-slim-fips"
 BUILD_ARGS=""
 export DOCKER_BUILDKIT=1

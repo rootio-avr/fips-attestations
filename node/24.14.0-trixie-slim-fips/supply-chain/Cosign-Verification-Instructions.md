@@ -24,7 +24,7 @@ This guide explains how to verify cosign signatures for the Node.js 24.14.0 FIPS
 **Base:** Node.js 24.14.1 on Debian Trixie (Slim)
 **ECR Repository:** `root-reg/node`
 **Signing Method:** Keyless signing via Sigstore
-**Image Digest:** `sha256:<to-be-updated-after-signing>`
+**Image Digest:** `sha256:9e33d3730c85a7fef44a3953c7dd455893814d2942dff675630b6d0179dba2cb`
 
 ## Verification Methods
 
@@ -48,7 +48,7 @@ Verify using the image digest for immutable verification. You can use the known 
 cosign verify \
   --certificate-identity-regexp '.*' \
   --certificate-oidc-issuer-regexp '.*' \
-  <redacted_root_ecr_base>/root-reg/node@sha256:<image-digest>
+  <redacted_root_ecr_base>/root-reg/node@sha256:9e33d3730c85a7fef44a3953c7dd455893814d2942dff675630b6d0179dba2cb
 ```
 
 ```bash
@@ -74,7 +74,7 @@ Successful verification will output JSON with signature details:
       "docker-reference": "<redacted_root_ecr_base>/root-reg/cr.root.io/node:24.14.0-trixie-slim-fips"
     },
     "image": {
-      "docker-manifest-digest": "sha256:<image-digest>"
+      "docker-manifest-digest": "sha256:9e33d3730c85a7fef44a3953c7dd455893814d2942dff675630b6d0179dba2cb"
     },
     "type": "https://sigstore.dev/cosign/sign/v1"
   },
@@ -117,7 +117,7 @@ cosign tree <redacted_root_ecr_base>/root-reg/cr.root.io/node:24.14.0-trixie-sli
 Example output:
 ```
 📦 Supply Chain Security Related artifacts for an image: <redacted_root_ecr_base>/root-reg/cr.root.io/node:24.14.0-trixie-slim-fips
-└── 🔗 https://sigstore.dev/cosign/sign/v1 artifacts via OCI referrer: <redacted_root_ecr_base>/root-reg/node@sha256:<image-digest>
+└── 🔗 https://sigstore.dev/cosign/sign/v1 artifacts via OCI referrer: <redacted_root_ecr_base>/root-reg/node@sha256:9e33d3730c85a7fef44a3953c7dd455893814d2942dff675630b6d0179dba2cb
    └── 🍒 sha256:<signature-digest>
 ```
 
