@@ -1,0 +1,151 @@
+
+================================================================================
+[1m[0;36mPodman 5.8.1 Fedora 44 FIPS - Diagnostic Runner[0m
+================================================================================
+
+[0;32m✓[0m Image found: cr.root.io/podman:5.8.1-fedora-44-fips
+[0;32m✓[0m Diagnostics directory: /home/vysakh-k-s/focaloid/root/fips-image-latest/fips-attestations/podman/5.8.1-fedora-44-fips/diagnostics
+
+[0;36mRunning all diagnostics...[0m
+
+================================================================================
+[0;36mPodman FIPS - Diagnostic Test Runner[0m
+================================================================================
+
+Image: cr.root.io/podman:5.8.1-fedora-44-fips
+Timestamp: 2026-04-17 11:57:01
+
+[0;32m✓[0m Starting diagnostic tests
+
+================================================================================
+Running diagnostic tests...
+================================================================================
+
+[0;36mRunning FIPS test suite...[0m
+
+FIPS Compliance Tests
+==================
+
+[1;33m[TEST][0m wolfSSL FIPS self-test
+wolfSSL FIPS Test Utility
+=========================
+
+wolfSSL version: 5.8.2
+FIPS mode: ENABLED
+FIPS version: 5
+
+✓ wolfSSL FIPS test PASSED
+✓ FIPS module is correctly installed
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m OpenSSL version check
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m wolfProvider is loaded
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m Go FIPS mode enabled (GODEBUG)
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m GOLANG_FIPS environment variable
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m Go toolchain version
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m Podman binary check
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m OpenSSL configuration file exists
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m wolfSSL library present
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m wolfProvider module present
+[0;32m  ✓ PASS[0m
+
+Summary: 10 passed, 0 failed
+
+
+[0;32m✓[0m FIPS test suite completed
+
+[0;36mRunning Podman basic test suite...[0m
+
+Podman Basic Functionality Tests
+=================================
+
+[1;33m[TEST][0m Podman version command
+podman version 5.8.1
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m Podman info command (skipped - requires --privileged)
+[0;32m  ✓ SKIP[0m (Use 'docker run --privileged' to test this)
+[1;33m[TEST][0m Podman binary is executable
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m conmon runtime present
+/usr/sbin/conmon
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m crun runtime present
+/usr/sbin/crun
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m Storage configuration present
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m Registries configuration present
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m fuse-overlayfs present
+/usr/sbin/fuse-overlayfs
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m slirp4netns present
+/usr/sbin/slirp4netns
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m Podman help command works
+[0;32m  ✓ PASS[0m
+
+Summary: 10 passed, 0 failed
+
+
+[0;32m✓[0m Podman basic test suite completed
+
+[0;36mRunning Crypto test suite...[0m
+
+Cryptographic Operations Tests
+===============================
+
+[1;33m[TEST][0m Generate RSA-2048 private key
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m Generate self-signed certificate
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m SHA-256 hash operation
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m SHA-384 hash operation
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m SHA-512 hash operation
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m AES-256-CBC encryption
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m List FIPS-approved ciphers
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m Verify MD5 is blocked (should fail intentionally)
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m TLS 1.3 cipher support
+[0;32m  ✓ PASS[0m
+[1;33m[TEST][0m Generate EC P-256 key
+[0;32m  ✓ PASS[0m
+
+Summary: 10 passed, 0 failed
+
+
+[0;32m✓[0m Crypto test suite completed
+
+
+================================================================================
+Test Summary
+================================================================================
+
+Total tests: 3
+Passed: 3
+Failed: 0
+
+Overall Status: ✓ ALL TESTS PASSED
+
+================================================================================
+
+[0;32m✓ All diagnostic tests passed (3/3)[0m
+================================================================================
+
+Results saved to: ./Evidence/diagnostic_results_20260417_115701.txt
+
+
+[0;32m✓ Diagnostics completed successfully[0m
+
