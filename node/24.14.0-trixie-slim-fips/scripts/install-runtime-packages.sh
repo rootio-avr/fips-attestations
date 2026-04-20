@@ -125,8 +125,8 @@ if dpkg -l | grep -q "^ii.*rootio-libpython3.13-stdlib"; then
     fi
 fi
 
-if dpkg -l | grep -q "^ii.*rootio-libncursesw6"; then
-    if dpkg -l | grep -q "^ii  libncursesw6"; then
+if dpkg -l | grep  "rootio-libncursesw6"; then
+    if dpkg -l | grep  "libncursesw6"; then
         echo "Removing standard libncursesw6 package (replaced by patched version)..."
         dpkg --remove --force-depends libncursesw6 2>&1 || true
         echo "✓ Standard libncursesw6 removed from package database"

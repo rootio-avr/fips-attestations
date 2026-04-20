@@ -259,6 +259,33 @@ RUN set -eux; \
 	npm --version; \
 	echo "✓ Node.js ${NODE_VERSION} installed successfully"
 
+# Upgrade npm to fix multiple ReDoS vulnerabilities in npm dependencies:
+#   - CVE-2026-26996, CVE-2026-27903, CVE-2026-27904 (minimatch)
+#   - CVE-2026-33671, CVE-2026-33672 (picomatch)
+# Package upgrades: minimatch 10.1.2 → 10.2.1+, picomatch 4.0.3 → 4.0.4
+RUN set -eux; \
+	echo "==> Upgrading npm to fix ReDoS vulnerabilities (minimatch, picomatch)"; \
+	npm install -g npm@latest; \
+	echo "==> Forcing picomatch@4.0.4 inside npm to fix CVE-2026-33671"; \
+	mkdir -p /tmp/picomatch-fix; \
+	cd /tmp/picomatch-fix && npm pack picomatch@4.0.4; \
+	tar -xzf picomatch-4.0.4.tgz; \
+	PICOMATCH_DIRS=$(find /usr/lib/node_modules/npm -type d -name picomatch); \
+	for dir in $PICOMATCH_DIRS; do \
+		echo "Updating picomatch in: $dir"; \
+		rm -rf "$dir"/*; \
+		cp -r package/* "$dir/"; \
+	done; \
+	cd /; \
+	rm -rf /tmp/picomatch-fix; \
+	echo "==> Verifying versions after npm upgrade:"; \
+	node --version; \
+	npm --version; \
+	echo "==> Checking picomatch version:"; \
+	cd /usr/lib/node_modules/npm && npm list picomatch 2>/dev/null | head -20 || true; \
+	MINIMATCH_VERSION=$(npm list -g minimatch --depth=0 2>/dev/null | grep minimatch | sed 's/.*minimatch@//;s/ .*//') || echo "minimatch not found as top-level package"; \
+	echo "✓ npm upgraded (fixes CVE-2026-26996, CVE-2026-27903, CVE-2026-27904, CVE-2026-33671, CVE-2026-33672)"
+
 # Replace System OpenSSL with FIPS OpenSSL (Critical for Node.js)
 #
 # Strategy: Replace system OpenSSL libraries with custom FIPS OpenSSL 3.5.0
