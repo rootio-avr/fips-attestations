@@ -28,7 +28,7 @@ This test image contains a comprehensive test suite that validates:
 │  Gotenberg FIPS Service                 │
 │  - OpenSSL 3.0.19                       │
 │  - wolfSSL FIPS v5.8.2                  │
-│  - golang-fips/go v1.25                 │
+│  - golang-fips/go v1.26.2               │
 └─────────────────────────────────────────┘
 ```
 
@@ -234,7 +234,7 @@ This test image validates FIPS 140-3 compliance using:
 - **OpenSSL 3.0.19** - Custom build with FIPS support
 - **wolfSSL FIPS v5.8.2** - NIST Certificate #4718
 - **wolfProvider v1.1.0** - OpenSSL 3.0 provider interface
-- **golang-fips/go v1.25** - FIPS-enabled Go compiler
+- **golang-fips/go v1.26.2** - FIPS-enabled Go compiler
 
 All cryptographic operations route through the FIPS 140-3 validated wolfSSL module.
 

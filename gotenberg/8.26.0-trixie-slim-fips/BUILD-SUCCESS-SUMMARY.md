@@ -11,9 +11,9 @@
 
 Successfully built Gotenberg 8.26.0 with FIPS 140-3 validated cryptography using **Approach 1 (Full FIPS Stack)**. The implementation includes:
 
-- ✅ Gotenberg rebuilt with golang-fips/go v1.25 (CGO-enabled)
-- ✅ System-level FIPS (OpenSSL 3.0.19 + wolfProvider v1.1.0 + wolfSSL FIPS v5.8.2)
-- ✅ FIPS enforcement at runtime (`GOLANG_FIPS=1 + GODEBUG=fips140=only`)
+- ✅ Gotenberg rebuilt with golang-fips/go v1.26.2 (CGO-enabled, bootstrap with Go 1.24.9)
+- ✅ System-level FIPS (OpenSSL 3.5.0 + wolfProvider v1.1.1 + wolfSSL FIPS v5.8.2)
+- ✅ FIPS enforcement at runtime (`GOLANG_FIPS=1` - GODEBUG removed in v1.26.2+)
 - ✅ Chromium + LibreOffice use FIPS OpenSSL for TLS
 - ✅ All FIPS validation checks passed
 
@@ -69,13 +69,13 @@ go build \
 ### 8-Stage Multi-Stage Build
 
 ```
-Stage 1: OpenSSL 3.0.19 builder          (~5 min)
+Stage 1: OpenSSL 3.5.0 builder           (~5 min)
     ↓
 Stage 2: wolfSSL FIPS v5.8.2 builder     (~10 min)
     ↓
-Stage 3: wolfProvider v1.1.0 builder     (~3 min)
+Stage 3: wolfProvider v1.1.1 builder     (~3 min)
     ↓
-Stage 4: golang-fips/go v1.25 builder    (~15 min)
+Stage 4: golang-fips/go v1.26.2 builder  (~15 min) ← BOOTSTRAP with Go 1.24.9
     ↓
 Stage 5: Gotenberg 8.26.0 builder        (~10 min) ← TWO-STEP BUILD
     ↓
@@ -86,17 +86,17 @@ Stage 7: Hyphen data extractor           (~1 min) ← EXTRACT FROM UPSTREAM
 Stage 8: Final runtime                   (~5 min)
 ```
 
-**Total Build Time**: ~50 minutes (first build)
+**Total Build Time**: ~45-60 minutes (first build, includes golang-fips/go compilation)
 **Subsequent Builds**: ~10-15 minutes (with cache)
 
 ### Component Stack
 
 ```
-Gotenberg 8.26.0 (golang-fips/go v1.25, CGO_ENABLED=1)
+Gotenberg 8.26.0 (golang-fips/go v1.26.2, CGO_ENABLED=1)
          ↓ (dlopen via CGO)
-OpenSSL 3.0.19 (libssl.so.3, libcrypto.so.3)
+OpenSSL 3.5.0 (libssl.so.3, libcrypto.so.3)
          ↓ (provider interface)
-wolfProvider v1.1.0
+wolfProvider v1.1.1
          ↓ (FIPS 140-3 cryptographic module)
 wolfSSL FIPS v5.8.2 (Certificate #4718)
          ↑ (system OpenSSL)
@@ -111,10 +111,9 @@ Chromium + LibreOffice (HTML/Office → PDF with FIPS TLS)
 
 ```
 ✅ [1/5] CGO_ENABLED=1
-✅ [2/5] GODEBUG=fips140=only
-✅ [2/5] GOLANG_FIPS=1
-✅ [3/5] OpenSSL 3.0.19 configuration file exists
-✅ [4/5] wolfProvider (FIPS) loaded and active
+✅ [2/5] GOLANG_FIPS=1 (GODEBUG NOT set - v1.26.2+ requirement)
+✅ [3/5] OpenSSL 3.5.0 configuration file exists
+✅ [4/5] wolfProvider v1.1.1 (FIPS) loaded and active
 ✅ [5/5] All library dependencies found
 ```
 
@@ -142,10 +141,10 @@ Most failures were due to:
 ### Runtime Environment Variables
 
 ```dockerfile
-# FIPS Enforcement
+# FIPS Enforcement (v1.26.2+)
 ENV CGO_ENABLED=1
-ENV GODEBUG=fips140=only
 ENV GOLANG_FIPS=1
+# Note: GODEBUG removed in v1.26.2+ (mutually exclusive with GOLANG_FIPS)
 
 # OpenSSL Configuration
 ENV OPENSSL_CONF=/etc/ssl/openssl.cnf
@@ -295,12 +294,13 @@ gotenberg/8.26.0-trixie-slim-fips/
 
 ## Known Limitations
 
-1. **Go Version**: Uses golang-fips/go v1.25 (Gotenberg uses v1.26, downgraded for FIPS)
-2. **Build Time**: 45-60 minutes due to golang-fips/go compilation + Gotenberg rebuild
-3. **Image Size**: 1.75GB (includes Chromium + LibreOffice + fonts)
-4. **CGO Requirement**: CGO_ENABLED=1 is mandatory (no pure Go builds)
-5. **Performance**: Slight overhead from provider architecture (~5-10%)
-6. **Debian Trixie**: Testing distribution (not yet stable)
+1. **Go Version**: Uses golang-fips/go v1.26.2 (OpenSSL-backed FIPS with CGO)
+2. **Bootstrap Compiler**: Requires Go 1.24.9 for building golang-fips/go v1.26.2
+3. **Build Time**: 45-60 minutes due to golang-fips/go compilation + Gotenberg rebuild
+4. **Image Size**: 1.75GB (includes Chromium + LibreOffice + fonts)
+5. **CGO Requirement**: CGO_ENABLED=1 is mandatory (no pure Go builds)
+6. **Performance**: Slight overhead from provider architecture (~5-10%)
+7. **Debian Trixie**: Testing distribution (not yet stable as of 2026-04-15)
 
 ---
 

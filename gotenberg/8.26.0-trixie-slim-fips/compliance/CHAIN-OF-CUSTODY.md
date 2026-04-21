@@ -217,7 +217,7 @@ make install_sw install_ssldirs
 | **Repository** | https://github.com/gotenberg/gotenberg |
 | **Tag/Commit** | v8.26.0 |
 | **License** | MIT |
-| **Language** | Go 1.25 (golang-fips/go) |
+| **Language** | Go 1.26.2 (golang-fips/go) |
 | **Acquisition Date** | 2026-04-15 |
 | **Acquisition Method** | Git clone from official repository |
 | **Custody** | GitHub → Build Environment |
@@ -323,28 +323,33 @@ apt-get install -y \
 | Property | Value |
 |----------|-------|
 | **Component** | golang-fips/go |
-| **Version** | 1.25 |
+| **Version** | 1.26.2 |
 | **Purpose** | FIPS-enabled Go compiler |
-| **Source** | Red Hat golang-fips fork |
+| **Source** | Microsoft golang-fips fork |
 | **Repository** | https://github.com/golang-fips/go |
-| **Tag** | go1.25fips |
-| **Acquisition Date** | 2026-04-15 |
+| **Tag** | go1.26.2-1-openssl-fips |
+| **Bootstrap Compiler** | Go 1.24.9 (required) |
+| **Acquisition Date** | 2026-04-21 |
 | **Acquisition Method** | Git clone + build from source |
 | **Custody** | GitHub → Build Environment |
 
 **Source Acquisition:**
 ```bash
-git clone --depth 1 --branch go1.25fips \
+# Download bootstrap compiler
+curl -fsSL "https://go.dev/dl/go1.24.9.linux-amd64.tar.gz" | tar -xz -C /usr/local
+
+# Clone golang-fips/go
+git clone --depth 1 --branch go1.26.2-1-openssl-fips \
     https://github.com/golang-fips/go.git /tmp/go-fips
 
 cd /tmp/go-fips/src
-./make.bash
+GOROOT_BOOTSTRAP=/usr/local/go-bootstrap ./make.bash
 ```
 
 **FIPS Modifications:**
-- crypto/tls patched to use OpenSSL via CGO
+- crypto/tls uses OpenSSL via CGO (dlopen)
 - FIPS-compliant crypto operations
-- Maintained by Red Hat
+- Maintained by Microsoft (formerly Red Hat)
 
 ---
 
@@ -410,7 +415,7 @@ FROM base AS wolfprovider-builder
 ```dockerfile
 FROM base AS golang-builder
 ```
-- **Input:** golang-fips/go v1.25
+- **Input:** golang-fips/go v1.26.2
 - **Build:** src/make.bash
 - **Output:** FIPS-enabled Go compiler
 - **Verification:** go version (shows FIPS variant)
@@ -420,7 +425,7 @@ FROM base AS golang-builder
 FROM golang-builder AS gotenberg-builder
 ```
 - **Input:** Gotenberg v8.26.0 source
-- **Compiler:** golang-fips 1.25
+- **Compiler:** golang-fips 1.26.2
 - **CGO:** Enabled with OpenSSL linkage
 - **Output:** gotenberg binary
 - **Verification:** ldd shows OpenSSL linkage
@@ -569,7 +574,7 @@ cosign sign --key cosign.key \
 - Cloned OpenSSL 3.5.0 from GitHub (tag: openssl-3.5.0)
 - Cloned wolfProvider 1.1.1 from GitHub (tag: v1.1.1)
 - Cloned Gotenberg 8.26.0 from GitHub (tag: v8.26.0)
-- Cloned golang-fips/go 1.25 from GitHub
+- Cloned golang-fips/go 1.26.2 from GitHub
 
 **10:30 UTC - Build Process Started**
 - Environment: Docker BuildKit
@@ -588,7 +593,7 @@ cosign sign --key cosign.key \
 - Provider loading verified
 
 **11:00 UTC - Stage 5-6 Completed**
-- golang-fips 1.25 compiler built
+- golang-fips 1.26.2 compiler built (with Go 1.24.9 bootstrap)
 - Gotenberg 8.26.0 compiled with FIPS flags
 - Binary linkage verified
 
@@ -653,7 +658,7 @@ This build is designed to be reproducible with the following caveats:
 - ✅ OpenSSL 3.5.0 (Git tag, fixed commit)
 - ✅ wolfProvider 1.1.1 (Git tag, fixed commit)
 - ✅ Gotenberg 8.26.0 (Git tag, fixed commit)
-- ✅ golang-fips 1.25 (Git tag, fixed commit)
+- ✅ golang-fips 1.26.2 (Git tag go1.26.2-1-openssl-fips, fixed commit)
 
 **Non-Reproducible Components:**
 - ⚠️ Debian base image (trixie-slim updates over time)
@@ -829,7 +834,7 @@ Complete chain of custody documented from source acquisition through distributio
 - OpenSSL: 3.5.0
 - wolfProvider: 1.1.1
 - Gotenberg: 8.26.0
-- Golang: 1.25 (golang-fips fork)
+- Golang: 1.26.2 (golang-fips fork)
 - Debian: Trixie slim
 - Chromium: (from Debian Trixie)
 - LibreOffice: (from Debian Trixie)

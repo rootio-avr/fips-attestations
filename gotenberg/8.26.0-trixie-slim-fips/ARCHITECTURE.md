@@ -364,9 +364,9 @@ The Gotenberg FIPS image uses an 8-stage build process to compile all FIPS compo
 Stage 1: wolfssl-builder     → Build wolfSSL FIPS v5.8.2
 Stage 2: wolfprov-builder     → Build wolfProvider v1.1.1
 Stage 3: openssl-builder      → Build OpenSSL 3.5.0
-Stage 4: golang-fips-builder  → Build FIPS-enabled Go compiler
+Stage 4: golang-fips-builder  → Build golang-fips/go v1.26.2 (bootstrap with Go 1.24.9)
 Stage 5: gotenberg-downloader → Download Gotenberg dependencies
-Stage 6: gotenberg-builder    → Build Gotenberg with FIPS Go
+Stage 6: gotenberg-builder    → Build Gotenberg with golang-fips/go v1.26.2
 Stage 7: chromium-setup       → Prepare Chromium with custom OpenSSL
 Stage 8: runtime              → Final minimal runtime image
 ```
@@ -463,19 +463,24 @@ Stage 8: runtime              → Final minimal runtime image
 
 **Steps:**
 
-1. **Clone golang-fips repository**
+1. **Download and build bootstrap Go compiler (1.24.9)**
    ```bash
-   git clone https://github.com/golang-fips/go.git
+   curl -fsSL "https://go.dev/dl/go1.24.9.linux-amd64.tar.gz" | tar -xz -C /usr/local
+   export GOROOT_BOOTSTRAP=/usr/local/go-bootstrap
+   ```
+
+2. **Clone golang-fips repository (v1.26.2)**
+   ```bash
+   git clone https://github.com/golang-fips/go.git --branch go1.26.2-1-openssl-fips
    cd go/src
-   ./make.bash
    ```
 
-2. **Build FIPS-enabled Go**
+3. **Build FIPS-enabled Go**
    ```bash
-   CGO_ENABLED=1 GOEXPERIMENT=boringcrypto ./make.bash
+   CGO_ENABLED=1 GOLANG_FIPS=1 ./make.bash
    ```
 
-**Output:** `/usr/local/go-fips/` (FIPS-enabled Go 1.23+)
+**Output:** `/usr/local/go-fips/` (golang-fips/go v1.26.2)
 
 ---
 
@@ -575,6 +580,7 @@ Stage 8: runtime              → Final minimal runtime image
    ENV LD_LIBRARY_PATH=/usr/local/openssl/lib64:/usr/local/lib
    ENV CGO_ENABLED=1
    ENV GOLANG_FIPS=1
+   # Note: GODEBUG removed in v1.26.2+ (mutually exclusive with GOLANG_FIPS)
    ```
 
 4. **Create gotenberg user**

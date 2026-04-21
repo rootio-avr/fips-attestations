@@ -98,7 +98,7 @@ Every container instance performs the following validation on startup:
 #### 3. Provider Verification
 - Confirms wolfSSL Provider FIPS is loaded
 - Verifies provider status is "active"
-- Checks version matches expected (v1.1.0)
+- Checks version matches expected (v1.1.1)
 
 #### 4. FIPS POST (Power-On Self Test)
 Executes comprehensive Known Answer Tests (KAT):
@@ -124,7 +124,8 @@ Executes comprehensive Known Answer Tests (KAT):
 FIPS Components:
   - wolfSSL FIPS: v5.8.2 (Certificate #4718)
   - wolfProvider: v1.1.1
-  - OpenSSL: 3.0.19
+  - OpenSSL: 3.5.0
+  - golang-fips/go: v1.26.2 (with CGO)
   - Gotenberg: 8.26.0
 ```
 
@@ -158,10 +159,11 @@ FIPS Components:
 1. **Native OpenSSL Integration:** Gotenberg already uses OpenSSL for all cryptographic operations
 2. **Standard EVP API:** All crypto calls use standard EVP API
 3. **Transparent Provider Model:** OpenSSL 3.x provider architecture handles FIPS routing
+4. **FIPS-Enabled Go:** golang-fips/go v1.26.2 provides OpenSSL-backed FIPS crypto for Go code
 
 **Comparison with Redis:**
 - Redis: Required SHA-1 → SHA-256 patch (source modification)
-- Gotenberg: Uses OpenSSL natively (no modification needed)
+- Gotenberg: Uses OpenSSL natively + golang-fips/go (no Gotenberg source modification needed)
 
 **Technical Implementation:**
 
@@ -272,12 +274,13 @@ Status: ✓ ALL TESTS PASSED
 ```
 
 **Test Categories:**
-1. ✅ FIPS Verification (5/5 tests)
+1. ✅ FIPS Verification (6/6 tests)
    - OpenSSL 3.5.0 detected
    - wolfSSL FIPS provider active
-   - FIPS mode enforced
-   - CGO_ENABLED=1
-   - GOLANG_FIPS=1
+   - FIPS mode enforced (GOLANG_FIPS=1)
+   - CGO_ENABLED=1 verified
+   - golang-fips/go v1.26.2 detected
+   - GODEBUG not set (v1.26.2+ requirement)
 
 2. ✅ Connectivity (3/3 tests)
    - Health endpoint accessible
@@ -410,25 +413,25 @@ api:
 
 ### Known Limitations
 
-1. **curl Incompatibility**
-   - Debian Trixie's curl incompatible with OpenSSL 3.5.0
-   - Workaround: Use Python urllib in demo scripts
-   - Impact: Demos work, just use different HTTP client
-
-2. **Performance Overhead**
+1. **Performance Overhead**
    - FIPS crypto operations: ~3-5% slower than non-FIPS
    - Acceptable for most PDF generation workloads
    - Impact minimal on overall rendering time
 
-3. **Image Size**
+2. **Image Size**
    - ~1.2 GB (includes Chromium + LibreOffice)
    - Larger than Alpine-based images
    - Acceptable for server deployments
 
-4. **Complex Build**
+3. **Complex Build**
    - 8-stage Docker build
-   - 30-45 minute build time
+   - ~45-60 minute build time (includes golang-fips/go compilation)
    - Requires wolfSSL commercial credentials
+
+4. **CGO Requirement**
+   - golang-fips/go requires CGO_ENABLED=1
+   - Cannot use pure Go builds (CGO mandatory for FIPS mode)
+   - Requires C library dependencies at runtime
 
 ### Deployment Constraints
 
@@ -457,8 +460,10 @@ This document formally attests that the Gotenberg 8.26.0 Debian Trixie FIPS cont
    - All cryptographic operations routed through validated module
 
 2. ✅ **Blocks Non-FIPS Algorithms**
-   - MD5, SHA-1, RC4, DES/3DES blocked
-   - Runtime enforcement active
+   - MD5 blocked completely at crypto API level
+   - SHA-1 blocked for TLS connections (FIPS policy)
+   - RC4, DES/3DES blocked
+   - Runtime enforcement active via GOLANG_FIPS=1
 
 3. ✅ **Executes Self-Tests**
    - Power-On Self Test (POST) on every startup

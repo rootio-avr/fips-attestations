@@ -4,7 +4,7 @@
 
 - **Gotenberg Version**: 8.26.0
 - **Base Image**: Debian Trixie Slim
-- **Go Compiler**: golang-fips/go v1.25 (with CGO)
+- **Go Compiler**: golang-fips/go v1.26.2 (with CGO)
 - **FIPS Module**: wolfSSL 5.8.2 (Certificate #4718)
 - **Architecture**: Full FIPS Stack (golang-fips/go + Provider-based)
 - **Status**: Production-ready
@@ -17,7 +17,7 @@
 
 This container image provides Gotenberg 8.26.0 with FIPS 140-3 validated cryptography using a dual-layer approach:
 
-- **Go Application Layer**: Gotenberg rebuilt with golang-fips/go v1.25 (CGO-enabled)
+- **Go Application Layer**: Gotenberg rebuilt with golang-fips/go v1.26.2 (CGO-enabled)
 - **System Layer**: Chromium + LibreOffice using system OpenSSL with wolfSSL FIPS
 
 Unlike simple system-level FIPS approaches, this implementation ensures:
@@ -64,7 +64,7 @@ Build stages:
 1. OpenSSL 3.0.19 builder (~5 minutes)
 2. wolfSSL FIPS v5.8.2 builder (~10 minutes)
 3. wolfProvider v1.1.0 builder (~3 minutes)
-4. golang-fips/go v1.25 builder (~15 minutes)
+4. golang-fips/go v1.26.2 builder (~15 minutes)
 5. Gotenberg 8.26.0 builder (~10 minutes)
 6. PDF tools builder (~2 minutes)
 7. Final runtime assembly (~5 minutes)
@@ -194,7 +194,7 @@ services:
 ### Component Stack
 
 ```
-Gotenberg 8.26.0 Application (golang-fips/go v1.25, CGO_ENABLED=1)
+Gotenberg 8.26.0 Application (golang-fips/go v1.26.2, CGO_ENABLED=1)
          ↓ (dlopen via CGO)
 OpenSSL 3.0.19 (libssl, libcrypto)
          ↓
@@ -263,19 +263,35 @@ default_properties = fips=yes
 ### Run All Tests
 
 ```bash
+# Run core diagnostics (35 tests - recommended for quick validation)
 ./diagnostic.sh
+
+# Run all tests including TLS server mode (40 tests)
+./diagnostic.sh --with-tls
+
+# Run specific test suite
+./diagnostic.sh backend
+./diagnostic.sh tls-server
 ```
 
 ### Test Suites
 
+**Core Diagnostics (35 tests):**
 1. **Backend Verification** (6 tests) - wolfSSL/wolfProvider/CGO integration
 2. **Connectivity Tests** (8 tests) - HTTPS connections, TLS protocols
 3. **FIPS Verification** (7 tests) - FIPS mode, algorithm compliance
 4. **Crypto Operations** (8 tests) - Hash algorithms, encryption
 5. **Gotenberg API Tests** (6 tests) - PDF conversion functionality
 
+**Optional (5 tests):**
+6. **TLS Server Tests** (5 tests) - TLS 1.3 server mode validation
+   - Validates golang-fips/go v1.26.2 session ticket fix
+   - Tests HTTPS health check and PDF conversion
+   - Run with: `./diagnostic.sh --with-tls` or `./diagnostics/tls-server-tests.sh`
+
 ### Expected Results
 
+**Core Diagnostics:**
 - ✅ Backend Verification: 6/6 tests passing
 - ✅ Connectivity: 8/8 tests passing
 - ✅ FIPS Verification: 7/7 tests passing
@@ -283,6 +299,11 @@ default_properties = fips=yes
 - ✅ Gotenberg API Tests: 6/6 tests passing
 
 **Overall: 35/35 tests passing (100% pass rate)**
+
+**With TLS Server Tests:**
+- ✅ TLS Server Tests: 5/5 tests passing
+
+**Overall: 40/40 tests passing (100% pass rate)**
 
 ### Test Evidence
 
@@ -300,7 +321,7 @@ Complete test results and evidence available in:
 1. **OpenSSL 3.0.19**: Custom build with FIPS support
 2. **wolfSSL FIPS v5.8.2**: Compile from source (requires password)
 3. **wolfProvider v1.1.0**: Compile from source
-4. **golang-fips/go v1.25**: Build from source with CGO
+4. **golang-fips/go v1.26.2**: Build from source with CGO
 5. **Gotenberg 8.26.0**: Rebuild from source with golang-fips/go
 6. **PDF Tools**: Build pdfcpu, install QPDF, ExifTool
 7. **System Integration**: Install Chromium, LibreOffice, fonts
@@ -386,7 +407,7 @@ docker run --rm --entrypoint "" gotenberg:8.26.0-trixie-slim-fips sh -c 'echo te
 
 ## Known Limitations
 
-1. **Go Version**: Uses golang-fips/go v1.25 (Gotenberg 8.26.0 uses v1.26, downgraded for FIPS)
+1. **Go Version**: Uses golang-fips/go v1.26.2 (FIPS-enabled Go compiler with OpenSSL backend)
 2. **Build Time**: 45-60 minutes due to golang-fips/go compilation and Gotenberg rebuild
 3. **Image Size**: ~1.2GB due to Chromium + LibreOffice + fonts
 4. **CGO Requirement**: CGO_ENABLED=1 is mandatory (no pure Go builds)

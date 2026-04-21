@@ -58,28 +58,30 @@ echo ""
 ################################################################################
 echo -e "${CYAN}[2/5] Checking FIPS environment variables...${NC}"
 
-# Check GODEBUG
-if [ "${GODEBUG}" != "fips140=only" ]; then
-    echo -e "${YELLOW}⚠ WARNING: GODEBUG is not set to 'fips140=only'${NC}"
-    echo "  Current value: ${GODEBUG:-<not set>}"
-else
-    echo -e "${GREEN}✓${NC} GODEBUG=fips140=only"
-fi
-
-# Check GOEXPERIMENT
-if [ "${GOEXPERIMENT}" != "strictfipsruntime" ]; then
-    echo -e "${YELLOW}⚠ WARNING: GOEXPERIMENT is not set to 'strictfipsruntime'${NC}"
-    echo "  Current value: ${GOEXPERIMENT:-<not set>}"
-else
-    echo -e "${GREEN}✓${NC} GOEXPERIMENT=strictfipsruntime"
-fi
-
 # Check GOLANG_FIPS
 if [ "${GOLANG_FIPS}" != "1" ]; then
-    echo -e "${YELLOW}⚠ WARNING: GOLANG_FIPS is not set to '1'${NC}"
+    echo -e "${RED}✗ ERROR: GOLANG_FIPS is not set to '1'${NC}"
     echo "  Current value: ${GOLANG_FIPS:-<not set>}"
+    echo "  golang-fips/go requires GOLANG_FIPS=1 for OpenSSL-backed FIPS mode"
+    exit 1
+fi
+echo -e "${GREEN}✓${NC} GOLANG_FIPS=1 (OpenSSL-backed FIPS mode)"
+
+# Check GODEBUG is NOT set (mutually exclusive with GOLANG_FIPS in v1.26.2+)
+if [ -n "${GODEBUG}" ]; then
+    echo -e "${YELLOW}⚠ WARNING: GODEBUG is set to '${GODEBUG}'${NC}"
+    echo "  Note: golang-fips/go v1.26.2+ requires GOLANG_FIPS=1 alone"
+    echo "  GODEBUG=fips140 is mutually exclusive with GOLANG_FIPS=1"
 else
-    echo -e "${GREEN}✓${NC} GOLANG_FIPS=1"
+    echo -e "${GREEN}✓${NC} GODEBUG not set (correct for OpenSSL-backed FIPS)"
+fi
+
+# Check GOEXPERIMENT (optional, not required for v1.26.2)
+if [ -n "${GOEXPERIMENT}" ]; then
+    echo -e "${YELLOW}⚠ NOTE: GOEXPERIMENT is set to '${GOEXPERIMENT}'${NC}"
+    echo "  This is not required for OpenSSL-backed FIPS mode"
+else
+    echo -e "${GREEN}✓${NC} GOEXPERIMENT not set (optional for OpenSSL-backed FIPS)"
 fi
 
 echo ""

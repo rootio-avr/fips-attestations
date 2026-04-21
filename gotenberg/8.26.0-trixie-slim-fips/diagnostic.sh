@@ -10,12 +10,15 @@
 #   3. FIPS Verification (7 tests) - FIPS mode, algorithm compliance
 #   4. Crypto Operations (8 tests) - Hash algorithms, encryption
 #   5. Gotenberg API Tests (6 tests) - PDF conversion functionality
+#   [Optional] TLS Server Tests (5 tests) - TLS 1.3 server mode validation
 #
-# Total: 35 tests
+# Total: 35 tests (40 with TLS server tests)
 #
 # Usage:
-#   ./diagnostic.sh           # Run all tests
-#   ./diagnostic.sh backend   # Run specific test suite
+#   ./diagnostic.sh                # Run core diagnostics (35 tests)
+#   ./diagnostic.sh backend        # Run specific test suite
+#   ./diagnostic.sh --with-tls     # Run all tests including TLS server mode
+#   ./diagnostic.sh tls-server     # Run only TLS server tests
 ################################################################################
 
 set -e
@@ -63,8 +66,11 @@ mkdir -p "${RESULTS_DIR}"
 TEST_SUITE="$1"
 
 if [ -z "${TEST_SUITE}" ]; then
-    # Run all test suites
-    TEST_SUITES=("backend" "connectivity" "fips" "crypto" "gotenberg")
+    # Run core diagnostic test suites (default)
+    TEST_SUITES=("backend" "connectivity" "fips" "crypto" "gotenberg" "tls-server")
+elif [ "${TEST_SUITE}" = "--with-tls" ]; then
+    # Run all test suites including TLS server tests
+    TEST_SUITES=("backend" "connectivity" "fips" "crypto" "gotenberg" "tls-server")
 else
     # Run specific test suite
     TEST_SUITES=("${TEST_SUITE}")
@@ -171,6 +177,14 @@ echo "==========================================================================
 echo ""
 echo "Results saved to: ${RESULTS_FILE}"
 echo ""
+
+# Show note about TLS server tests if not included
+if [ "${TEST_SUITE}" != "--with-tls" ] && [ "${TEST_SUITE}" != "tls-server" ]; then
+    echo -e "${CYAN}Note:${NC} TLS server mode tests not run (validates TLS 1.3 session tickets)"
+    echo "      Run with: ./diagnostic.sh --with-tls"
+    echo "      Or standalone: ./diagnostics/tls-server-tests.sh"
+    echo ""
+fi
 
 # Exit with appropriate code
 if [ ${FAILED_TESTS} -eq 0 ]; then

@@ -26,7 +26,7 @@ This demos image contains practical examples demonstrating:
 │  Gotenberg FIPS Service                 │
 │  - OpenSSL 3.5.0                        │
 │  - wolfSSL FIPS v5.8.2                  │
-│  - golang-fips/go v1.25                 │
+│  - golang-fips/go v1.26.2               │
 └─────────────────────────────────────────┘
 ```
 

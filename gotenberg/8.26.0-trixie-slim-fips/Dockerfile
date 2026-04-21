@@ -7,7 +7,7 @@
 #   - OpenSSL 3.5.0 (custom build with FIPS support)
 #   - wolfSSL FIPS v5.8.2 (Certificate #4718)
 #   - wolfProvider v1.1.1 (OpenSSL provider)
-#   - golang-fips/go v1.25.9 (FIPS-enabled Go compiler and runtime)
+#   - golang-fips/go v1.26.2 (FIPS-enabled Go compiler and runtime)
 #   - Gotenberg 8.26.0 (rebuilt from source with golang-fips/go)
 #   - Chromium snapshot (latest tip-of-tree, HTML → PDF with FIPS TLS, CVE-2026-6296 fixed)
 #   - LibreOffice suite (Office docs → PDF with FIPS TLS)
@@ -208,14 +208,14 @@ RUN set -eux; \
     echo "✓ wolfProvider ${WOLFPROV_VERSION} built successfully with RPATH"
 
 ################################################################################
-# Stage 4: Build golang-fips/go v1.25
+# Stage 4: Build golang-fips/go v1.26.2
 ################################################################################
 FROM cr.root.io/debian:trixie-slim AS golang-fips-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Go Configuration
-ENV GOLANG_FIPS_VERSION=go1.25.9-1-openssl-fips
+ENV GOLANG_FIPS_VERSION=go1.26.2-1-openssl-fips
 ENV GOLANG_FIPS_REPO=https://github.com/golang-fips/go.git
 ENV GOROOT_BOOTSTRAP=/usr/local/go-bootstrap
 ENV GOROOT=/usr/local/go-fips
@@ -250,7 +250,8 @@ COPY --from=wolfssl-builder ${WOLFSSL_PREFIX}/lib/libwolfssl.* ${WOLFSSL_PREFIX}
 # Copy wolfProvider from wolfprov-builder
 COPY --from=wolfprov-builder /usr/local/openssl/lib64/ossl-modules/libwolfprov.so* /usr/local/openssl/lib64/ossl-modules/
 
-# Install standard Go 1.22.6 as bootstrap compiler
+# Install standard Go 1.24.9 as bootstrap compiler
+# NOTE: Go 1.26.2 requires Go 1.24.6+ as bootstrap compiler
 # NOTE: Download first before running ldconfig to avoid curl/OpenSSL version conflicts
 RUN set -eux; \
     ARCH=$(uname -m); \
@@ -261,11 +262,11 @@ RUN set -eux; \
         GO_ARCH="amd64"; \
     fi; \
     echo "Using Go architecture: $GO_ARCH"; \
-    curl -fsSL "https://go.dev/dl/go1.22.6.linux-${GO_ARCH}.tar.gz" -o /tmp/go.tar.gz; \
+    curl -fsSL "https://go.dev/dl/go1.24.9.linux-${GO_ARCH}.tar.gz" -o /tmp/go.tar.gz; \
     tar -C /usr/local -xzf /tmp/go.tar.gz; \
     mv /usr/local/go ${GOROOT_BOOTSTRAP}; \
     rm /tmp/go.tar.gz; \
-    echo "✓ Go bootstrap 1.22.6 installed for $ARCH"
+    echo "✓ Go bootstrap 1.24.9 installed for $ARCH"
 
 # Register OpenSSL and wolfSSL libraries with ldconfig
 # Done after curl operations to avoid version conflicts
@@ -317,7 +318,7 @@ RUN set -eux; \
     mv /tmp/go-fips-repo/go ${FINAL_GOROOT}; \
     rm -rf /tmp/go-fips-repo; \
     ${FINAL_GOROOT}/bin/go version; \
-    echo "✓ golang-fips/go v1.25.9 built successfully with CGO support"
+    echo "✓ golang-fips/go v1.26.2 built successfully with CGO support"
 
 ################################################################################
 # Stage 5: Build Gotenberg from Source
@@ -335,7 +336,7 @@ ENV WOLFSSL_PREFIX=/usr/local
 ENV CGO_ENABLED=1
 ENV GOLANG_FIPS=1
 # Note: GOEXPERIMENT=strictfipsruntime removed from build to allow ECDSA cert verification
-# FIPS will be enforced at runtime via GODEBUG=fips140=only
+# FIPS will be enforced at runtime via GOLANG_FIPS=1 (OpenSSL backend)
 
 # Install build dependencies (includes CGO requirements)
 RUN set -eux; \
@@ -423,13 +424,13 @@ RUN set -eux; \
     OPENSSL_MODULES=/usr/local/openssl/lib64/ossl-modules \
     /usr/local/openssl/bin/openssl list -providers || echo "Provider test failed"; \
     cd /gotenberg; \
-    echo "Step 1: Downloading modules with standard Go (no ECDSA issues)..."; \
+    echo "Step 1: Downloading and tidying modules with standard Go (no ECDSA issues)..."; \
     /usr/local/go-standard/bin/go mod download; \
-    echo "✓ Modules downloaded successfully"; \
+    /usr/local/go-standard/bin/go mod tidy; \
+    echo "✓ Modules downloaded and tidied successfully"; \
     echo ""; \
     echo "Step 2: Building Gotenberg ${GOTENBERG_VERSION} with golang-fips/go (CGO enabled)..."; \
     echo "FIPS will be enforced at runtime via GOLANG_FIPS=1 (OpenSSL backend)"; \
-    CGO_ENABLED=1 go mod tidy; \
     CGO_ENABLED=1 go build \
         -ldflags="-s -w -X 'github.com/gotenberg/gotenberg/v8/cmd.Version=${GOTENBERG_VERSION}'" \
         -o /usr/local/bin/gotenberg \
@@ -456,8 +457,8 @@ RUN set -eux; \
     ; \
     rm -rf /var/lib/apt/lists/*
 
-# Install Go 1.25.9 for building pdfcpu (standard Go, not FIPS)
-# CVE-2026-32282 fix: Go 1.25.9 includes patch for TOCTOU symlink traversal in Root.Chmod
+# Install Go 1.26.2 for building pdfcpu (standard Go, not FIPS)
+# CVE-2026-32282 fix: Go 1.26.2 includes patch for TOCTOU symlink traversal in Root.Chmod
 RUN set -eux; \
     ARCH=$(uname -m); \
     if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
@@ -465,7 +466,7 @@ RUN set -eux; \
     else \
         GO_ARCH="amd64"; \
     fi; \
-    curl -fsSL "https://go.dev/dl/go1.25.9.linux-${GO_ARCH}.tar.gz" -o /tmp/go.tar.gz; \
+    curl -fsSL "https://go.dev/dl/go1.26.2.linux-${GO_ARCH}.tar.gz" -o /tmp/go.tar.gz; \
     tar -C /usr/local -xzf /tmp/go.tar.gz; \
     rm /tmp/go.tar.gz
 
@@ -499,9 +500,9 @@ ENV WOLFSSL_PREFIX=/usr/local
 # CRITICAL: CGO environment variables for runtime
 ENV CGO_ENABLED=1
 ENV GOLANG_FIPS=1
-ENV GODEBUG=fips140=only
+# Note: golang-fips/go v1.26.2+ requires GOLANG_FIPS=1 alone (GODEBUG=fips140 is mutually exclusive)
 # Note: GOEXPERIMENT=strictfipsruntime not used to allow ECDSA cert verification
-# FIPS enforcement via GOLANG_FIPS=1 and GODEBUG=fips140=only (golang-fips/go with OpenSSL backend)
+# FIPS enforcement via GOLANG_FIPS=1 (golang-fips/go with OpenSSL backend)
 
 # Install runtime dependencies
 RUN set -eux; \

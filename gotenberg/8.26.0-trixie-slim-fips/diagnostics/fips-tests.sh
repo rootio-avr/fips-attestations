@@ -4,10 +4,10 @@
 #
 # Purpose: Verify FIPS mode is enabled and algorithm compliance
 #
-# Tests:
-#   1. GODEBUG=fips140=only environment variable
+# Tests (updated for golang-fips/go v1.26.2+):
+#   1. GODEBUG environment check (should NOT be set in v1.26.2+)
 #   2. GOEXPERIMENT=strictfipsruntime environment variable
-#   3. GOLANG_FIPS=1 environment variable
+#   3. GOLANG_FIPS=1 environment variable (required for v1.26.2+)
 #   4. OpenSSL FIPS mode (default_properties = fips=yes)
 #   5. MD5 algorithm blocking
 #   6. SHA-1 restriction (available for hashing only)
@@ -27,17 +27,20 @@ PASSED=0
 FAILED=0
 
 ################################################################################
-# Test 1: GODEBUG Environment Variable
+# Test 1: GODEBUG Environment Variable (v1.26.2+ - should NOT be set)
 ################################################################################
-echo "[1/7] GODEBUG=fips140=only environment variable..."
+echo "[1/7] GODEBUG environment variable check (v1.26.2+)..."
 
 GODEBUG_VALUE=$(docker run --rm --entrypoint "" "${IMAGE_NAME}" sh -c "echo \$GODEBUG" 2>&1)
 
-if [ "${GODEBUG_VALUE}" = "fips140=only" ]; then
-    echo "✓ PASS: GODEBUG=fips140=only"
+# In golang-fips/go v1.26.2+, GODEBUG and GOLANG_FIPS are mutually exclusive
+# GODEBUG should NOT be set (use GOLANG_FIPS=1 instead)
+if [ "${GODEBUG_VALUE}" = "" ]; then
+    echo "✓ PASS: GODEBUG not set (correct for v1.26.2+ - uses GOLANG_FIPS=1 instead)"
     PASSED=$((PASSED + 1))
 else
-    echo "✗ FAIL: GODEBUG is not set to 'fips140=only' (value: ${GODEBUG_VALUE})"
+    echo "✗ FAIL: GODEBUG should not be set in v1.26.2+ (found: ${GODEBUG_VALUE})"
+    echo "  Note: v1.26.2+ requires GOLANG_FIPS=1 alone (GODEBUG is mutually exclusive)"
     FAILED=$((FAILED + 1))
 fi
 
@@ -54,7 +57,7 @@ if [ "${GOEXP_VALUE}" = "strictfipsruntime" ]; then
     echo "✓ PASS: GOEXPERIMENT=strictfipsruntime"
     PASSED=$((PASSED + 1))
 elif [ "${GOEXP_VALUE}" = "" ]; then
-    echo "✓ PASS: GOEXPERIMENT not set (FIPS enforced via GODEBUG)"
+    echo "✓ PASS: GOEXPERIMENT not set (FIPS enforced via GOLANG_FIPS=1)"
     PASSED=$((PASSED + 1))
 else
     echo "✗ FAIL: GOEXPERIMENT is not set to 'strictfipsruntime' (value: ${GOEXP_VALUE})"
