@@ -9,7 +9,7 @@
 set -euo pipefail
 
 # Package list for runtime stage
-PACKAGES="systemd-sysv systemd python3.13-minimal python3.13 ncurses-bin ncurses-base libsystemd0 libsystemd-shared libpython3.13 libpython3.13-stdlib libpython3.13-minimal libpython3.13 libpam-systemd libncursesw6 nghttp2 libnghttp2-14 expat libexpat1 gpg gpgsm gpgconf gpg-agent gnupg-l10n gnupg dirmngr libxslt1.1 nghttp2-client rootio-python3.13 rootio-libpython3.13 rootio-libpython3.13-minimal rootio-libpython3.13-stdlib rootio-python3.13-minimal xdg-utils nghttp2-proxy nghttp2-server"
+PACKAGES="systemd-sysv systemd python3.13-minimal python3.13 ncurses-bin ncurses-base libsystemd0 libsystemd-shared libpython3.13 libpython3.13-stdlib libpython3.13-minimal libpython3.13 libpam-systemd libncursesw6 nghttp2 libnghttp2-14 expat libexpat1 gpg gpgsm gpgconf gpg-agent gnupg-l10n gnupg dirmngr libxslt1.1 nghttp2-client rootio-python3.13 rootio-libpython3.13 rootio-libpython3.13-minimal rootio-libpython3.13-stdlib rootio-python3.13-minimal xdg-utils nghttp2-proxy nghttp2-server mesa-libgallium libgbm1 libcups2t64 libudev1 libtinfo6 liblcms2-2"
 
 echo "================================================================================"
 echo "Installing Runtime Stage Packages for Gotenberg FIPS"
@@ -101,6 +101,8 @@ if dpkg -l | grep -q "^ii.*rootio-ncurses-bin"; then
     fi
 fi
 
+
+
 if dpkg -l | grep -q "^ii.*rootio-ncurses-base"; then
     if dpkg -l | grep -q "^ii  ncurses-base"; then
         echo "Removing standard ncurses-base package (replaced by patched version)..."
@@ -109,8 +111,8 @@ if dpkg -l | grep -q "^ii.*rootio-ncurses-base"; then
     fi
 fi
 
-if dpkg -l | grep -q "^ii.*rootio-libsystemd0"; then
-    if dpkg -l | grep -q "^ii  libsystemd0"; then
+if dpkg -l | grep  "rootio-libsystemd0"; then
+    if dpkg -l | grep  "libsystemd0"; then
         echo "Removing standard libsystemd0 package (replaced by patched version)..."
         dpkg --remove --force-depends libsystemd0 2>&1 || true
         echo "✓ Standard libsystemd0 removed from package database"
@@ -136,7 +138,7 @@ fi
 if dpkg -l | grep "rootio-libpython3.13-minimal"; then
     if dpkg -l | grep  "libpython3.13-minimal"; then
         echo "Removing standard libpython3.13-minimal package (replaced by patched version)..."
-        dpkg --remove --force-depends libpython3.13-minimal 2>&1 || true
+        dpkg --purge --force-depends libpython3.13-minimal 2>&1 || true
         echo "✓ Standard libpython3.13-minimal removed from package database"
     fi
 fi
@@ -290,6 +292,56 @@ if dpkg -l | grep  "rootio-nghttp2-server"; then
         echo "Removing standard nghttp2-server  package (replaced by patched version)..."
         dpkg --remove --force-depends nghttp2-server  2>&1 || true
         echo "✓ Standard nghttp2-server  removed from package database"
+    fi
+fi
+
+if dpkg -l | grep  "rootio-mesa-libgallium"; then
+    if dpkg -l | grep  "mesa-libgallium"; then
+        echo "Removing standard mesa-libgallium package (replaced by patched version)..."
+        dpkg --remove --force-depends mesa-libgallium 2>&1 || true
+        echo "✓ Standard mesa-libgallium removed from package database"
+    fi
+fi
+
+if dpkg -l | grep  "rootio-libgbm1"; then
+    if dpkg -l | grep  "libgbm1"; then
+        echo "Removing standard libgbm1 package (replaced by patched version)..."
+        dpkg --remove --force-depends libgbm1 2>&1 || true
+        echo "✓ Standard libgbm1 removed from package database"
+    fi
+fi
+
+if dpkg -l | grep  "rootio-libcups2t64"; then
+    if dpkg -l | grep  "libcups2t64"; then
+        echo "Removing standard libcups2t64 package (replaced by patched version)..."
+        dpkg --remove --force-depends libcups2t64 2>&1 || true
+        echo "✓ Standard libcups2t64 removed from package database"
+    fi
+fi
+
+
+if dpkg -l | grep  "rootio-libudev1"; then
+    if dpkg -l | grep  "libudev1"; then
+        echo "Removing standard libudev1 package (replaced by patched version)..."
+        dpkg --remove --force-depends libudev1 2>&1 || true
+        echo "✓ Standard libudev1 removed from package database"
+    fi
+fi
+
+
+if dpkg -l | grep  "rootio-libtinfo6"; then
+    if dpkg -l | grep  "libtinfo6"; then
+        echo "Removing standard libtinfo6 package (replaced by patched version)..."
+        dpkg --remove --force-depends libtinfo6 2>&1 || true
+        echo "✓ Standard libtinfo6 removed from package database"
+    fi
+fi
+
+if dpkg -l | grep  "rootio-liblcms2-2"; then
+    if dpkg -l | grep  "liblcms2-2"; then
+        echo "Removing standard liblcms2-2 package (replaced by patched version)..."
+        dpkg --remove --force-depends liblcms2-2 2>&1 || true
+        echo "✓ Standard liblcms2-2 removed from package database"
     fi
 fi
 
