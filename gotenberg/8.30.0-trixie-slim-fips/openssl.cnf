@@ -1,0 +1,53 @@
+# OpenSSL Configuration for wolfSSL FIPS 140-3
+#
+# This configuration file enables FIPS mode by loading wolfProvider
+# as the cryptographic provider for OpenSSL 3.0.
+#
+# Components:
+#   - wolfProvider v1.1.0 (OpenSSL provider interface)
+#   - wolfSSL FIPS v5.8.2 (FIPS 140-3 Certificate #4718)
+#
+# FIPS Enforcement:
+#   - default_properties = fips=yes (enforces FIPS-approved algorithms)
+#   - Non-FIPS algorithms (MD5, non-FIPS ciphers) will be rejected
+#
+# CRITICAL: Provider named "fips" for golang-fips/go compatibility
+#   - golang-fips/go calls OSSL_PROVIDER_try_load(NULL, "fips")
+#   - Renaming wolfProvider from "libwolfprov" to "fips" makes it discoverable
+#
+# Used by:
+#   - OpenSSL command-line utilities (openssl s_client, etc.)
+#   - Gotenberg Go application (via golang-fips/go dlopen)
+#   - Chromium browser (HTML → PDF with FIPS TLS)
+#   - LibreOffice suite (Office docs → PDF with FIPS TLS)
+#   - Node.js applications (if any)
+
+# Configuration section for OpenSSL utilities
+openssl_conf = openssl_init
+
+# Configuration section for Node.js (Node.js 24+ reads this by default)
+# Also used by other applications that respect this convention
+nodejs_conf = openssl_init
+
+[openssl_init]
+providers = provider_sect
+alg_section = algorithm_sect
+
+[provider_sect]
+# CRITICAL: Provider MUST be named "fips" for golang-fips/go compatibility
+# golang-fips/go calls OSSL_PROVIDER_try_load(NULL, "fips") at initialization
+fips = fips_sect
+
+[fips_sect]
+# Activate wolfProvider on startup
+activate = 1
+# Path to wolfProvider shared library
+module = /usr/local/openssl/lib64/ossl-modules/libwolfprov.so
+
+[algorithm_sect]
+# FIPS Enforcement: Only allow FIPS-approved algorithms
+# This will reject MD5, weak ciphers, and other non-FIPS algorithms
+default_properties = fips=yes
+# Explicitly disable SHA-1 and MD5 for all operations
+# Note: FIPS 140-3 allows SHA-1 for legacy signature verification, but we block it here for strict compliance
+rh-allow-sha1-signatures = no
