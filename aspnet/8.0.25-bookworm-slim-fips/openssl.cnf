@@ -1,0 +1,21 @@
+# OpenSSL Configuration with wolfProvider for FIPS 140-3
+#
+# This configuration enables wolfProvider as the cryptographic provider,
+# which routes all crypto operations through wolfSSL FIPS v5.9.1
+# (CMVP Certificate #4718)
+#
+# Environment variables required:
+#   OPENSSL_CONF=/usr/local/openssl/ssl/openssl.cnf
+#   OPENSSL_MODULES=/usr/local/openssl/lib/ossl-modules
+
+openssl_conf = openssl_init
+
+[openssl_init]
+providers = provider_sect
+
+[provider_sect]
+fips = fips_sect
+
+[fips_sect]
+activate = 1
+module = /usr/local/openssl/lib/ossl-modules/libwolfprov.so
