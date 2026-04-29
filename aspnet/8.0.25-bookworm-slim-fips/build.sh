@@ -4,7 +4,7 @@
 set -e
 
 # Default values
-IMAGE_NAME="aspnet"
+IMAGE_NAME="cr.root.io/aspnet"
 IMAGE_TAG="8.0.25-bookworm-slim-fips"
 WOLFSSL_PASSWORD=""
 PASSWORD_FILE=""

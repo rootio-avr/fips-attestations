@@ -4,7 +4,7 @@
 set -e
 
 # Default values
-IMAGE_NAME="python"
+IMAGE_NAME="cr.root.io/python"
 IMAGE_TAG="3.13.7-bookworm-slim-fips"
 WOLFSSL_PASSWORD=""
 PASSWORD_FILE=""
