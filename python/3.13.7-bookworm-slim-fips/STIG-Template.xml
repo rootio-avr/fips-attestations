@@ -1,0 +1,626 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  STIG Template for python:3.13.7-bookworm-slim-fips
+
+  Base: DISA STIG for Debian (Bookworm)
+  Adaptation: Container Environment (Docker/Kubernetes)
+  Date: 2026-03-21
+  Version: 1.0
+
+  This template adapts DISA STIG controls for containerized Debian Bookworm,
+  documenting container-appropriate exclusions and justifications.
+
+  Key Adaptations:
+  - Kernel-level controls: Host responsibility
+  - Boot loader controls: Not applicable (no direct boot)
+  - Systemd services: Limited (minimal container runtime)
+  - Physical access: Not applicable (virtual environment)
+  - Network services: Application-specific only
+
+  Reference: https://public.cyber.mil/stigs/downloads/
+-->
+
+<Benchmark xmlns="http://checklists.nist.gov/xccdf/1.2"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           id="python-stig-baseline"
+           xml:lang="en">
+
+  <status date="2026-03-21">accepted</status>
+
+  <title>STIG Baseline for python Container Image</title>
+
+  <description>
+    This STIG baseline template applies DISA Security Technical Implementation Guide
+    controls to the python container image (Debian Bookworm with Python 3.13.7 and wolfSSL FIPS).
+
+    Container Scope:
+    - Application runtime security
+    - Cryptographic enforcement
+    - Audit logging
+    - Access controls
+    - Package management
+
+    Host Responsibilities (Out of Scope):
+    - Kernel hardening
+    - Boot process security
+    - Physical security
+    - Host network configuration
+    - Host-level services
+  </description>
+
+  <version>1.0</version>
+  <metadata>
+    <creator>Root Security Team</creator>
+    <publisher>Root</publisher>
+    <contributor>DISA STIG</contributor>
+    <source>DISA STIG for Debian (Bookworm)</source>
+  </metadata>
+
+  <!-- Profile: Container FIPS Baseline -->
+  <Profile id="container-fips-baseline">
+    <title>Container FIPS Baseline</title>
+    <description>
+      Baseline profile for FIPS-compliant containerized applications on Debian Bookworm.
+      Includes only controls applicable to container runtime environments.
+    </description>
+
+    <!-- Select applicable rules -->
+    <select idref="SV-238197" selected="true"/> <!-- FIPS mode enabled -->
+    <select idref="SV-238198" selected="true"/> <!-- Crypto algorithms -->
+    <select idref="SV-238199" selected="true"/> <!-- Audit logging -->
+    <select idref="SV-238200" selected="true"/> <!-- Package integrity -->
+    <select idref="SV-238201" selected="true"/> <!-- Least privilege -->
+    <select idref="SV-238202" selected="true"/> <!-- File permissions -->
+    <select idref="SV-238203" selected="false"/> <!-- Kernel modules (N/A) -->
+    <select idref="SV-238204" selected="false"/> <!-- Boot loader (N/A) -->
+    <select idref="SV-238205" selected="false"/> <!-- Systemd services (N/A) -->
+  </Profile>
+
+  <!-- =================================================================== -->
+  <!-- CATEGORY I: HIGH SEVERITY                                           -->
+  <!-- =================================================================== -->
+
+  <Group id="V-238197">
+    <title>SRG-OS-000033-GPOS-00014</title>
+    <description>
+      The Debian operating system must implement FIPS-validated cryptographic mechanisms.
+    </description>
+
+    <Rule id="SV-238197r653787_rule" severity="high">
+      <version>DEBIAN-BOOKWORM-010001</version>
+      <title>Debian must use FIPS-validated cryptographic mechanisms.</title>
+
+      <description>
+        Use of weak or untested encryption algorithms undermines the purposes of utilizing
+        encryption to protect data. The operating system must implement cryptographic modules
+        adhering to the higher standards approved by the federal government.
+
+        Container Implementation:
+        - wolfSSL FIPS v5.8.2 (Certificate #4718)
+        - Python 3.13.7 runtime with ssl module
+        - wolfProvider v1.0.2 - OpenSSL 3.0+ provider routing to wolfSSL FIPS
+        - OpenSSL 3.0.18 provider interface with FIPS property filtering
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content-ref href="python-oval.xml" name="oval:fips:def:1"/>
+      </check-content-ref>
+      <check-content>
+        Verify FIPS mode is enabled in the container:
+
+        1. Check OpenSSL configuration:
+        $ docker exec &lt;container&gt; cat /etc/ssl/openssl.cnf | grep -A5 "libwolfprov"
+
+        Expected output:
+        [libwolfprov_sect]
+        activate = 1
+        module = /usr/local/lib/libwolfprov.so
+
+        [algorithm_sect]
+        default_properties = fips=yes
+
+        2. Verify Python ssl module reports OpenSSL with wolfProvider:
+        $ docker exec &lt;container&gt; python3 -c "import ssl; print(ssl.OPENSSL_VERSION)"
+
+        Expected: OpenSSL 3.0.18 30 Sep 2025
+
+        3. Run FIPS validation test:
+        $ docker run --rm python:3.13.7-bookworm-slim-fips python3 --version
+
+        Expected: Container starts successfully with FIPS KATs passing and provider verification logged.
+
+        If FIPS provider is not configured or validation fails, this is a finding.
+      </check-content>
+
+      <fix id="F-41366r653785_fix">
+        <fixtext fixref="F-41366r653785_fix">
+          Ensure container is built with FIPS-validated cryptographic modules:
+
+          1. Use wolfSSL FIPS v5.8.2 (Certificate #4718)
+          2. Build and install wolfProvider v1.0.2 (OpenSSL provider)
+          3. Configure /etc/ssl/openssl.cnf:
+             - providers = provider_sect
+             - libwolfprov = libwolfprov_sect
+             - activate = 1
+             - module = /usr/local/lib/libwolfprov.so
+             - default_properties = fips=yes (CRITICAL: enables FIPS property filtering)
+          4. Verify with /test-fips executable and integrity-check.sh
+          5. Confirm Python ssl module uses OpenSSL 3.0.18
+
+          Rebuild container if FIPS mode is not properly configured.
+        </fixtext>
+      </fix>
+
+      <ident system="http://cce.mitre.org">CCE-85877-2</ident>
+      <fixtext>Configure FIPS mode for the container</fixtext>
+    </Rule>
+
+    <!-- Implementation Status -->
+    <reference>
+      <dc:title>POC Validation Report</dc:title>
+      <dc:source>python/3.13.7-bookworm-slim-fips/POC-VALIDATION-REPORT.md</dc:source>
+      <dc:subject>Test Case 3: OS FIPS Status Check</dc:subject>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238198">
+    <title>SRG-OS-000396-GPOS-00176</title>
+    <description>
+      The Debian operating system must block non-FIPS approved cryptographic algorithms.
+    </description>
+
+    <Rule id="SV-238198r653790_rule" severity="high">
+      <version>DEBIAN-BOOKWORM-010002</version>
+      <title>Debian must block MD5 and weak cryptographic hash functions.</title>
+
+      <description>
+        Unapproved mechanisms that are used for authentication to the cryptographic module are
+        not verified and therefore cannot be relied upon to provide confidentiality or integrity.
+
+        Container Implementation:
+        - MD5: Blocked at OpenSSL EVP API level via FIPS property filtering (default_properties=fips=yes)
+        - 3DES, RC4, DES, DSA: Blocked by wolfProvider (0 cipher suites available)
+        - SHA-1 for new TLS: Blocked (0 SHA-1 cipher suites)
+        - SHA-1 for verification: Available (legacy cert verification - FIPS 140-3 compliant)
+        - Enforcement layer: OpenSSL 3.0.18 provider + openssl.cnf configuration
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify non-FIPS algorithms are blocked:
+
+          1. Test MD5 blocking at OpenSSL level:
+          $ docker exec &lt;container&gt; bash -c "echo -n 'test' | openssl dgst -md5"
+
+          Expected: Error setting digest (unsupported)
+
+          2. Check available cipher suites (should be 14 FIPS-approved only):
+          $ docker exec &lt;container&gt; python3 -c "import ssl; print(len(ssl.create_default_context().get_ciphers()))"
+
+          Expected: 14
+
+          3. Run FIPS verification test:
+          $ docker exec &lt;container&gt; python3 /diagnostics/test-fips-verification.py
+
+          Expected: Test 6 (Non-FIPS Algorithm Rejection) - PASS: MD5 BLOCKED at OpenSSL level
+
+          If MD5 or weak algorithms are available, this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41367r653788_fix">
+        <fixtext fixref="F-41367r653788_fix">
+          Configure OpenSSL FIPS property filtering:
+
+          1. Edit /etc/ssl/openssl.cnf
+          2. Add algorithm section with FIPS property filtering:
+             [algorithm_sect]
+             default_properties = fips=yes
+
+          3. Ensure wolfProvider only marks FIPS-approved algorithms with fips=yes property
+          4. Verify MD5 blocking: echo -n 'test' | openssl dgst -md5
+          5. Verify only 14 FIPS cipher suites available
+
+          Rebuild container with proper openssl.cnf configuration.
+        </fixtext>
+      </fix>
+
+      <ident system="http://cce.mitre.org">CCE-85878-0</ident>
+      <fixtext>Configure algorithm blocking for the container</fixtext>
+    </Rule>
+
+    <!-- Implementation Status -->
+    <reference>
+      <dc:title>POC Validation Report</dc:title>
+      <dc:source>python/3.13.7-bookworm-slim-fips/POC-VALIDATION-REPORT.md</dc:source>
+      <dc:subject>Test Case 1: Algorithm Enforcement via wolfProvider</dc:subject>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238199">
+    <title>SRG-OS-000342-GPOS-00133</title>
+    <description>
+      The Debian operating system must generate audit records for privileged activities.
+    </description>
+
+    <Rule id="SV-238199r653793_rule" severity="medium">
+      <version>DEBIAN-BOOKWORM-020001</version>
+      <title>Debian must log security-relevant events.</title>
+
+      <description>
+        Audit logging ensures accountability and enables detection of security violations.
+
+        Container Implementation:
+        - Entrypoint validation: docker-entrypoint.sh
+        - Library integrity checks: SHA-256 verification via integrity-check.sh
+        - FIPS KAT execution: /test-fips on every startup
+        - Python ssl module verification: fips-init-check.py
+        - Container logs: docker logs (stdout/stderr)
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify audit logging is configured:
+
+          1. Check entrypoint validation script exists:
+          $ docker exec &lt;container&gt; cat /docker-entrypoint.sh | grep "integrity-check"
+
+          Expected: integrity-check.sh execution present
+
+          2. View container startup logs:
+          $ docker logs &lt;container-id&gt;
+
+          Expected events:
+          - Library checksum verification
+          - FIPS KAT execution
+          - FIPS container verification
+          - Python ssl module validation
+
+          3. Verify integrity check script:
+          $ docker exec &lt;container&gt; cat /scripts/integrity-check.sh
+
+          Expected: SHA-256 verification of libwolfssl.so and libwolfprov.so
+
+          If logging is not configured or events are not logged, this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41368r653791_fix">
+        <fixtext fixref="F-41368r653791_fix">
+          Configure audit logging:
+
+          1. Ensure docker-entrypoint.sh executes validation checks
+          2. Ensure integrity-check.sh validates library checksums
+          3. Ensure /test-fips runs FIPS KATs on startup
+          4. Verify all validation output goes to stdout/stderr
+          5. Container should exit on validation failure (fail-fast)
+
+          Rebuild container with proper entrypoint and validation scripts.
+        </fixtext>
+      </fix>
+
+      <ident system="http://cce.mitre.org">CCE-85879-8</ident>
+      <fixtext>Configure audit logging for the container</fixtext>
+    </Rule>
+
+    <!-- Implementation Status -->
+    <reference>
+      <dc:title>POC Validation Report</dc:title>
+      <dc:source>python/3.13.7-bookworm-slim-fips/POC-VALIDATION-REPORT.md</dc:source>
+      <dc:subject>Test Case 2: Python Cryptographic Validation</dc:subject>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+  <!-- CATEGORY II: MEDIUM SEVERITY                                        -->
+  <!-- =================================================================== -->
+
+  <Group id="V-238200">
+    <title>SRG-OS-000480-GPOS-00227</title>
+    <description>
+      The Debian operating system must verify package integrity.
+    </description>
+
+    <Rule id="SV-238200r653796_rule" severity="medium">
+      <version>DEBIAN-BOOKWORM-020002</version>
+      <title>Debian must verify package and library integrity.</title>
+
+      <description>
+        Package integrity verification ensures that software has not been tampered with.
+
+        Container Implementation:
+        - Library checksums: SHA-256 verification via integrity-check.sh
+        - wolfSSL FIPS: In-core integrity hash validated via fips-hash.sh
+        - SBOM generated: SPDX 2.3 format
+        - Image signed: Cosign signature
+        - VEX statement: Vulnerability tracking
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify package integrity:
+
+          1. Check library integrity script:
+          $ docker exec &lt;container&gt; /scripts/integrity-check.sh
+
+          Expected: All integrity checks passed
+
+          2. Verify FIPS KAT executable:
+          $ docker exec &lt;container&gt; /test-fips
+
+          Expected: FIPS KAT passed successfully
+
+          3. Check for SBOM:
+          $ ls compliance/SBOM-python-3.13.7-bookworm-slim-fips.spdx.json
+
+          Expected: File exists
+
+          4. Verify image signature:
+          $ cosign verify python:3.13.7-bookworm-slim-fips
+
+          Expected: Signature valid
+
+          If integrity cannot be verified, this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41369r653794_fix">
+        <fixtext fixref="F-41369r653794_fix">
+          Configure package integrity verification:
+
+          1. Generate SHA-256 checksums during build
+          2. Store checksums in /opt/wolfssl-fips/checksums/libraries.sha256
+          3. Create integrity-check.sh script
+          4. Execute fips-hash.sh during wolfSSL build
+          5. Generate SPDX SBOM
+          6. Sign image with Cosign
+
+          Rebuild container with integrity verification enabled.
+        </fixtext>
+      </fix>
+
+      <ident system="http://cce.mitre.org">CCE-85880-6</ident>
+      <fixtext>Configure package integrity verification</fixtext>
+    </Rule>
+
+    <!-- Implementation Status -->
+    <reference>
+      <dc:title>POC Validation Report</dc:title>
+      <dc:source>python/3.13.7-bookworm-slim-fips/POC-VALIDATION-REPORT.md</dc:source>
+      <dc:subject>Success Criteria: Compliance Artifacts</dc:subject>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238201">
+    <title>SRG-OS-000480-GPOS-00228</title>
+    <description>
+      The Debian operating system must run processes as a non-root user.
+    </description>
+
+    <Rule id="SV-238201r653799_rule" severity="medium">
+      <version>DEBIAN-BOOKWORM-020003</version>
+      <title>Debian must enforce least privilege principle.</title>
+
+      <description>
+        Running processes as non-root limits the impact of security vulnerabilities.
+
+        Container Implementation:
+        - Container user: appuser (UID 1001)
+        - Group: appuser (GID 1001)
+        - Not running as root
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify container runs as non-root:
+
+          1. Check USER directive in image:
+          $ docker inspect python:3.13.7-bookworm-slim-fips | grep User
+
+          Expected: "User": "appuser" or "User": "1001"
+
+          2. Verify at runtime:
+          $ docker run --rm python:3.13.7-bookworm-slim-fips id
+
+          Expected: uid=1001(appuser) gid=1001(appuser)
+
+          If container runs as root (UID 0), this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41370r653797_fix">
+        <fixtext fixref="F-41370r653797_fix">
+          Configure non-root user:
+
+          1. Create user in Dockerfile: RUN useradd -m -u 1001 appuser
+          2. Set ownership: RUN chown -R appuser:appuser /app
+          3. Switch user: USER appuser
+          4. Verify: docker run --rm image id
+
+          Rebuild container with non-root user.
+        </fixtext>
+      </fix>
+
+      <ident system="http://cce.mitre.org">CCE-85881-4</ident>
+      <fixtext>Configure non-root user for the container</fixtext>
+    </Rule>
+
+    <!-- Implementation Status -->
+    <reference>
+      <dc:title>POC Validation Report</dc:title>
+      <dc:source>python/3.13.7-bookworm-slim-fips/POC-VALIDATION-REPORT.md</dc:source>
+      <dc:subject>Success Criteria: Additional Security Controls</dc:subject>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+
+  <Group id="V-238202">
+    <title>SRG-OS-000480-GPOS-00229</title>
+    <description>
+      The Debian operating system must restrict file permissions.
+    </description>
+
+    <Rule id="SV-238202r653802_rule" severity="medium">
+      <version>DEBIAN-BOOKWORM-020004</version>
+      <title>Debian must restrict file permissions to prevent unauthorized access.</title>
+
+      <description>
+        Proper file permissions prevent unauthorized modification of system files.
+
+        Container Implementation:
+        - Native libraries: 0644 (libwolfssl.so*, libwolfprov.so*)
+        - Configuration: 0644 (openssl.cnf)
+        - Scripts: 0755 (docker-entrypoint.sh, integrity-check.sh)
+        - No world-writable files
+      </description>
+
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content>
+          Verify file permissions:
+
+          1. Check for world-writable files:
+          $ docker run --rm python:3.13.7-bookworm-slim-fips find / -type f -perm -002 2&gt;/dev/null
+
+          Expected: No output (no world-writable files)
+
+          2. Check sensitive file permissions:
+          $ docker exec &lt;container&gt; ls -la /usr/local/lib/libwolfssl.so*
+          $ docker exec &lt;container&gt; ls -la /usr/local/lib/libwolfprov.so*
+          $ docker exec &lt;container&gt; ls -la /etc/ssl/openssl.cnf
+          $ docker exec &lt;container&gt; ls -la /scripts/integrity-check.sh
+
+          Expected:
+          - Libraries: -rw-r--r-- (0644)
+          - Configuration: -rw-r--r-- (0644)
+          - Scripts: -rwxr-xr-x (0755)
+
+          If world-writable files exist or permissions are incorrect, this is a finding.
+        </check-content>
+      </check>
+
+      <fix id="F-41371r653800_fix">
+        <fixtext fixref="F-41371r653800_fix">
+          Configure proper file permissions:
+
+          1. Set library permissions: chmod 644 /usr/local/lib/libwolfssl.so*
+          2. Set library permissions: chmod 644 /usr/local/lib/libwolfprov.so*
+          3. Set config permissions: chmod 644 /etc/ssl/openssl.cnf
+          4. Set script permissions: chmod 755 /scripts/*.sh
+          5. Remove world-writable: find / -type f -perm -002 -exec chmod o-w {} \;
+
+          Rebuild container with proper file permissions.
+        </fixtext>
+      </fix>
+
+      <ident system="http://cce.mitre.org">CCE-85882-2</ident>
+      <fixtext>Configure file permissions for the container</fixtext>
+    </Rule>
+
+    <!-- Implementation Status -->
+    <reference>
+      <dc:title>POC Validation Report</dc:title>
+      <dc:source>python/3.13.7-bookworm-slim-fips/POC-VALIDATION-REPORT.md</dc:source>
+      <dc:subject>Success Criteria: Additional Security Controls</dc:subject>
+    </reference>
+  </Group>
+
+  <!-- =================================================================== -->
+  <!-- NOT APPLICABLE RULES (Container Exclusions)                         -->
+  <!-- =================================================================== -->
+
+  <Group id="V-238203">
+    <title>SRG-OS-000480-GPOS-00230</title>
+    <description>
+      Kernel module loading restrictions (NOT APPLICABLE - Host Responsibility)
+    </description>
+
+    <Rule id="SV-238203r653805_rule" severity="medium">
+      <version>DEBIAN-BOOKWORM-N/A-001</version>
+      <title>Kernel module loading (N/A for containers)</title>
+
+      <description>
+        NOT APPLICABLE: Containers share the host kernel and cannot load kernel modules independently.
+        This control is the responsibility of the container host.
+
+        Justification:
+        - Containers use the host kernel
+        - No independent kernel module loading capability
+        - Host-level security control
+
+        Mitigation: Deploy container on STIG-compliant host with proper kernel hardening.
+      </description>
+
+      <check-content>
+        This check is not applicable to containers. Verify host compliance instead.
+      </check-content>
+
+      <fix><fixtext>Configure kernel module restrictions on container host.</fixtext></fix>
+    </Rule>
+  </Group>
+
+  <Group id="V-238204">
+    <title>SRG-OS-000480-GPOS-00231</title>
+    <description>
+      Boot loader configuration (NOT APPLICABLE - No Boot Process)
+    </description>
+
+    <Rule id="SV-238204r653808_rule" severity="high">
+      <version>DEBIAN-BOOKWORM-N/A-002</version>
+      <title>Boot loader password (N/A for containers)</title>
+
+      <description>
+        NOT APPLICABLE: Containers do not have boot loaders. They are started by container runtime.
+
+        Justification:
+        - Containers don't boot; they are started by runtime (Docker, containerd)
+        - No GRUB or boot loader present
+        - Process execution, not boot sequence
+
+        Mitigation: N/A - containers use runtime start, not boot.
+      </description>
+
+      <check-content>
+        This check is not applicable to containers. No boot process exists.
+      </check-content>
+
+      <fix><fixtext>N/A - containers do not have boot loaders.</fixtext></fix>
+    </Rule>
+  </Group>
+
+  <Group id="V-238205">
+    <title>SRG-OS-000480-GPOS-00232</title>
+    <description>
+      Systemd service hardening (NOT APPLICABLE - Minimal Container)
+    </description>
+
+    <Rule id="SV-238205r653811_rule" severity="medium">
+      <version>DEBIAN-BOOKWORM-N/A-003</version>
+      <title>Systemd hardening (N/A for containers)</title>
+
+      <description>
+        NOT APPLICABLE: Minimal containers use entrypoint scripts, not systemd.
+
+        Justification:
+        - Minimal container uses entrypoint (/docker-entrypoint.sh)
+        - No systemd or init system
+        - Single-purpose application container
+
+        Mitigation: Process supervision handled by container runtime (Docker, Kubernetes).
+      </description>
+
+      <check-content>
+        This check is not applicable to containers. No systemd present.
+      </check-content>
+
+      <fix><fixtext>Use container runtime supervision instead of systemd.</fixtext></fix>
+    </Rule>
+  </Group>
+
+</Benchmark>

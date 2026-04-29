@@ -180,7 +180,7 @@ All cryptographic operations occur within the FIPS boundary:
 # Generate SLSA provenance (optional)
 ./compliance/generate-slsa-attestation.sh
 
-# Output: slsa-provenance-python-3.13.7-slim-bookworm-fips.json
+# Output: slsa-provenance-python-3.13.7-bookworm-slim-fips.json
 ```
 
 **Provenance Contents**:
@@ -196,7 +196,7 @@ All cryptographic operations occur within the FIPS boundary:
   "_type": "https://in-toto.io/Statement/v0.1",
   "subject": [
     {
-      "name": "python:3.13.7-slim-bookworm-fips",
+      "name": "python:3.13.7-bookworm-slim-fips",
       "digest": {
         "sha256": "..."
       }
@@ -245,8 +245,8 @@ All cryptographic operations occur within the FIPS boundary:
 ```bash
 # Generate SBOM (optional)
 trivy image --format spdx-json \
-  -o SBOM-python-3.13.7-slim-bookworm-fips.spdx.json \
-  python:3.13.7-slim-bookworm-fips
+  -o SBOM-python-3.13.7-bookworm-slim-fips.spdx.json \
+  python:3.13.7-bookworm-slim-fips
 ```
 
 **SBOM Contents**:
@@ -260,7 +260,7 @@ trivy image --format spdx-json \
 {
   "spdxVersion": "SPDX-2.3",
   "dataLicense": "CC0-1.0",
-  "name": "python:3.13.7-slim-bookworm-fips",
+  "name": "python:3.13.7-bookworm-slim-fips",
   "packages": [
     {
       "name": "wolfSSL",
@@ -302,7 +302,7 @@ trivy image --format spdx-json \
 # Generate VEX document (optional)
 ./compliance/generate-vex.sh
 
-# Output: vex-python-3.13.7-slim-bookworm-fips.json
+# Output: vex-python-3.13.7-bookworm-slim-fips.json
 ```
 
 **Purpose**: Document known vulnerabilities and their exploitability status
@@ -318,7 +318,7 @@ trivy image --format spdx-json \
   "statements": [
     {
       "vulnerability": "CVE-YYYY-NNNNN",
-      "products": ["python:3.13.7-slim-bookworm-fips"],
+      "products": ["python:3.13.7-bookworm-slim-fips"],
       "status": "not_affected",
       "justification": "component_not_present",
       "impact_statement": "Affected component not included in image"
@@ -333,12 +333,12 @@ trivy image --format spdx-json \
 
 ```bash
 # Sign image
-cosign sign --key cosign.key python:3.13.7-slim-bookworm-fips
+cosign sign --key cosign.key python:3.13.7-bookworm-slim-fips
 
 # Verify signature
 cosign verify \
   --key cosign.pub \
-  python:3.13.7-slim-bookworm-fips
+  python:3.13.7-bookworm-slim-fips
 ```
 
 **Signature Attestations**:
@@ -413,7 +413,7 @@ h = hashlib.sha256(b'test').hexdigest()
 **Manual POST Test**:
 ```bash
 # Run FIPS KAT test executable
-docker run --rm python:3.13.7-slim-bookworm-fips /test-fips
+docker run --rm python:3.13.7-bookworm-slim-fips /test-fips
 
 # Output:
 # FIPS 140-3 Known Answer Tests (KAT)
@@ -471,7 +471,7 @@ Providers:
 **FIPS Property Filtering Verification**:
 ```bash
 # MD5 is blocked at OpenSSL level
-docker run --rm python:3.13.7-slim-bookworm-fips \
+docker run --rm python:3.13.7-bookworm-slim-fips \
   bash -c "echo -n 'test' | openssl dgst -md5"
 
 # Output:
@@ -628,14 +628,14 @@ Test 2.2: TLS 1.2 Protocol Support
 **Test Evidence**:
 ```bash
 # MD5 blocked at OpenSSL EVP API
-$ docker run --rm python:3.13.7-slim-bookworm-fips \
+$ docker run --rm python:3.13.7-bookworm-slim-fips \
   bash -c "echo -n 'test' | openssl dgst -md5"
 
 Error setting digest
 error:0308010C:digital envelope routines:inner_evp_generic_fetch:unsupported
 
 # Python hashlib.md5() may still work (uses Python built-in)
-$ docker run --rm python:3.13.7-slim-bookworm-fips python3 -c \
+$ docker run --rm python:3.13.7-bookworm-slim-fips python3 -c \
   "import hashlib; print(hashlib.md5(b'test').hexdigest())"
 
 098f6bcd4621d373cade4e832627b4f6
@@ -715,7 +715,7 @@ OpenSCAP SCAP Compliance Scan Results
 
 Profile: DISA STIG for Debian 12 Bookworm (Container-Adapted)
 Scan Date: 2026-03-21
-Target: python:3.13.7-slim-bookworm-fips
+Target: python:3.13.7-bookworm-slim-fips
 
 Overall Score: 100.0% (all applicable rules passed)
 
@@ -800,7 +800,7 @@ Package Management: PASS
 - Build Time: ~25 minutes
 
 ## Artifacts
-- Image: python:3.13.7-slim-bookworm-fips
+- Image: python:3.13.7-bookworm-slim-fips
 - Digest: sha256:abcdef123456...
 - Size: ~400 MB
 
@@ -841,8 +841,8 @@ cd compliance
 
 # Generate SBOM (optional)
 trivy image --format spdx-json \
-  -o SBOM-python-3.13.7-slim-bookworm-fips.spdx.json \
-  python:3.13.7-slim-bookworm-fips
+  -o SBOM-python-3.13.7-bookworm-slim-fips.spdx.json \
+  python:3.13.7-bookworm-slim-fips
 
 # Generate VEX (optional)
 ./generate-vex.sh
@@ -859,7 +859,7 @@ trivy image --format spdx-json \
 ```bash
 cosign verify \
   --key compliance/cosign.pub \
-  python:3.13.7-slim-bookworm-fips
+  python:3.13.7-bookworm-slim-fips
 ```
 
 **Verify SBOM** (optional):
@@ -868,43 +868,43 @@ cosign verify \
 cosign verify-attestation \
   --key compliance/cosign.pub \
   --type spdx \
-  python:3.13.7-slim-bookworm-fips
+  python:3.13.7-bookworm-slim-fips
 ```
 
 **Verify Library Integrity** (runtime):
 ```bash
-docker run --rm python:3.13.7-slim-bookworm-fips \
+docker run --rm python:3.13.7-bookworm-slim-fips \
   /opt/wolfssl-fips/scripts/integrity-check.sh
 ```
 
 **Verify FIPS Configuration** (runtime):
 ```bash
 # Check wolfProvider is active
-docker run --rm python:3.13.7-slim-bookworm-fips \
+docker run --rm python:3.13.7-bookworm-slim-fips \
   openssl list -providers | grep wolfprov
 
 # Check FIPS property filtering
-docker run --rm python:3.13.7-slim-bookworm-fips \
+docker run --rm python:3.13.7-bookworm-slim-fips \
   grep "default_properties" /etc/ssl/openssl.cnf
 # Expected: default_properties = fips=yes
 ```
 
 **Verify FIPS KAT Tests** (runtime):
 ```bash
-docker run --rm python:3.13.7-slim-bookworm-fips /test-fips
+docker run --rm python:3.13.7-bookworm-slim-fips /test-fips
 # Expected: All FIPS KAT tests passed successfully
 ```
 
 **Verify MD5 Blocking** (runtime):
 ```bash
-docker run --rm python:3.13.7-slim-bookworm-fips \
+docker run --rm python:3.13.7-bookworm-slim-fips \
   bash -c "echo -n 'test' | openssl dgst -md5"
 # Expected: Error setting digest
 ```
 
 **Verify Cipher Suites** (runtime):
 ```bash
-docker run --rm python:3.13.7-slim-bookworm-fips \
+docker run --rm python:3.13.7-bookworm-slim-fips \
   python3 /diagnostics/test-fips-verification.py
 # Expected: 14 FIPS ciphers, 0 weak ciphers
 ```
@@ -919,7 +919,7 @@ docker run --rm python:3.13.7-slim-bookworm-fips \
 # FIPS 140-3 Compliance Audit Report
 
 **System**: Python 3.13.7 FIPS Container
-**Version**: python:3.13.7-slim-bookworm-fips
+**Version**: python:3.13.7-bookworm-slim-fips
 **Audit Date**: [YYYY-MM-DD]
 **Auditor**: [Name]
 

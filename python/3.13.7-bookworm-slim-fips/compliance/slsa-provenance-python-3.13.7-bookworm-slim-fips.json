@@ -1,0 +1,93 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://slsa.dev/container-build/v1",
+      "externalParameters": {
+        "arch": "amd64",
+        "baseImage": {
+          "architecture": "amd64",
+          "digest": "30a6858af7461a8eb374212a6708c6b1b094906a0a96ceee61654fc6606f4eb2",
+          "image": "cr.root.io/python:3.13.7-bookworm-slim-fips"
+        },
+        "builder": "kaniko",
+        "outputImage": "cr.root.io/python:3.13.7-bookworm-slim-fips",
+        "packagesUpgraded": [
+          "pip"
+        ]
+      },
+      "internalParameters": {
+        "workflow": {
+          "avr_id": "avr_8f9f56f564fa4f2c83723a9d5a89d1ec",
+          "dockerfile_key": "org_90fb24fefd6542c08d28a2f84982d578/avr_8f9f56f564fa4f2c83723a9d5a89d1ec_Dockerfile",
+          "is_truncated": false,
+          "post_scan_id": "ascn_193b2533637e4c1ba322ec1e4ca8f223",
+          "pre_scan_id": "ascn_3cd1ee4500b54bfcb6b34caf088c7eae"
+        }
+      },
+      "resolvedDependencies": [
+        {
+          "uri": "cr.root.io/python:3.13.7-bookworm-slim-fips",
+          "digest": {
+            "sha256": "30a6858af7461a8eb374212a6708c6b1b094906a0a96ceee61654fc6606f4eb2"
+          },
+          "localName": "base-image",
+          "annotations": {
+            "architecture": "amd64",
+            "type": "container-image"
+          }
+        },
+        {
+          "digest": {
+            "sha256": ""
+          },
+          "localName": "dockerfile",
+          "annotations": {
+            "s3_key": "org_90fb24fefd6542c08d28a2f84982d578/avr_8f9f56f564fa4f2c83723a9d5a89d1ec_Dockerfile",
+            "type": "dockerfile"
+          }
+        },
+        {
+          "uri": "pkg:apt/debian/pip@25.0.1+root.io.1",
+          "digest": null,
+          "localName": "pip",
+          "annotations": {
+            "originVersion": "25.0.1",
+            "patchedVersion": "25.0.1+root.io.1",
+            "type": "root-patched-package"
+          }
+        }
+      ]
+    },
+    "runDetails": {
+      "builder": {
+        "id": "https://github.com/GoogleContainerTools/kaniko",
+        "version": {
+          "image": "gcr.io/kaniko-project/executor",
+          "tag": "debug"
+        }
+      },
+      "metadata": {
+        "invocationId": "avr_8f9f56f564fa4f2c83723a9d5a89d1ec",
+        "startedOn": "2026-03-23T11:59:47.685Z",
+        "finishedOn": "2026-03-23T12:06:53.554886509Z"
+      },
+      "byproducts": null
+    }
+  },
+  "subject": [
+    {
+      "name": "cr.root.io/python:3.13.7-bookworm-slim-fips",
+      "digest": {
+        "sha256": "30a6858af7461a8eb374212a6708c6b1b094906a0a96ceee61654fc6606f4eb2"
+      }
+    },
+    {
+      "name": "cr.root.io/python:3.13.7-bookworm-slim-fips_rootio",
+      "digest": {
+        "sha256": "30a6858af7461a8eb374212a6708c6b1b094906a0a96ceee61654fc6606f4eb2"
+      }
+    }
+  ],
+  "predicateType": "https://slsa.dev/provenance/v1"
+}

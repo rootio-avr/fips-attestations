@@ -401,9 +401,9 @@ Output:
 
 **Advantages:**
 
-1. **No Python Recompilation:**
-   - Uses stock Python 3.13.7 from official sources
-   - Python's `_ssl` extension links to OpenSSL dynamically
+1. **Python Compiled from Official Source:**
+   - Python 3.13.7 is built from the official CPython source tarball (GPG-verified)
+   - Python's `_ssl` and `_hashlib` extensions link to OpenSSL dynamically at runtime
 
 2. **Clean Separation:**
    - OpenSSL handles protocols (TLS, X.509)
@@ -424,8 +424,8 @@ Output:
 
 | Approach | Python Rebuild | FIPS Crypto | Protocol Layer | Complexity |
 |----------|----------------|-------------|----------------|------------|
-| **Provider-based** | No | wolfSSL FIPS | OpenSSL | Low |
-| Engine-based | No | wolfSSL FIPS | OpenSSL | Medium (deprecated) |
+| **Provider-based** | Source build | wolfSSL FIPS | OpenSSL | Low |
+| Engine-based | Source build | wolfSSL FIPS | OpenSSL | Medium (deprecated) |
 | Direct replacement | **Yes** | wolfSSL FIPS | wolfSSL | High |
 | Static linking | **Yes** | wolfSSL FIPS | wolfSSL | Very High |
 
@@ -721,60 +721,75 @@ FIPS 140-3 Implementation Guidance (IG) permits SHA-1 for:
 **Stage 1: wolfSSL FIPS 5.8.2**
 
 ```dockerfile
-FROM debian:bookworm-slim
+FROM cr.root.io/debian:bookworm-slim AS builder
 
-# Download validated source (exact hash verification)
-WORKDIR /usr/local/src/wolfssl-5.8.2-fips
-COPY wolfssl-5.8.2-fips.tar.gz /tmp/
-RUN tar xzf /tmp/wolfssl-5.8.2-fips.tar.gz
+# Download wolfSSL FIPS commercial archive (password-protected 7z)
+RUN --mount=type=secret,id=wolfssl_password \
+    wget -O /tmp/wolfssl.7z "${WOLFSSL_URL}"; \
+    7z x /tmp/wolfssl.7z -o/usr/src -p"$(cat /run/secrets/wolfssl_password)"; \
+    mv /usr/src/wolfssl* /usr/src/wolfssl
 
-# Configure for FIPS 140-3
-./configure \
-    --enable-fips=v5.8.2 \
-    --enable-aesni \
-    --enable-intelasm \
-    --enable-sp \
-    --enable-sp-asm \
-    --enable-tlsv12 \
-    --enable-tlsv13 \
-    --prefix=/usr/local
+# Configure for FIPS 140-3 v5
+cd /usr/src/wolfssl && ./configure \
+    --prefix=/usr/local \
+    --enable-fips=v5 \
+    --enable-opensslcoexist \
+    --enable-cmac \
+    --enable-keygen \
+    --enable-sha \
+    --enable-aesctr \
+    --enable-aesccm \
+    --enable-x963kdf \
+    --enable-compkey \
+    --enable-altcertchains \
+    --enable-certgen \
+    --enable-aeskeywrap \
+    --enable-enckeys \
+    --enable-base16 \
+    --with-eccminsz=192 \
+    CPPFLAGS="-DHAVE_AES_ECB -DWOLFSSL_AES_DIRECT -DWC_RSA_NO_PADDING \
+              -DWOLFSSL_PUBLIC_MP -DHAVE_PUBLIC_FFDHE -DWOLFSSL_DH_EXTRA \
+              -DWOLFSSL_PSS_LONG_SALT -DWOLFSSL_PSS_SALT_LEN_DISCOVER \
+              -DRSA_MIN_SIZE=2048"
 
-# Build and install
-make -j$(nproc)
-make install
+# Build, run fips-hash.sh to embed FIPS integrity hash, then install
+make -j$(nproc) && ./fips-hash.sh && make -j$(nproc) && make install
 
-# Result: /usr/local/lib/libwolfssl.so.44.0.0
+# Result: /usr/local/lib/libwolfssl.so*
 ```
 
 **Stage 2: wolfProvider 1.0.2**
 
 ```dockerfile
-# Clone wolfProvider
-git clone --depth=1 --branch v1.0.2 \
-    https://github.com/wolfSSL/wolfProvider.git
+# Download wolfProvider v1.0.2 source tarball
+wget -O /tmp/wolfprovider.tar.gz "${WOLFPROVIDER_URL}"
+tar --extract --directory /usr/src --file /tmp/wolfprovider.tar.gz
+mv /usr/src/wolfProvider* /usr/src/wolfProvider
 
-cd wolfProvider
+cd /usr/src/wolfProvider && autoreconf -ivf
 
-# Configure to use wolfSSL FIPS
+# Configure against wolfSSL installed in /usr/local
 ./configure \
-    --with-wolfssl=/usr/local \
-    --prefix=/usr/local
+    --prefix=/usr/local \
+    --with-wolfssl=/usr/local
 
-# Build and install
-make -j$(nproc)
-make install
+make -j$(nproc) && make install
 
 # Result: /usr/local/lib/libwolfprov.so
 ```
 
-**Stage 3: OpenSSL 3.0.18 Configuration**
+**Stage 3: OpenSSL 3.0 (from base image)**
 
-```dockerfile
-# Install Debian's OpenSSL 3.0.18
-apt-get install -y openssl libssl3
+OpenSSL is **not installed explicitly** — it is provided by the base image
+`cr.root.io/debian:bookworm-slim` (OpenSSL 3.0.x from Debian Bookworm).
+The builder stage installs `libssl-dev` only as a compile-time dependency for
+building Python; the runtime stage inherits OpenSSL shared libraries directly
+from the base image.
 
-# Configure provider
-cat > /etc/ssl/openssl.cnf <<EOF
+The wolfProvider is wired in by copying a custom `openssl.cnf`:
+
+```ini
+# /etc/ssl/openssl.cnf
 openssl_conf = openssl_init
 
 [openssl_init]
@@ -790,21 +805,44 @@ module = /usr/local/lib/libwolfprov.so
 
 [algorithm_sect]
 default_properties = fips=yes
-EOF
-
-# Set environment
-ENV OPENSSL_CONF=/etc/ssl/openssl.cnf
-ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ```
 
-**Stage 4: Python 3.13.7**
+Environment variables activate the configuration at runtime:
 
 ```dockerfile
-# Install Python 3.13.7 (standard Debian build)
-apt-get install -y python3.13 python3.13-dev
+ENV OPENSSL_CONF=/etc/ssl/openssl.cnf
+ENV OPENSSL_MODULES=/usr/local/lib
+ENV LD_LIBRARY_PATH=/usr/local/lib
+```
 
-# Python automatically links to system OpenSSL
-# No Python recompilation needed!
+**Stage 4: Python 3.13.7 (compiled from source)**
+
+Python is **compiled from source** in the builder stage against the system
+OpenSSL headers (`libssl-dev`). It is NOT installed from Debian packages.
+
+```dockerfile
+# Download and GPG-verify Python 3.13.7 source tarball
+wget -O python.tar.xz "https://www.python.org/ftp/python/3.13.7/Python-3.13.7.tar.xz"
+echo "$PYTHON_SHA256 *python.tar.xz" | sha256sum -c -
+
+cd /usr/src/python
+
+# Patch: remove scrypt support (not available in wolfSSL)
+sed -i 's/#define PY_OPENSSL_HAS_SCRYPT 1//g' Modules/_hashopenssl.c
+
+./configure \
+    --enable-loadable-sqlite-extensions \
+    --enable-option-checking=fatal \
+    --enable-shared \
+    --with-lto \
+    --with-ensurepip
+
+make -j$(nproc) && make install
+
+# Result: /usr/local/bin/python3*, /usr/local/lib/python3.13/,
+#         /usr/local/lib/libpython3.13.so*
+# Python's _ssl and _hashlib extensions link dynamically to the system
+# libssl.so.3 / libcrypto.so.3, which load wolfProvider at runtime.
 ```
 
 ### Verification Steps
@@ -1004,7 +1042,7 @@ Use provider-based architecture with OpenSSL 3.0.18 and wolfProvider 1.0.2.
 **Rationale:**
 
 1. **Standards Compliance:** Provider API is the official OpenSSL 3.0+ mechanism
-2. **No Python Rebuild:** Works with standard Python builds, easier maintenance
+2. **Official Python Source:** Built from GPG-verified CPython source; no patching of the OpenSSL layer required
 3. **Separation of Concerns:** OpenSSL handles protocols, wolfSSL handles crypto
 4. **Future-proof:** Engines are deprecated, providers are the future
 5. **Community Support:** Active development and support from both OpenSSL and wolfSSL
